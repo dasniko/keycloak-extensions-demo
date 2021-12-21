@@ -1,6 +1,7 @@
 package dasniko.keycloak.tokenmapper;
 
 import dasniko.testcontainers.keycloak.KeycloakContainer;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.keycloak.TokenVerifier;
 import org.keycloak.admin.client.Keycloak;
@@ -21,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
  */
+@Slf4j
 public class LuckyNumberMapperTest {
 
 	@Test
@@ -46,7 +48,7 @@ public class LuckyNumberMapperTest {
 
 			AccessToken accessToken = verifier.getToken();
 			int luckyNumber = (int) accessToken.getOtherClaims().get("myLuckyNumber");
-			System.out.printf("Your LuckyNumber is %s%n", luckyNumber);
+			log.info("Your LuckyNumber is {}", luckyNumber);
 
 			assertTrue(luckyNumber >= 11);
 			assertTrue(luckyNumber <= 88);
