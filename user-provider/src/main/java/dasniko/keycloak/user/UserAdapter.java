@@ -3,14 +3,18 @@ package dasniko.keycloak.user;
 import dasniko.keycloak.user.external.Peanut;
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.component.ComponentModel;
+import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.storage.StorageId;
 import org.keycloak.storage.adapter.AbstractUserAdapter;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -68,6 +72,22 @@ public class UserAdapter extends AbstractUserAdapter.Streams {
 	public Stream<String> getAttributeStream(String name) {
 		Map<String, List<String>> attributes = getAttributes();
 		return (attributes.containsKey(name)) ? attributes.get(name).stream() : Stream.empty();
+	}
+
+	@Override
+	protected Set<GroupModel> getGroupsInternal() {
+		if (user.getGroups() != null) {
+			return user.getGroups().stream().map(UserGroupModel::new).collect(Collectors.toSet());
+		}
+		return Set.of();
+	}
+
+	@Override
+	protected Set<RoleModel> getRoleMappingsInternal() {
+		if (user.getRoles() != null) {
+			return user.getRoles().stream().map(roleName -> new UserRoleModel(roleName, realm)).collect(Collectors.toSet());
+		}
+		return Set.of();
 	}
 
 }
