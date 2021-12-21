@@ -8,7 +8,7 @@
 		<version>1.0-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>keycloak-session-restrictor</artifactId>
+	<artifactId>session-restrictor</artifactId>
 	<version>1.0-SNAPSHOT</version>
 
 	<dependencies>

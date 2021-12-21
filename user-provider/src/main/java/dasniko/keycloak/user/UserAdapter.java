@@ -1,47 +1,73 @@
 package dasniko.keycloak.user;
 
+import dasniko.keycloak.user.external.Peanut;
+import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
-import org.keycloak.models.RoleModel;
+import org.keycloak.models.UserModel;
 import org.keycloak.storage.StorageId;
-import org.keycloak.storage.adapter.AbstractUserAdapterFederatedStorage;
+import org.keycloak.storage.adapter.AbstractUserAdapter;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * @author Niko Köbler, http://www.n-k.de, @dasniko
  */
-public class UserAdapter extends AbstractUserAdapterFederatedStorage {
+public class UserAdapter extends AbstractUserAdapter.Streams {
 
-	private final DemoUser user;
-	private final Set<RoleModel> userRoles = new HashSet<>();
+	private final Peanut user;
 
-	public UserAdapter(KeycloakSession session, RealmModel realm, ComponentModel model, DemoUser user) {
+	public UserAdapter(KeycloakSession session, RealmModel realm, ComponentModel model, Peanut user) {
 		super(session, realm, model);
-		this.storageId = new StorageId(storageProviderModel.getId(), user.getId());
+		this.storageId = new StorageId(storageProviderModel.getId(), user.getUsername());
 		this.user = user;
-		setFirstName(user.getFirstName());
-		setLastName(user.getLastName());
-		setEmail(user.getEmail());
-		setEnabled(user.isEnabled());
-		setCreatedTimestamp(user.getCreated());
-		user.getRoles().forEach(role -> userRoles.add(new UserRoleModel(role, realm)));
 	}
 
 	@Override
 	public String getUsername() {
-		return user.getUsername();
+		return user.getEmail();
 	}
 
 	@Override
-	public void setUsername(String username) {
-		user.setUsername(username);
+	public String getFirstName() {
+		return user.getFirstName();
 	}
 
 	@Override
-	protected Set<RoleModel> getFederatedRoleMappings() {
-		return userRoles;
+	public String getLastName() {
+		return user.getLastName();
 	}
+
+	@Override
+	public String getEmail() {
+		return user.getEmail();
+	}
+
+	@Override
+	public String getFirstAttribute(String name) {
+		List<String> list = getAttributes().getOrDefault(name, List.of());
+		return list.isEmpty() ? null : list.get(0);
+	}
+
+	@Override
+	public Map<String, List<String>> getAttributes() {
+		MultivaluedHashMap<String, String> attributes = new MultivaluedHashMap<>();
+		attributes.add(UserModel.USERNAME, getUsername());
+		attributes.add(UserModel.EMAIL, getEmail());
+		attributes.add(UserModel.FIRST_NAME, getFirstName());
+		attributes.add(UserModel.LAST_NAME, getLastName());
+		attributes.add("birthday", user.getBirthday());
+		attributes.add("gender", user.getGender());
+		return attributes;
+	}
+
+	@Override
+	public Stream<String> getAttributeStream(String name) {
+		Map<String, List<String>> attributes = getAttributes();
+		return (attributes.containsKey(name)) ? attributes.get(name).stream() : Stream.empty();
+	}
+
 }
