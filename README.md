@@ -7,12 +7,24 @@ Demos and playground for [Keycloak](https://www.keycloak.org) extensions, provid
 
 ## Keycloak User Storage Provider
 
-[Flintstones](./user-provider) - demo user storage provider, providing some members of the flintstones families in a read-only mode.
+[PeanutsUserProvider](./user-provider) - demo user storage provider, providing some members of the peanuts in a read-only mode, via an external API.
 
 ## Keycloak Session Restrictor Event Listener
 
-[SessionRestrictor](./session-restrictor) - demo event listener for Keycloak, allowing only the last session to survive, if a user logs in on multiple browsers/devices.
+[Highlander](./session-restrictor) - demo event listener for Keycloak, allowing only the last session to survive (_Highlander mode - there must only be one!_), if a user logs in on multiple browsers/devices.
 
 ## Custom Keycloak OIDC protocol token mapper
 
 [LuckyNumberMapper](./tokenmapper) - example custom token mapper for Keycloak using the OIDC protocol.
+
+## Keycloak REST endpoint/resource extension
+
+[RestExample](./rest-endpoint) _t.b.d._
+
+## Custom Required Action
+
+[RequiredAction](./requiredaction) _t.b.d._
+
+## Custom Action Token
+
+[ActionToken](./actiontoken) _t.b.d._
