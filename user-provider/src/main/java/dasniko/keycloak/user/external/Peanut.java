@@ -1,20 +1,20 @@
 package dasniko.keycloak.user.external;
 
-import lombok.Value;
+import lombok.Data;
 
 import java.util.List;
 
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
  */
-@Value
+@Data
 public class Peanut {
-    String username;
-    String firstName;
-    String lastName;
-    String email;
-    String birthday;
-    String gender;
-    List<String> groups;
-    List<String> roles;
+	private String username;
+	private String firstName;
+	private String lastName;
+	private String email;
+	private String birthday;
+	private String gender;
+	private List<String> groups;
+	private List<String> roles;
 }

@@ -32,7 +32,7 @@ public class UserAdapter extends AbstractUserAdapter.Streams {
 
 	@Override
 	public String getUsername() {
-		return user.getEmail();
+		return user.getUsername();
 	}
 
 	@Override

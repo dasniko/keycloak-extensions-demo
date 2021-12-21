@@ -41,7 +41,7 @@ import java.util.stream.Stream;
  * @author Niko Köbler, http://www.n-k.de, @dasniko
  */
 @JBossLog
-public class DemoUserStorageProvider implements UserStorageProvider,
+public class PeanutsUserProvider implements UserStorageProvider,
 	UserLookupProvider.Streams, UserQueryProvider.Streams,
 	CredentialInputUpdater, CredentialInputValidator,
 	UserRegistrationProvider {
@@ -52,7 +52,7 @@ public class DemoUserStorageProvider implements UserStorageProvider,
 
 	protected Map<String, UserModel> loadedUsers = new HashMap<>();
 
-	public DemoUserStorageProvider(KeycloakSession session, ComponentModel model) {
+	public PeanutsUserProvider(KeycloakSession session, ComponentModel model) {
 		this.session = session;
 		this.model = model;
 

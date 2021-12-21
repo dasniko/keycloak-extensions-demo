@@ -14,13 +14,13 @@ import java.util.List;
 /**
  * @author Niko Köbler, http://www.n-k.de, @dasniko
  */
-public class DemoUserStorageProviderFactory implements UserStorageProviderFactory<DemoUserStorageProvider> {
+public class PeanutsUserProviderFactory implements UserStorageProviderFactory<PeanutsUserProvider> {
 
 	public static final String PROVIDER_ID = "peanuts-user-provider";
 
 	@Override
-	public DemoUserStorageProvider create(KeycloakSession session, ComponentModel model) {
-		return new DemoUserStorageProvider(session, model);
+	public PeanutsUserProvider create(KeycloakSession session, ComponentModel model) {
+		return new PeanutsUserProvider(session, model);
 	}
 
 	@Override
