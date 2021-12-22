@@ -1,9 +1,10 @@
 # Keycloak Extensions Demo
 
-Demos and playground for [Keycloak](https://www.keycloak.org) extensions, providers, SPI implementations, etc.
+Demos, examples and playground for [Keycloak](https://www.keycloak.org) extensions, providers, SPI implementations, etc.
 
-> This repository is currently under construction and will be completed step-by-step.
-> In the meantime, be patient and surf through my other [keycloak repositories](https://github.com/dasniko?tab=repositories&q=keycloak) here.
+[![CI build](https://github.com/dasniko/keycloak-extensions-demo/actions/workflows/maven.yml/badge.svg)](https://github.com/dasniko/keycloak-extensions-demo/actions/workflows/maven.yml)
+![](https://img.shields.io/github/license/dasniko/keycloak-extensions-demo?label=License)
+![](https://img.shields.io/badge/Keycloak-16.1.0-blue)
 
 ## Keycloak User Storage Provider
 
