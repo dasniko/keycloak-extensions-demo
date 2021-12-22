@@ -1,1 +1,1 @@
-dasniko.keycloak.events.SessionRestrictorEventListenerProviderFactory
+dasniko.keycloak.events.HighlanderSessionEventListenerProviderFactory

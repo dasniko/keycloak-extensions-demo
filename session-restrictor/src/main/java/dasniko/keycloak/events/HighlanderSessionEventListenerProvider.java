@@ -11,11 +11,11 @@ import org.keycloak.storage.adapter.InMemoryUserAdapter;
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
  */
-public class SessionRestrictorEventListenerProvider implements EventListenerProvider {
+public class HighlanderSessionEventListenerProvider implements EventListenerProvider {
 
 	private final KeycloakSession keycloakSession;
 
-	public SessionRestrictorEventListenerProvider(KeycloakSession keycloakSession) {
+	public HighlanderSessionEventListenerProvider(KeycloakSession keycloakSession) {
 		this.keycloakSession = keycloakSession;
 	}
 

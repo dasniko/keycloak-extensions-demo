@@ -9,13 +9,13 @@ import org.keycloak.models.KeycloakSessionFactory;
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
  */
-public class SessionRestrictorEventListenerProviderFactory implements EventListenerProviderFactory {
+public class HighlanderSessionEventListenerProviderFactory implements EventListenerProviderFactory {
 
-	public static final String PROVIDER_ID = "session-restrictor";
+	public static final String PROVIDER_ID = "highlander-session";
 
 	@Override
 	public EventListenerProvider create(KeycloakSession session) {
-		return new SessionRestrictorEventListenerProvider(session);
+		return new HighlanderSessionEventListenerProvider(session);
 	}
 
 	@Override
