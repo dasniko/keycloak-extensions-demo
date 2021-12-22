@@ -19,7 +19,7 @@ Demos and playground for [Keycloak](https://www.keycloak.org) extensions, provid
 
 ## Keycloak REST endpoint/resource extension
 
-[RestExample](./rest-endpoint) _t.b.d._
+[RestExample](./rest-endpoint) - demo implementation for custom REST resources within Keycloak, public (unauthenticated) and secured (authenticated) endpoints.
 
 ## Custom Required Action
 
