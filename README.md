@@ -23,7 +23,7 @@ Demos and playground for [Keycloak](https://www.keycloak.org) extensions, provid
 
 ## Custom Required Action
 
-[RequiredAction](./requiredaction) _t.b.d._
+[MobileNumberRequiredAction](./requiredaction) - example which enforces the user to update its mobile phone number, if not already set.
 
 ## Custom Action Token
 
