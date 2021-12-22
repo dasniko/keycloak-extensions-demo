@@ -42,18 +42,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Testcontainers
 public class PeanutsUserProviderTest {
 
-	static final String REALM = "dasniko";
+	static final String REALM = "peanuts";
 
 	static Network network = Network.newNetwork();
 
 	@Container
-	public static KeycloakContainer keycloak = new KeycloakContainer()
-		.withRealmImportFile("/dasniko-realm.json")
+	private static final KeycloakContainer keycloak = new KeycloakContainer()
+		.withRealmImportFile("/peanuts-realm.json")
 		.withProviderClassesFrom("target/classes")
 		.withNetwork(network);
 
 	@Container
-	public static GenericContainer<?> apiMock = new GenericContainer<>(DockerImageName.parse("muonsoft/openapi-mock:latest"))
+	private static final GenericContainer<?> apiMock = new GenericContainer<>(DockerImageName.parse("muonsoft/openapi-mock:latest"))
 		.withExposedPorts(8080)
 		.withCopyFileToContainer(MountableFile.forHostPath("./src/test/resources/peanutsApi.yaml"), "/tmp/spec.yaml")
 		.withEnv(Map.of(
