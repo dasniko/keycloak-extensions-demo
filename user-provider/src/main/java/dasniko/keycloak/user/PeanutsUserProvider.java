@@ -8,7 +8,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient43Engine;
+import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClientEngine;
 import org.jboss.resteasy.client.jaxrs.internal.BasicAuthentication;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.connections.httpclient.HttpClientProvider;
@@ -57,7 +57,7 @@ public class PeanutsUserProvider implements UserStorageProvider,
 		this.model = model;
 
 		CloseableHttpClient httpClient = session.getProvider(HttpClientProvider.class).getHttpClient();
-		ApacheHttpClient43Engine engine = new ApacheHttpClient43Engine(httpClient);
+		ApacheHttpClientEngine engine = ApacheHttpClientEngine.create(httpClient, false);
 		ResteasyClient resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
 		ResteasyWebTarget target = resteasyClient.target(model.get(Constants.BASE_URL));
 		target.register(new BasicAuthentication(model.get(Constants.AUTH_USERNAME), model.get(Constants.AUTH_PASSWORD)));
