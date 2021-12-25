@@ -3,7 +3,7 @@
     <#if section = "header">
         ${msg("updateMobileTitle")}
     <#elseif section = "form">
-			<h1>${msg("updateMobileHello",(username!''))}</h1>
+			<h2>${msg("updateMobileHello",(username!''))}</h2>
 			<p>${msg("updateMobileText")}</p>
 			<form id="kc-mobile-update-form" class="${properties.kcFormClass!}" action="${url.loginAction}" method="post">
 				<div class="${properties.kcFormGroupClass!}">

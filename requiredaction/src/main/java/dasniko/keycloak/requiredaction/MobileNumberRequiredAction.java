@@ -48,7 +48,7 @@ public class MobileNumberRequiredAction implements RequiredActionProvider {
 		MultivaluedMap<String, String> formData = context.getHttpRequest().getDecodedFormParameters();
 		String mobileNumber = formData.getFirst(MOBILE_NUMBER_FIELD);
 
-		if (Validation.isBlank(mobileNumber)) {
+		if (Validation.isBlank(mobileNumber) || mobileNumber.length() < 5) {
 			context.challenge(createForm(context, form -> form.addError(new FormMessage(MOBILE_NUMBER_FIELD, "Invalid input"))));
 			return;
 		}
