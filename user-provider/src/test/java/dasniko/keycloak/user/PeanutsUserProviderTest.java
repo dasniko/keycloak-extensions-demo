@@ -18,7 +18,6 @@ import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
 import java.io.IOException;
@@ -53,7 +52,7 @@ public class PeanutsUserProviderTest {
 		.withNetwork(network);
 
 	@Container
-	private static final GenericContainer<?> apiMock = new GenericContainer<>(DockerImageName.parse("muonsoft/openapi-mock:latest"))
+	private static final GenericContainer<?> apiMock = new GenericContainer<>("muonsoft/openapi-mock:latest")
 		.withExposedPorts(8080)
 		.withCopyFileToContainer(MountableFile.forHostPath("./src/test/resources/peanutsApi.yaml"), "/tmp/spec.yaml")
 		.withEnv(Map.of(
