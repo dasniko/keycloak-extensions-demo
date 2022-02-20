@@ -1,1 +1,2 @@
+dasniko.keycloak.events.AwsSnsEventListenerProviderFactory
 dasniko.keycloak.events.HighlanderSessionEventListenerProviderFactory

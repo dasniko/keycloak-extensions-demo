@@ -10,9 +10,15 @@ Demos, examples and playground for [Keycloak](https://www.keycloak.org) extensio
 
 [PeanutsUserProvider](./user-provider) - demo user storage provider, providing some members of the peanuts in a read-only mode, via an external API.
 
-## Keycloak Session Restrictor Event Listener
+## Keycloak Event Listeners
 
-[Highlander](./session-restrictor) - demo event listener for Keycloak, allowing only the last session to survive (_Highlander mode - there must only be one!_), if a user logs in on multiple browsers/devices.
+### Session Restrictor
+
+[Highlander](./event-listener) - demo event listener for Keycloak, allowing only the last session to survive (_Highlander mode - there must only be one!_), if a user logs in on multiple browsers/devices.
+
+### Event Forwarder
+
+[AWS SNS Publisher](./event-listener) - demo event listener for Keycloak, simply forwarding/publishing all events to an AWS SNS topic.
 
 ## Custom Keycloak OIDC protocol token mapper
 
