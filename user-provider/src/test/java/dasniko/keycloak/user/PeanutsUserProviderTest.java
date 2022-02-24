@@ -65,7 +65,7 @@ public class PeanutsUserProviderTest {
 
 
 	@ParameterizedTest
-	@ValueSource(strings = { "master", REALM })
+	@ValueSource(strings = { KeycloakContainer.MASTER_REALM, REALM })
 	public void testRealms(String realm) {
 		String accountServiceUrl = given().when().get(keycloak.getAuthServerUrl() + "/realms/" + realm)
 			.then().statusCode(200).body("realm", equalTo(realm))
@@ -99,7 +99,7 @@ public class PeanutsUserProviderTest {
 
 	@Test
 	public void testAccessingUsersAsAdmin() {
-		Keycloak kcAdmin = Keycloak.getInstance(keycloak.getAuthServerUrl(), "master", keycloak.getAdminUsername(), keycloak.getAdminPassword(), "admin-cli");
+		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
 		UsersResource usersResource = kcAdmin.realm(REALM).users();
 		List<UserRepresentation> users = usersResource.search("charlie");
 		assertThat(users, is(not(empty())));
@@ -120,7 +120,7 @@ public class PeanutsUserProviderTest {
 			.formParam("username", username)
 			.formParam("password", password)
 			.formParam("grant_type", "password")
-			.formParam("client_id", "admin-cli")
+			.formParam("client_id", KeycloakContainer.ADMIN_CLI_CLIENT)
 			.formParam("scope", "openid")
 			.when().post(tokenEndpoint);
 	}

@@ -2,7 +2,7 @@ package dasniko.keycloak.tokenmapper;
 
 import dasniko.testcontainers.keycloak.KeycloakContainer;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.keycloak.TokenVerifier;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
@@ -17,7 +17,7 @@ import org.keycloak.representations.idm.ProtocolMapperRepresentation;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
@@ -28,14 +28,13 @@ public class LuckyNumberMapperTest {
 	@Test
 	public void shouldStartKeycloakWithLuckyNumberMapper() throws VerificationException {
 		try (KeycloakContainer keycloak = new KeycloakContainer()
-			.withExtensionClassesFrom("target/classes")) {
+			.withProviderClassesFrom("target/classes")) {
 			keycloak.start();
 
-			Keycloak keycloakClient = Keycloak.getInstance(keycloak.getAuthServerUrl(), "master",
-				keycloak.getAdminUsername(), keycloak.getAdminPassword(), "admin-cli");
+			Keycloak keycloakClient = keycloak.getKeycloakAdminClient();
 
-			RealmResource realm = keycloakClient.realm("master");
-			ClientRepresentation client = realm.clients().findByClientId("admin-cli").get(0);
+			RealmResource realm = keycloakClient.realm(KeycloakContainer.MASTER_REALM);
+			ClientRepresentation client = realm.clients().findByClientId(KeycloakContainer.ADMIN_CLI_CLIENT).get(0);
 
 			ProtocolMapperRepresentation mapper = configureCustomOidcProtocolMapper();
 			realm.clients().get(client.getId()).getProtocolMappers().createMapper(mapper).close();

@@ -3,7 +3,7 @@ package dasniko.keycloak.user;
 import dasniko.keycloak.user.external.CredentialData;
 import dasniko.keycloak.user.external.Peanut;
 import dasniko.keycloak.user.external.PeanutsClient;
-import lombok.extern.jbosslog.JBossLog;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
@@ -40,7 +40,7 @@ import java.util.stream.Stream;
 /**
  * @author Niko Köbler, http://www.n-k.de, @dasniko
  */
-@JBossLog
+@Slf4j
 public class PeanutsUserProvider implements UserStorageProvider,
 	UserLookupProvider.Streams, UserQueryProvider.Streams,
 	CredentialInputUpdater, CredentialInputValidator,
@@ -87,13 +87,13 @@ public class PeanutsUserProvider implements UserStorageProvider,
 		CredentialData credentialData;
 		try {
 			credentialData = client.getCredentialData(StorageId.externalId(user.getId()));
-			log.debugf("Received credential data for userId %s: %s", user.getId(), credentialData);
+			log.debug("Received credential data for userId {}: %{}", user.getId(), credentialData);
 			if (credentialData == null) {
 				return false;
 			}
 		} catch (WebApplicationException e) {
-			log.errorf(e, "Request to verify credentials for userId %s failed with response status %d",
-				user.getId(), e.getResponse().getStatus());
+			log.error(String.format("Request to verify credentials for userId %s failed with response status %d",
+				user.getId(), e.getResponse().getStatus()), e);
 			return false;
 		}
 
@@ -102,13 +102,13 @@ public class PeanutsUserProvider implements UserStorageProvider,
 		PasswordCredentialModel passwordCredentialModel = credentialData.toPasswordCredentialModel();
 		PasswordHashProvider passwordHashProvider = session.getProvider(PasswordHashProvider.class, credentialData.getAlgorithm());
 		boolean isValid = passwordHashProvider.verify(cred.getChallengeResponse(), passwordCredentialModel);
-		log.debugf("Password validation result: %b", isValid);
+		log.debug("Password validation result: {}", isValid);
 		return isValid;
 	}
 
 	@Override
 	public boolean updateCredential(RealmModel realm, UserModel user, CredentialInput input) {
-		log.debugf("Try to update credentials type %s for user %s.", input.getType(), user.getId());
+		log.debug("Try to update credentials type {} for user {}.", input.getType(), user.getId());
 		if (!supportsCredentialType(input.getType()) || !(input instanceof UserCredentialModel)) {
 			return false;
 		}
@@ -122,13 +122,13 @@ public class PeanutsUserProvider implements UserStorageProvider,
 
 		CredentialData credentialData = CredentialData.fromPasswordCredentialModel(passwordCredentialModel);
 
-		log.debugf("Sending updateCredential request for userId %s", user.getId());
-		log.tracef("Payload for updateCredential request: %s", credentialData);
+		log.debug("Sending updateCredential request for userId {}", user.getId());
+		log.trace("Payload for updateCredential request: {}", credentialData);
 		try {
 			Response updateResponse = client.updateCredentialData(StorageId.externalId(user.getId()), credentialData);
 			return updateResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL);
 		} catch (WebApplicationException e) {
-			log.warnf("Credential data update for user %s failed with response %s", user.getId(), e.getResponse().getStatus());
+			log.warn("Credential data update for user {} failed with response {}", user.getId(), e.getResponse().getStatus());
 			return false;
 		}
 	}
@@ -144,19 +144,19 @@ public class PeanutsUserProvider implements UserStorageProvider,
 
 	@Override
 	public UserModel getUserById(RealmModel realm, String id) {
-		log.debugf("getUserById: %s", id);
+		log.debug("getUserById: {}", id);
 		return findUser(realm, StorageId.externalId(id));
 	}
 
 	@Override
 	public UserModel getUserByUsername(RealmModel realm, String username) {
-		log.debugf("getUserByUsername: %s", username);
+		log.debug("getUserByUsername: {}", username);
 		return findUser(realm, username);
 	}
 
 	@Override
 	public UserModel getUserByEmail(RealmModel realm, String email) {
-		log.debugf("getUserByEmail: %s", email);
+		log.debug("getUserByEmail: {}", email);
 		return findUser(realm, email);
 	}
 
@@ -168,10 +168,10 @@ public class PeanutsUserProvider implements UserStorageProvider,
 				adapter = new UserAdapter(session, realm, model, peanut);
 				loadedUsers.put(identifier, adapter);
 			} catch (WebApplicationException e) {
-				log.warnf("User with identifier '%s' could not be found, response from server: %s", identifier, e.getResponse().getStatus());
+				log.warn("User with identifier '{}' could not be found, response from server: {}", identifier, e.getResponse().getStatus());
 			}
 		} else {
-			log.debugf("Found user data for %s in loadedUsers.", identifier);
+			log.debug("Found user data for {} in loadedUsers.", identifier);
 		}
 		return adapter;
 	}
@@ -183,24 +183,24 @@ public class PeanutsUserProvider implements UserStorageProvider,
 
 	@Override
 	public Stream<UserModel> getUsersStream(RealmModel realm, Integer firstResult, Integer maxResults) {
-		log.debugf("getUsersStream, first=%d, max=%d", firstResult, maxResults);
+		log.debug("getUsersStream, first={}, max={}", firstResult, maxResults);
 		return toUserModelStream(client.getPeanuts(null, firstResult, maxResults), realm);
 	}
 
 	@Override
 	public Stream<UserModel> searchForUserStream(RealmModel realm, String search, Integer firstResult, Integer maxResults) {
-		log.debugf("searchForUserStream, search=%s, first=%d, max=%d", search, firstResult, maxResults);
+		log.debug("searchForUserStream, search={}, first={}, max={}", search, firstResult, maxResults);
 		return toUserModelStream(client.getPeanuts(search, firstResult, maxResults), realm);
 	}
 
 	@Override
 	public Stream<UserModel> searchForUserStream(RealmModel realm, Map<String, String> params, Integer firstResult, Integer maxResults) {
-		log.debugf("searchForUserStream, params=%s, first=%d, max=%d", params, firstResult, maxResults);
+		log.debug("searchForUserStream, params={}, first={}, max={}", params, firstResult, maxResults);
 		return toUserModelStream(client.getPeanuts(null, firstResult, maxResults), realm);
 	}
 
 	private Stream<UserModel> toUserModelStream(List<Peanut> peanuts, RealmModel realm) {
-		log.debugf("Received %d users from provider", peanuts.size());
+		log.debug("Received {} users from provider", peanuts.size());
 		return peanuts.stream().map(user -> new UserAdapter(session, realm, model, user));
 	}
 

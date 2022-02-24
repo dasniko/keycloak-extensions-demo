@@ -2,7 +2,7 @@ package dasniko.keycloak.events;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.jbosslog.JBossLog;
+import lombok.extern.slf4j.Slf4j;
 import org.keycloak.events.Event;
 import org.keycloak.events.EventListenerProvider;
 import org.keycloak.events.EventListenerTransaction;
@@ -13,7 +13,7 @@ import software.amazon.awssdk.services.sns.SnsClient;
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
  */
-@JBossLog
+@Slf4j
 public class AwsSnsEventListenerProvider implements EventListenerProvider {
 
     private static final String ENVVAR_TOPICARN = "AWS_EVENTS_SNS_TOPICARN";
@@ -57,7 +57,7 @@ public class AwsSnsEventListenerProvider implements EventListenerProvider {
 
     private void publish(Object event) {
         if (getTopicArn() == null) {
-            log.warnf("No topicArn specified. Can not send event to AWS SNS! Set environment variable %s", ENVVAR_TOPICARN);
+            log.warn("No topicArn specified. Can not send event to AWS SNS! Set environment variable {}", ENVVAR_TOPICARN);
             return;
         }
 

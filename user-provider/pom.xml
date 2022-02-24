@@ -34,6 +34,10 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
@@ -58,17 +62,24 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.keycloak</groupId>
-			<artifactId>keycloak-admin-client</artifactId>
-			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
 	<build>
 		<finalName>${project.groupId}-${project.artifactId}</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<configuration>
+					<artifactSet>
+						<includes>
+							<include>org.jboss.resteasy:resteasy-client*</include>
+						</includes>
+					</artifactSet>
+				</configuration>
+			</plugin>
+		</plugins>
 	</build>
 
 </project>

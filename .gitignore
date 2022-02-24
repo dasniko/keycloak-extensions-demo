@@ -26,3 +26,4 @@ hs_err_pid*
 *.iml
 target
 deploy.sh
+dependency-reduced-pom.xml

@@ -27,8 +27,7 @@ public class MyResourceProviderTest {
 
 	@Test
 	public void testAuthenticatedEndpoint() {
-		Keycloak keycloakClient = Keycloak.getInstance(keycloak.getAuthServerUrl(), "master",
-			keycloak.getAdminUsername(), keycloak.getAdminPassword(), "admin-cli");
+		Keycloak keycloakClient = keycloak.getKeycloakAdminClient();
 		AccessTokenResponse accessTokenResponse = keycloakClient.tokenManager().getAccessToken();
 
 		givenSpec()

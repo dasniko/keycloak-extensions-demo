@@ -13,30 +13,33 @@ import software.amazon.awssdk.services.sns.SnsClient;
  */
 public class AwsSnsEventListenerProviderFactory implements EventListenerProviderFactory {
 
-    private static final SnsClient sns = SnsClient.create();
-    private static final ObjectMapper mapper = new ObjectMapper();
+	public static final String PROVIDER_ID = "aws-sns-publisher";
+	private static final ObjectMapper mapper = new ObjectMapper();
 
-    public static final String PROVIDER_ID = "aws-sns-publisher";
+	private SnsClient sns;
 
-    @Override
-    public EventListenerProvider create(KeycloakSession keycloakSession) {
-        return new AwsSnsEventListenerProvider(keycloakSession, sns, mapper);
-    }
+	@Override
+	public EventListenerProvider create(KeycloakSession keycloakSession) {
+		if (null == sns) {
+			sns = SnsClient.create();
+		}
+		return new AwsSnsEventListenerProvider(keycloakSession, sns, mapper);
+	}
 
-    @Override
-    public void init(Config.Scope scope) {
-    }
+	@Override
+	public void init(Config.Scope scope) {
+	}
 
-    @Override
-    public void postInit(KeycloakSessionFactory keycloakSessionFactory) {
-    }
+	@Override
+	public void postInit(KeycloakSessionFactory keycloakSessionFactory) {
+	}
 
-    @Override
-    public void close() {
-    }
+	@Override
+	public void close() {
+	}
 
-    @Override
-    public String getId() {
-        return PROVIDER_ID;
-    }
+	@Override
+	public String getId() {
+		return PROVIDER_ID;
+	}
 }
