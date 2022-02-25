@@ -21,116 +21,22 @@
 
 	<properties>
 		<java.version>11</java.version>
-		<junit.version>5.8.2</junit.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<aws.version>2.17.129</aws.version>
-		<httpclient.version>4.5.13</httpclient.version>
 		<keycloak.version>17.0.0</keycloak.version>
-		<lombok.version>1.18.22</lombok.version>
 		<maven-compiler.version>3.8.1</maven-compiler.version>
 		<maven-shade.version>3.2.4</maven-shade.version>
 		<maven-surefire.version>3.0.0-M5</maven-surefire.version>
-		<restassured.version>4.4.0</restassured.version>
-		<resteasy.version>4.7.5.Final</resteasy.version>
-		<testcontainers.version>1.16.3</testcontainers.version>
-		<testcontainers-keycloak.version>tmp~resteasy-SNAPSHOT</testcontainers-keycloak.version>
-<!--		<testcontainers-keycloak.version>2.0.0</testcontainers-keycloak.version>-->
-		<slf4j.version>1.7.30</slf4j.version>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
-<!--			<dependency>-->
-<!--				<groupId>com.github.dasniko</groupId>-->
-<!--				<artifactId>keycloak-spi-bom</artifactId>-->
-<!--				<version>${keycloak.version}</version>-->
-<!--				<type>pom</type>-->
-<!--				<scope>import</scope>-->
-<!--			</dependency>-->
 			<dependency>
-				<groupId>org.keycloak.bom</groupId>
+				<groupId>com.github.dasniko</groupId>
 				<artifactId>keycloak-spi-bom</artifactId>
 				<version>${keycloak.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.keycloak</groupId>
-				<artifactId>keycloak-server-spi-private</artifactId>
-				<version>${keycloak.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.keycloak</groupId>
-				<artifactId>keycloak-services</artifactId>
-				<version>${keycloak.version}</version>
-				<exclusions>
-					<exclusion>
-						<groupId>org.jboss.resteasy</groupId>
-						<artifactId>resteasy-multipart-provider</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-			<dependency>
-				<groupId>org.jboss.resteasy</groupId>
-				<artifactId>resteasy-core</artifactId>
-				<version>${resteasy.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.jboss.resteasy</groupId>
-				<artifactId>resteasy-client</artifactId>
-				<version>${resteasy.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.httpcomponents</groupId>
-				<artifactId>httpclient</artifactId>
-				<version>${httpclient.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-api</artifactId>
-				<version>${slf4j.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-log4j12</artifactId>
-				<version>${slf4j.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.projectlombok</groupId>
-				<artifactId>lombok</artifactId>
-				<version>${lombok.version}</version>
-				<scope>provided</scope>
-			</dependency>
-			<dependency>
-				<groupId>com.github.dasniko</groupId>
-				<artifactId>testcontainers-keycloak</artifactId>
-				<version>${testcontainers-keycloak.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.junit.jupiter</groupId>
-				<artifactId>junit-jupiter</artifactId>
-				<version>${junit.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.junit.jupiter</groupId>
-				<artifactId>junit-jupiter-params</artifactId>
-				<version>${junit.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.testcontainers</groupId>
-				<artifactId>junit-jupiter</artifactId>
-				<version>${testcontainers.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>io.rest-assured</groupId>
-				<artifactId>rest-assured</artifactId>
-				<version>${restassured.version}</version>
-				<scope>test</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
