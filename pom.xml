@@ -28,6 +28,7 @@
 		<maven-compiler.version>3.8.1</maven-compiler.version>
 		<maven-shade.version>3.2.4</maven-shade.version>
 		<maven-surefire.version>3.0.0-M5</maven-surefire.version>
+		<shrinkwrap-resolver.version>3.1.4</shrinkwrap-resolver.version>
 	</properties>
 
 	<dependencyManagement>
@@ -38,6 +39,12 @@
 				<version>${keycloak.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.jboss.shrinkwrap.resolver</groupId>
+				<artifactId>shrinkwrap-resolver-impl-maven-archive</artifactId>
+				<version>${shrinkwrap-resolver.version}</version>
+				<scope>test</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

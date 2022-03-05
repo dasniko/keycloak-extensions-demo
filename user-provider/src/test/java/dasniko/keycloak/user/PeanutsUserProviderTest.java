@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+import org.jboss.shrinkwrap.resolver.api.maven.MavenResolvedArtifact;
+import org.jboss.shrinkwrap.resolver.api.maven.MavenResolverSystem;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -20,6 +23,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.MountableFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.HashMap;
@@ -45,10 +49,21 @@ public class PeanutsUserProviderTest {
 
 	static Network network = Network.newNetwork();
 
+	private static final List<File> dependencies;
+	static {
+		MavenResolverSystem resolver = Maven.resolver();
+		String version = resolver.loadPomFromFile("./pom.xml")
+			.resolve("org.jboss.resteasy:resteasy-client").withoutTransitivity().asSingle(MavenResolvedArtifact.class).getResolvedVersion();
+		dependencies = resolver
+			.resolve("org.jboss.resteasy:resteasy-client:" + version, "org.jboss.resteasy:resteasy-client-api:" + version)
+			.withoutTransitivity().asList(File.class);
+	}
+
 	@Container
 	private static final KeycloakContainer keycloak = new KeycloakContainer()
 		.withRealmImportFile("/peanuts-realm.json")
 		.withProviderClassesFrom("target/classes")
+		.withProviderLibsFrom(dependencies)
 		.withNetwork(network);
 
 	@Container
@@ -67,7 +82,7 @@ public class PeanutsUserProviderTest {
 	@ParameterizedTest
 	@ValueSource(strings = { KeycloakContainer.MASTER_REALM, REALM })
 	public void testRealms(String realm) {
-		String accountServiceUrl = given().when().get(keycloak.getAuthServerUrl() + "/realms/" + realm)
+		String accountServiceUrl = given().when().get(keycloak.getAuthServerUrl() + "realms/" + realm)
 			.then().statusCode(200).body("realm", equalTo(realm))
 			.extract().path("account-service");
 
@@ -113,7 +128,7 @@ public class PeanutsUserProviderTest {
 	}
 
 	private Response requestToken(String username, String password) {
-		String tokenEndpoint = given().when().get(keycloak.getAuthServerUrl() + "/realms/" + REALM + "/.well-known/openid-configuration")
+		String tokenEndpoint = given().when().get(keycloak.getAuthServerUrl() + "realms/" + REALM + "/.well-known/openid-configuration")
 			.then().statusCode(200).extract().path("token_endpoint");
 		return given()
 			.contentType("application/x-www-form-urlencoded")
