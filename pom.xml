@@ -17,6 +17,7 @@
 		<module>rest-endpoint</module>
 		<module>actiontoken</module>
 		<module>requiredaction</module>
+		<module>magiclink</module>
 	</modules>
 
 	<properties>

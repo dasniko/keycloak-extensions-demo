@@ -10,6 +10,10 @@ Demos, examples and playground for [Keycloak](https://www.keycloak.org) extensio
 
 [PeanutsUserProvider](./user-provider) - demo user storage provider, providing some members of the peanuts in a read-only mode, via an external API.
 
+## Keycloak Authenticators
+
+[MagicLink Authenticator](./magiclink) - demo authenticator which sends a magic link to the user with which the user can login without needing to provide a password.
+
 ## Keycloak Event Listeners
 
 ### Session Restrictor
