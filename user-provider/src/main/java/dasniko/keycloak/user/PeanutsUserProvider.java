@@ -3,15 +3,9 @@ package dasniko.keycloak.user;
 import dasniko.keycloak.user.external.CredentialData;
 import dasniko.keycloak.user.external.Peanut;
 import dasniko.keycloak.user.external.PeanutsClient;
+import dasniko.keycloak.user.external.PeanutsClientSimpleHttp;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.jboss.resteasy.client.jaxrs.ResteasyClient;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClientEngine;
-import org.jboss.resteasy.client.jaxrs.internal.BasicAuthentication;
 import org.keycloak.component.ComponentModel;
-import org.keycloak.connections.httpclient.HttpClientProvider;
 import org.keycloak.credential.CredentialInput;
 import org.keycloak.credential.CredentialInputUpdater;
 import org.keycloak.credential.CredentialInputValidator;
@@ -55,13 +49,7 @@ public class PeanutsUserProvider implements UserStorageProvider,
 	public PeanutsUserProvider(KeycloakSession session, ComponentModel model) {
 		this.session = session;
 		this.model = model;
-
-		CloseableHttpClient httpClient = session.getProvider(HttpClientProvider.class).getHttpClient();
-		ApacheHttpClientEngine engine = ApacheHttpClientEngine.create(httpClient, false);
-		ResteasyClient resteasyClient = ((ResteasyClientBuilder) ResteasyClientBuilder.newBuilder()).httpEngine(engine).build();
-		ResteasyWebTarget target = resteasyClient.target(model.get(Constants.BASE_URL));
-		target.register(new BasicAuthentication(model.get(Constants.AUTH_USERNAME), model.get(Constants.AUTH_PASSWORD)));
-		this.client = target.proxyBuilder(PeanutsClient.class).classloader(this.getClass().getClassLoader()).build();
+		this.client = new PeanutsClientSimpleHttp(session, model);
 	}
 
 	@Override

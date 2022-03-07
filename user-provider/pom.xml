@@ -27,8 +27,8 @@
 			<artifactId>keycloak-server-spi-private</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.jboss.resteasy</groupId>
-			<artifactId>resteasy-client</artifactId>
+			<groupId>org.keycloak</groupId>
+			<artifactId>keycloak-services</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -54,10 +54,6 @@
 		<dependency>
 			<groupId>com.github.dasniko</groupId>
 			<artifactId>testcontainers-keycloak</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jboss.shrinkwrap.resolver</groupId>
-			<artifactId>shrinkwrap-resolver-impl-maven-archive</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>io.rest-assured</groupId>
