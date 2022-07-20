@@ -12,7 +12,6 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.utils.KeycloakModelUtils;
 
-import javax.ws.rs.core.MultivaluedMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,10 +21,9 @@ import java.util.Map;
 @Slf4j
 public class MagicLinkAuthenticator implements Authenticator {
 
-	private static final String SESSION_KEY = "email-key";
+	private static final String SESSION_KEY = "magic-email-key";
 	private static final String QUERY_PARAM = "key";
 	private static final String MAGIC_LINK_TEMPLATE = "magic-link.ftl";
-	private static final String MAGIC_LINK_USERNAME_TEMPLATE = "magic-link-username.ftl";
 
 	@Override
 	public void authenticate(AuthenticationFlowContext context) {
@@ -42,28 +40,23 @@ public class MagicLinkAuthenticator implements Authenticator {
 				displayMagicLinkSuccessPage(context);
 			}
 		} else {
-			context.challenge(context.form().createForm(MAGIC_LINK_USERNAME_TEMPLATE));
+			sendMagicLink(context);
 		}
 	}
 
 	@Override
 	public void action(AuthenticationFlowContext context) {
-		MultivaluedMap<String, String> formData = context.getHttpRequest().getDecodedFormParameters();
-		String username = formData.getFirst("username");
+	}
 
+	private void sendMagicLink(AuthenticationFlowContext context) {
 		RealmModel realm = context.getRealm();
-		UserModel user = context.getSession().users().getUserByUsername(realm, username);
-		if (user == null && username.contains("@")) {
-			user = context.getSession().users().getUserByEmail(realm, username);
-		}
+		UserModel user = context.getUser();
 		if (user == null) {
-			// if user is still null, we don't want to allow for username guessing
+			// if user is null, we don't want to allow for username guessing
 			// so, we just say it's all ok and stop here
 			displayMagicLinkSuccessPage(context);
 			return;
 		}
-
-		context.setUser(user);
 
 		String key = KeycloakModelUtils.generateId();
 		context.getAuthenticationSession().setAuthNote(SESSION_KEY, key);
@@ -88,12 +81,12 @@ public class MagicLinkAuthenticator implements Authenticator {
 	}
 
 	private void displayMagicLinkSuccessPage(AuthenticationFlowContext context) {
-		context.challenge(context.form().setSuccess("magicLinkText").createForm(MAGIC_LINK_TEMPLATE));
+		context.challenge(context.form().setInfo("magicLinkText").createInfoPage());
 	}
 
 	@Override
 	public boolean requiresUser() {
-		return false;
+		return true;
 	}
 
 	@Override
