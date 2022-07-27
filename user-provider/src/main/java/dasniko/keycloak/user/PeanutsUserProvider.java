@@ -28,16 +28,15 @@ import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Stream;
 
 /**
- * @author Niko Köbler, http://www.n-k.de, @dasniko
+ * @author Niko Köbler, <a href="https://www.n-k.de">www.n-k.de</a>, @dasniko
  */
 @Slf4j
 public class PeanutsUserProvider implements UserStorageProvider,
 	UserLookupProvider.Streams, UserQueryProvider.Streams,
-	CredentialInputUpdater, CredentialInputValidator,
+	CredentialInputUpdater.Streams, CredentialInputValidator,
 	UserRegistrationProvider {
 
 	private final KeycloakSession session;
@@ -126,8 +125,8 @@ public class PeanutsUserProvider implements UserStorageProvider,
 	}
 
 	@Override
-	public Set<String> getDisableableCredentialTypes(RealmModel realm, UserModel user) {
-		return Set.of();
+	public Stream<String> getDisableableCredentialTypesStream(RealmModel realm, UserModel user) {
+		return Stream.empty();
 	}
 
 	@Override
