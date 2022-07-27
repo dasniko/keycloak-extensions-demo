@@ -1,5 +1,4 @@
-<html>
-<body>
+<#import "template.ftl" as layout>
+<@layout.emailLayout>
 ${kcSanitize(msg("magicLinkEmailBodyHtml", name, link))?no_esc}
-</body>
-</html>
+</@layout.emailLayout>
