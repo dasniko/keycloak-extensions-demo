@@ -3,10 +3,12 @@ package dasniko.keycloak.user;
 import dasniko.keycloak.user.external.Peanut;
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.component.ComponentModel;
+import org.keycloak.credential.LegacyUserCredentialManager;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.SubjectCredentialManager;
 import org.keycloak.models.UserModel;
 import org.keycloak.storage.StorageId;
 import org.keycloak.storage.adapter.AbstractUserAdapter;
@@ -48,6 +50,11 @@ public class UserAdapter extends AbstractUserAdapter.Streams {
 	@Override
 	public String getEmail() {
 		return user.getEmail();
+	}
+
+	@Override
+	public SubjectCredentialManager credentialManager() {
+		return new LegacyUserCredentialManager(session, realm, this);
 	}
 
 	@Override
