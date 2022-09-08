@@ -24,6 +24,10 @@ Demos, examples and playground for [Keycloak](https://www.keycloak.org) extensio
 
 [AWS SNS Publisher](./event-listener) - demo event listener for Keycloak, simply forwarding/publishing all events to an AWS SNS topic.
 
+### User Attribute Updater
+
+[LastLoginTime](./event-listener) - demo event listener for Keycloak, storing the most recent login time in an user attribute.
+
 ## Custom Keycloak OIDC protocol token mapper
 
 [LuckyNumberMapper](./tokenmapper) - example custom token mapper for Keycloak using the OIDC protocol.
