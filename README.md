@@ -14,6 +14,8 @@ Demos, examples and playground for [Keycloak](https://www.keycloak.org) extensio
 
 [MagicLink Authenticator](./magiclink) - demo authenticator which sends a magic link to the user with which the user can login without needing to provide a password.
 
+[Captcha Authenticator](./captcha) - demo authenticator in which the user needs to solve a math task and submit the result, before successful authentication.
+
 ## Keycloak Event Listeners
 
 ### Session Restrictor
