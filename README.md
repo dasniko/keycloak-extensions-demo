@@ -42,6 +42,10 @@ Demos, examples and playground for [Keycloak](https://www.keycloak.org) extensio
 
 [MobileNumberRequiredAction](./requiredaction) - example which enforces the user to update its mobile phone number, if not already set.
 
+## Custom Email Template & Sender PRovider
+
+[Email Provider](./email) for custom templates in JSON format (no actual emal, but for processing through external/3rd party services) and sending emails via a vendor specific (here: AWS SES) protocol, instead of SMTP.
+
 ## Custom Action Token
 
 [ActionToken](./actiontoken) _t.b.d._

@@ -19,6 +19,7 @@
 		<module>requiredaction</module>
 		<module>magiclink</module>
 		<module>captcha</module>
+		<module>email</module>
 	</modules>
 
 	<properties>
@@ -40,6 +41,28 @@
 				<version>${keycloak.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>software.amazon.awssdk</groupId>
+				<artifactId>sns</artifactId>
+				<version>${aws.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>software.amazon.awssdk</groupId>
+						<artifactId>netty-nio-client</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>software.amazon.awssdk</groupId>
+				<artifactId>ses</artifactId>
+				<version>${aws.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>software.amazon.awssdk</groupId>
+						<artifactId>netty-nio-client</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
