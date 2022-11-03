@@ -7,7 +7,7 @@ import lombok.experimental.UtilityClass;
  */
 @UtilityClass
 public class Constants {
-	public String BASE_URL = "peanuts.base.url";
-	public String AUTH_USERNAME = "peanuts.auth.username";
-	public String AUTH_PASSWORD = "peanuts.auth.password";
+	public String BASE_URL = "peanutsBaseUrl";
+	public String AUTH_USERNAME = "peanutsAuthUsername";
+	public String AUTH_PASSWORD = "peanutsAuthPassword";
 }

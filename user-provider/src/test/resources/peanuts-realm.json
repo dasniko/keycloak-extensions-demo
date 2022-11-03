@@ -12,13 +12,13 @@
         "providerId": "peanuts-user-provider",
         "subComponents": {},
         "config": {
-          "peanuts.base.url": [
+          "peanutsBaseUrl": [
             "http://api:8080/peanuts"
           ],
-					"peanuts.auth.username": [
+					"peanutsAuthUsername": [
 						"peanuts"
 					],
-					"peanuts.auth.password": [
+					"peanutsAuthPassword": [
 						"test"
 					],
 					"cachePolicy": [

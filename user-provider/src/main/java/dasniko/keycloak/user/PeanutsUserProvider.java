@@ -35,8 +35,8 @@ import java.util.stream.Stream;
  */
 @Slf4j
 public class PeanutsUserProvider implements UserStorageProvider,
-	UserLookupProvider.Streams, UserQueryProvider.Streams,
-	CredentialInputUpdater.Streams, CredentialInputValidator,
+	UserLookupProvider, UserQueryProvider,
+	CredentialInputUpdater, CredentialInputValidator,
 	UserRegistrationProvider {
 
 	private final KeycloakSession session;
@@ -166,12 +166,6 @@ public class PeanutsUserProvider implements UserStorageProvider,
 	@Override
 	public int getUsersCount(RealmModel realm) {
 		return client.getPeanutsCount();
-	}
-
-	@Override
-	public Stream<UserModel> getUsersStream(RealmModel realm, Integer firstResult, Integer maxResults) {
-		log.debug("getUsersStream, first={}, max={}", firstResult, maxResults);
-		return toUserModelStream(client.getPeanuts(null, firstResult, maxResults), realm);
 	}
 
 	@Override

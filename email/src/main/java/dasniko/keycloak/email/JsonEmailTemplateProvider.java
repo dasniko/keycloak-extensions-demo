@@ -17,7 +17,7 @@ public class JsonEmailTemplateProvider extends FreeMarkerEmailTemplateProvider {
 	private final ObjectMapper mapper;
 
 	public JsonEmailTemplateProvider(KeycloakSession session, ObjectMapper mapper) {
-		super(session, null);
+		super(session);
 		this.mapper = mapper;
 	}
 

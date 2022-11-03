@@ -35,6 +35,7 @@
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>sns</artifactId>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 
