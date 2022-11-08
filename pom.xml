@@ -20,6 +20,7 @@
 		<module>magiclink</module>
 		<module>captcha</module>
 		<module>email</module>
+		<module>authentication</module>
 	</modules>
 
 	<properties>
