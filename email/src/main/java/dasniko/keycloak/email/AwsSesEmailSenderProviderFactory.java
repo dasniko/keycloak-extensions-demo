@@ -1,10 +1,12 @@
 package dasniko.keycloak.email;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.keycloak.Config;
 import org.keycloak.email.EmailSenderProvider;
 import org.keycloak.email.EmailSenderProviderFactory;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
+import software.amazon.awssdk.services.ses.SesClient;
 
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
@@ -13,9 +15,12 @@ public class AwsSesEmailSenderProviderFactory implements EmailSenderProviderFact
 
 	public static final String PROVIDER_ID = "aws-ses";
 
+	private final SesClient ses = SesClient.create();
+	private final ObjectMapper objectMapper = new ObjectMapper();
+
 	@Override
 	public EmailSenderProvider create(KeycloakSession session) {
-		return null;
+		return new AwsSesEmailSenderProvider(ses, objectMapper);
 	}
 
 	@Override
