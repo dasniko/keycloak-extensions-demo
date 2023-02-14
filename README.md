@@ -16,6 +16,8 @@ Demos, examples and playground for [Keycloak](https://www.keycloak.org) extensio
 
 [Captcha Authenticator](./captcha) - demo authenticator in which the user needs to solve a math task and submit the result, before successful authentication.
 
+[MFA Authenticator](./authentication) - very simple(!!!) demo authenticator which prints a generated OTP to stdout.
+
 ## Keycloak Event Listeners
 
 ### Session Restrictor
