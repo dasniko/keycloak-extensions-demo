@@ -8,7 +8,7 @@ Demos, examples and playground for [Keycloak](https://www.keycloak.org) extensio
 
 ## Keycloak User Storage Provider
 
-[PeanutsUserProvider](./user-provider) - demo user storage provider, providing some members of the peanuts in a read-only mode, via an external API.
+[Flintstones- & Peanuts-UserProvider](./user-provider) - demo user storage providers, providing some members of the respective families in a read-only mode.
 
 ## Keycloak Authenticators
 
