@@ -1,4 +1,4 @@
-package dasniko.keycloak.user;
+package dasniko.keycloak.user.peanuts;
 
 import org.keycloak.component.ComponentModel;
 import org.keycloak.component.ComponentValidationException;

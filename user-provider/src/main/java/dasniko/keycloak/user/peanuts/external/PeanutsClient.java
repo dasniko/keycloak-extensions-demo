@@ -1,4 +1,4 @@
-package dasniko.keycloak.user.external;
+package dasniko.keycloak.user.peanuts.external;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;

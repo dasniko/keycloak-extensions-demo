@@ -1,4 +1,4 @@
-package dasniko.keycloak.user;
+package dasniko.keycloak.user.peanuts;
 
 import lombok.RequiredArgsConstructor;
 import org.keycloak.models.RealmModel;

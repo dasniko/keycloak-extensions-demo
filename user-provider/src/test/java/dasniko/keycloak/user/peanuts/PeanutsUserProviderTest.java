@@ -1,4 +1,4 @@
-package dasniko.keycloak.user;
+package dasniko.keycloak.user.peanuts;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

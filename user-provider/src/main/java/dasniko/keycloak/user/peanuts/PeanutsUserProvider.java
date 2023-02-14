@@ -1,9 +1,9 @@
-package dasniko.keycloak.user;
+package dasniko.keycloak.user.peanuts;
 
-import dasniko.keycloak.user.external.CredentialData;
-import dasniko.keycloak.user.external.Peanut;
-import dasniko.keycloak.user.external.PeanutsClient;
-import dasniko.keycloak.user.external.PeanutsClientSimpleHttp;
+import dasniko.keycloak.user.peanuts.external.CredentialData;
+import dasniko.keycloak.user.peanuts.external.Peanut;
+import dasniko.keycloak.user.peanuts.external.PeanutsClient;
+import dasniko.keycloak.user.peanuts.external.PeanutsClientSimpleHttp;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.CredentialInput;

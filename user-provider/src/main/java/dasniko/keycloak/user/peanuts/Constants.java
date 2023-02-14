@@ -1,4 +1,4 @@
-package dasniko.keycloak.user;
+package dasniko.keycloak.user.peanuts;
 
 import lombok.experimental.UtilityClass;
 

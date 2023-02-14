@@ -1,7 +1,7 @@
-package dasniko.keycloak.user.external;
+package dasniko.keycloak.user.peanuts.external;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import dasniko.keycloak.user.Constants;
+import dasniko.keycloak.user.peanuts.Constants;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.impl.client.CloseableHttpClient;
