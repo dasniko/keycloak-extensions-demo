@@ -4,7 +4,7 @@ Demos, examples and playground for [Keycloak](https://www.keycloak.org) extensio
 
 [![CI build](https://github.com/dasniko/keycloak-extensions-demo/actions/workflows/maven.yml/badge.svg)](https://github.com/dasniko/keycloak-extensions-demo/actions/workflows/maven.yml)
 ![](https://img.shields.io/github/license/dasniko/keycloak-extensions-demo?label=License)
-![](https://img.shields.io/badge/Keycloak-18.0.0-blue)
+![](https://img.shields.io/badge/Keycloak-20.0-blue)
 
 ## Keycloak User Storage Provider
 
@@ -16,13 +16,16 @@ Demos, examples and playground for [Keycloak](https://www.keycloak.org) extensio
 
 [Captcha Authenticator](./captcha) - demo authenticator in which the user needs to solve a math task and submit the result, before successful authentication.
 
-[MFA Authenticator](./authentication) - very simple(!!!) demo authenticator which prints a generated OTP to stdout.
+[MFA Authenticator](./mfa-authenticator) - very simple(!!!) demo authenticator which prints a generated OTP to stdout.
+
+[Conditional HttpHeaders Authenticator](./conditional-headers-authenticator) - condition for authenticators which will decide upon a header and given value (or negated value) if `true`/`false`.
 
 ## Keycloak Event Listeners
 
 ### Session Restrictor
 
 [Highlander](./event-listener) - demo event listener for Keycloak, allowing only the last session to survive (_Highlander mode - there must only be one!_), if a user logs in on multiple browsers/devices.
+_(This was for long time not possible in Keycloak ootb, thus this event listener; since KC v19(?) this is natively supported.)_
 
 ### Event Forwarder
 

@@ -20,7 +20,8 @@
 		<module>magiclink</module>
 		<module>captcha</module>
 		<module>email</module>
-		<module>authentication</module>
+		<module>conditional-headers-authenticator</module>
+		<module>mfa-authenticator</module>
 	</modules>
 
 	<properties>

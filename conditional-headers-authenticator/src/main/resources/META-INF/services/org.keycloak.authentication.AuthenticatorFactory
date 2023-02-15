@@ -1,2 +1,1 @@
 dasniko.keycloak.authentication.conditional.CustomConditionalAuthenticatorFactory
-dasniko.keycloak.authentication.mfa.MfaAuthenticatorFactory
