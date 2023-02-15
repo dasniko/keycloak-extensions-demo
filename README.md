@@ -6,9 +6,11 @@ Demos, examples and playground for [Keycloak](https://www.keycloak.org) extensio
 ![](https://img.shields.io/github/license/dasniko/keycloak-extensions-demo?label=License)
 ![](https://img.shields.io/badge/Keycloak-20.0-blue)
 
-## Keycloak User Storage Provider
+## Keycloak User Storage Providers
 
-[Flintstones- & Peanuts-UserProvider](./user-provider) - demo user storage providers, providing some members of the respective families in a read-only mode.
+[Flintstones](./flintstones-userprovider) - Demo user storage provider, providing some members of the Flintstones family in a read-only mode, from an in-memory repository.
+
+[Peanuts](./peanuts-userprovider) - Demo user storage provider, providing some members of the Peanuts family in a read-only mode, via an external API.
 
 ## Keycloak Authenticators
 
@@ -41,13 +43,13 @@ _(This was for long time not possible in Keycloak ootb, thus this event listener
 
 ## Keycloak REST endpoint/resource extension
 
-[RestExample](./rest-endpoint) - demo implementation for custom REST resources within Keycloak, public (unauthenticated) and secured (authenticated) endpoints.
+[Custom Rest Resource](./rest-endpoint) - demo implementation for custom REST resources within Keycloak, public (unauthenticated) and secured (authenticated) endpoints.
 
 ## Custom Required Action
 
 [MobileNumberRequiredAction](./requiredaction) - example which enforces the user to update its mobile phone number, if not already set.
 
-## Custom Email Template & Sender PRovider
+## Custom Email Template & Sender Provider
 
 [Email Provider](./email) for custom templates in JSON format (no actual emal, but for processing through external/3rd party services) and sending emails via a vendor specific (here: AWS SES) protocol, instead of SMTP.
 

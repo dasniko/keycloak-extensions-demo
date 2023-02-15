@@ -13,7 +13,8 @@
 	<modules>
 		<module>event-listener</module>
 		<module>tokenmapper</module>
-		<module>user-provider</module>
+		<module>flintstones-userprovider</module>
+		<module>peanuts-userprovider</module>
 		<module>rest-endpoint</module>
 		<module>actiontoken</module>
 		<module>requiredaction</module>
