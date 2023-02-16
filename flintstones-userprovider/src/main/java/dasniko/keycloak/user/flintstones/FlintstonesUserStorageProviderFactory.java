@@ -16,12 +16,11 @@ public class FlintstonesUserStorageProviderFactory implements UserStorageProvide
 
 	public static final String PROVIDER_ID = "the-flintstones";
 
+	private final FlintstonesRepository repository = new FlintstonesRepository();
+
 	@Override
 	public FlintstonesUserStorageProvider create(KeycloakSession session, ComponentModel model) {
 		// here you can setup the user storage provider, initiate some connections, etc.
-
-		FlintstonesRepository repository = new FlintstonesRepository();
-
 		return new FlintstonesUserStorageProvider(session, model, repository);
 	}
 
