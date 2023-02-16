@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -26,6 +25,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
@@ -45,7 +45,7 @@ public class FlintstonesUserStorageProviderTest {
 
 
 	@ParameterizedTest
-	@ValueSource(strings = { KeycloakContainer.MASTER_REALM, REALM })
+	@ValueSource(strings = {KeycloakContainer.MASTER_REALM, REALM})
 	public void testRealms(String realm) {
 		String accountServiceUrl = given().when().get(keycloak.getAuthServerUrl() + "realms/" + realm)
 			.then().statusCode(200).body("realm", equalTo(realm))
@@ -55,18 +55,18 @@ public class FlintstonesUserStorageProviderTest {
 	}
 
 	@ParameterizedTest
-	@ValueSource(strings = { "fred.flintstone@flintstones.com", "fred.flintstone" })
+	@ValueSource(strings = {"fred.flintstone@flintstones.com", "fred.flintstone"})
 	public void testLoginAsUserAndCheckAccessToken(String userIdentifier) throws IOException {
 		String accessTokenString = requestToken(userIdentifier, "fred")
 			.then().statusCode(200).extract().path("access_token");
 
 		ObjectMapper mapper = new ObjectMapper();
-		TypeReference<HashMap<String,Object>> typeRef = new TypeReference<>() {};
+		TypeReference<HashMap<String, Object>> typeRef = new TypeReference<>() {};
 
 		byte[] tokenPayload = Base64.getDecoder().decode(accessTokenString.split("\\.")[1]);
 		Map<String, Object> payload = mapper.readValue(tokenPayload, typeRef);
 
-		assertThat(payload.get("preferred_username"), is("fred.flintstone@flintstones.com"));
+		assertThat(payload.get("preferred_username"), is("fred.flintstone"));
 		assertThat(payload.get("email"), is("fred.flintstone@flintstones.com"));
 		assertThat(payload.get("given_name"), is("Fred"));
 		assertThat(payload.get("family_name"), is("Flintstone"));
@@ -81,12 +81,13 @@ public class FlintstonesUserStorageProviderTest {
 	public void testAccessingUsersAsAdmin() {
 		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
 		UsersResource usersResource = kcAdmin.realm(REALM).users();
-		List<UserRepresentation> users = usersResource.search("fred.flintstone");
+		List<UserRepresentation> users = usersResource.search("fred", 0, 10);
 		assertThat(users, is(not(empty())));
+		assertThat(users, hasSize(1));
 
 		String userId = users.get(0).getId();
 		UserResource userResource = usersResource.get(userId);
-		assertThat(userResource.toRepresentation().getUsername(), is("fred.flintstone@flintstones.com"));
+		assertThat(userResource.toRepresentation().getUsername(), is("fred.flintstone"));
 	}
 
 	@Test
@@ -95,7 +96,7 @@ public class FlintstonesUserStorageProviderTest {
 		UsersResource usersResource = kcAdmin.realm(REALM).users();
 		List<UserRepresentation> users = usersResource.search("*");
 		assertThat(users, is(not(empty())));
-		assertThat(users, Matchers.hasSize(6));
+		assertThat(users, hasSize(6));
 	}
 
 	private Response requestToken(String username, String password) {

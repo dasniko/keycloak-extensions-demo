@@ -14,24 +14,26 @@ import java.util.List;
  */
 public class FlintstonesUserStorageProviderFactory implements UserStorageProviderFactory<FlintstonesUserStorageProvider> {
 
-    @Override
-    public FlintstonesUserStorageProvider create(KeycloakSession session, ComponentModel model) {
-        // here you can setup the user storage provider, initiate some connections, etc.
+	public static final String PROVIDER_ID = "the-flintstones";
 
-        FlintstonesRepository repository = new FlintstonesRepository();
+	@Override
+	public FlintstonesUserStorageProvider create(KeycloakSession session, ComponentModel model) {
+		// here you can setup the user storage provider, initiate some connections, etc.
 
-        return new FlintstonesUserStorageProvider(session, model, repository);
-    }
+		FlintstonesRepository repository = new FlintstonesRepository();
 
-    @Override
-    public String getId() {
-        return "the-flintstones";
-    }
+		return new FlintstonesUserStorageProvider(session, model, repository);
+	}
 
-    @Override
-    public List<ProviderConfigProperty> getConfigProperties() {
-        return ProviderConfigurationBuilder.create()
-                .property("myParam", "My Param", "Some Description", ProviderConfigProperty.STRING_TYPE, "some value", null)
-                .build();
-    }
+	@Override
+	public String getId() {
+		return PROVIDER_ID;
+	}
+
+	@Override
+	public List<ProviderConfigProperty> getConfigProperties() {
+		return ProviderConfigurationBuilder.create()
+			.property("myParam", "My Param", "Some Description", ProviderConfigProperty.STRING_TYPE, "some value", null)
+			.build();
+	}
 }
