@@ -3,7 +3,9 @@ package dasniko.keycloak.user.flintstones;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
+import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
+import io.restassured.response.ValidatableResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -38,6 +40,8 @@ public class FlintstonesUserStorageProviderTest {
 
 	static final String REALM = "flintstones";
 
+	static final String FRED_FLINTSTONE = "fred.flintstone";
+
 	@Container
 	private static final KeycloakContainer keycloak = new KeycloakContainer()
 		.withRealmImportFile("/flintstones-realm.json")
@@ -47,7 +51,8 @@ public class FlintstonesUserStorageProviderTest {
 	@ParameterizedTest
 	@ValueSource(strings = {KeycloakContainer.MASTER_REALM, REALM})
 	public void testRealms(String realm) {
-		String accountServiceUrl = given().when().get(keycloak.getAuthServerUrl() + "realms/" + realm)
+		String accountServiceUrl = given().pathParam("realm", realm)
+			.when().get(keycloak.getAuthServerUrl() + "realms/{realm}")
 			.then().statusCode(200).body("realm", equalTo(realm))
 			.extract().path("account-service");
 
@@ -55,7 +60,7 @@ public class FlintstonesUserStorageProviderTest {
 	}
 
 	@ParameterizedTest
-	@ValueSource(strings = {"fred.flintstone@flintstones.com", "fred.flintstone"})
+	@ValueSource(strings = {"fred.flintstone@flintstones.com", FRED_FLINTSTONE})
 	public void testLoginAsUserAndCheckAccessToken(String userIdentifier) throws IOException {
 		String accessTokenString = requestToken(userIdentifier, "fred")
 			.then().statusCode(200).extract().path("access_token");
@@ -66,7 +71,7 @@ public class FlintstonesUserStorageProviderTest {
 		byte[] tokenPayload = Base64.getDecoder().decode(accessTokenString.split("\\.")[1]);
 		Map<String, Object> payload = mapper.readValue(tokenPayload, typeRef);
 
-		assertThat(payload.get("preferred_username"), is("fred.flintstone"));
+		assertThat(payload.get("preferred_username"), is(FRED_FLINTSTONE));
 		assertThat(payload.get("email"), is("fred.flintstone@flintstones.com"));
 		assertThat(payload.get("given_name"), is("Fred"));
 		assertThat(payload.get("family_name"), is("Flintstone"));
@@ -74,7 +79,51 @@ public class FlintstonesUserStorageProviderTest {
 
 	@Test
 	public void testLoginAsUserWithInvalidPassword() {
-		requestToken("fred.flintstone", "invalid").then().statusCode(401);
+		requestToken(FRED_FLINTSTONE, "invalid").then().statusCode(401);
+	}
+
+	@Test
+	public void testUpdatePassword() {
+		// call update password action directly
+		String authEndpoint = getOpenIDConfiguration().extract().path("authorization_endpoint");
+		ExtractableResponse<Response> response = given()
+			.queryParam("response_type", "code")
+			.queryParam("client_id", "account")
+			.queryParam("redirect_uri", keycloak.getAuthServerUrl() + "realms/" + REALM + "/account")
+			.queryParam("scope", "openid")
+			.queryParam("kc_action", "UPDATE_PASSWORD")
+			.when().get(authEndpoint)
+			.then().statusCode(200).extract();
+		Map<String, String> cookies = response.cookies();
+		String formUrl = response.htmlPath().getString("html.body.div.div.div.div.div.div.form.@action");
+
+		// authenticate
+		String location = given().cookies(cookies)
+			.contentType("application/x-www-form-urlencoded")
+			.formParam("username", FRED_FLINTSTONE)
+			.formParam("password", "fred")
+			.when().post(formUrl)
+			.then().statusCode(302)
+			.extract().header("Location");
+
+		// get form for password update
+		formUrl = given().cookies(cookies)
+			.when().get(location)
+			.then().statusCode(200)
+			.extract().htmlPath().getString("html.body.div.div.div.div.form.@action");
+
+		// update password
+		given().cookies(cookies)
+			.contentType("application/x-www-form-urlencoded")
+			.formParam("username", FRED_FLINTSTONE)
+			.formParam("password-new", "changed")
+			.formParam("password-confirm", "changed")
+			.when().post(formUrl)
+			.then().statusCode(302)
+			.extract().header("Location");
+
+		// test new password
+		requestToken(FRED_FLINTSTONE, "changed").then().statusCode(200);
 	}
 
 	@Test
@@ -87,21 +136,20 @@ public class FlintstonesUserStorageProviderTest {
 
 		String userId = users.get(0).getId();
 		UserResource userResource = usersResource.get(userId);
-		assertThat(userResource.toRepresentation().getUsername(), is("fred.flintstone"));
+		assertThat(userResource.toRepresentation().getUsername(), is(FRED_FLINTSTONE));
 	}
 
 	@Test
 	public void testSearchAllUsersAsAdmin() {
 		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
 		UsersResource usersResource = kcAdmin.realm(REALM).users();
-		List<UserRepresentation> users = usersResource.search("*");
+		List<UserRepresentation> users = usersResource.search("*", 0, 10);
 		assertThat(users, is(not(empty())));
 		assertThat(users, hasSize(6));
 	}
 
 	private Response requestToken(String username, String password) {
-		String tokenEndpoint = given().when().get(keycloak.getAuthServerUrl() + "realms/" + REALM + "/.well-known/openid-configuration")
-			.then().statusCode(200).extract().path("token_endpoint");
+		String tokenEndpoint = getOpenIDConfiguration().extract().path("token_endpoint");
 		return given()
 			.contentType("application/x-www-form-urlencoded")
 			.formParam("username", username)
@@ -110,6 +158,12 @@ public class FlintstonesUserStorageProviderTest {
 			.formParam("client_id", KeycloakContainer.ADMIN_CLI_CLIENT)
 			.formParam("scope", "openid")
 			.when().post(tokenEndpoint);
+	}
+
+	private ValidatableResponse getOpenIDConfiguration() {
+		return given().pathParam("realm", REALM)
+			.when().get(keycloak.getAuthServerUrl() + "realms/{realm}/.well-known/openid-configuration")
+			.then().statusCode(200);
 	}
 
 }
