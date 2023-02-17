@@ -134,6 +134,7 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public boolean removeUser(RealmModel realm, UserModel user) {
-		return false;
+		String externalId = StorageId.externalId(user.getId());
+		return repository.removeUser(externalId);
 	}
 }

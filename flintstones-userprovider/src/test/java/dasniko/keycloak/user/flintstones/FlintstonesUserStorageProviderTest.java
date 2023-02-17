@@ -7,7 +7,9 @@ import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.keycloak.admin.client.Keycloak;
@@ -36,6 +38,7 @@ import static org.hamcrest.Matchers.not;
  */
 @Slf4j
 @Testcontainers
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class FlintstonesUserStorageProviderTest {
 
 	static final String REALM = "flintstones";
@@ -140,12 +143,17 @@ public class FlintstonesUserStorageProviderTest {
 	}
 
 	@Test
-	public void testSearchAllUsersAsAdmin() {
+	public void testSearchAllUsersAndRemoveUserAsAdmin() {
 		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
 		UsersResource usersResource = kcAdmin.realm(REALM).users();
 		List<UserRepresentation> users = usersResource.search("*", 0, 10);
 		assertThat(users, is(not(empty())));
 		assertThat(users, hasSize(6));
+
+		usersResource.delete(users.get(users.size() - 1).getId()).close();
+
+		users = usersResource.search("*", 0 , 10);
+		assertThat(users, hasSize(5));
 	}
 
 	private Response requestToken(String username, String password) {
