@@ -1,6 +1,7 @@
 package dasniko.keycloak.user.flintstones.repo;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,6 +53,18 @@ public class FlintstonesRepository {
 	public boolean updateCredentials(String username, String password) {
 		findUserByUsernameOrEmail(username).setPassword(password);
 		return true;
+	}
+
+	public String getNextId() {
+		String lastId = users.stream().sorted(Comparator.comparing(FlintstoneUser::getId))
+			.map(FlintstoneUser::getId).reduce((first, second) -> second).orElse(null);
+		return (lastId != null) ? Integer.toString(Integer.parseInt(lastId) + 1) : "1";
+	}
+
+	public void addUser(FlintstoneUser user) {
+		user.setCreated(System.currentTimeMillis());
+		user.setPassword(user.getFirstName().toLowerCase());
+		users.add(user);
 	}
 
 	public boolean removeUser(String id) {

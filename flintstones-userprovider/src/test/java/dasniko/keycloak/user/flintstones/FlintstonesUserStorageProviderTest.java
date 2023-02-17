@@ -48,6 +48,7 @@ public class FlintstonesUserStorageProviderTest {
 	@Container
 	private static final KeycloakContainer keycloak = new KeycloakContainer()
 		.withRealmImportFile("/flintstones-realm.json")
+		.withEnv("KC_SPI_EVENTS_LISTENER_JBOSS_LOGGING_SUCCESS_LEVEL", "info")
 		.withProviderClassesFrom("target/classes");
 
 
@@ -154,6 +155,36 @@ public class FlintstonesUserStorageProviderTest {
 
 		users = usersResource.search("*", 0 , 10);
 		assertThat(users, hasSize(5));
+
+		UserRepresentation newUser = new UserRepresentation();
+		newUser.setUsername("mr.slate");
+		newUser.setFirstName("Mr.");
+		newUser.setLastName("Slate");
+		newUser.setEmail("mr.slate@stonequarry.com");
+		newUser.setEnabled(true);
+		usersResource.create(newUser).close();
+
+		users = usersResource.search("*", 0 , 10);
+		assertThat(users, hasSize(6));
+
+		requestToken("mr.slate", "mr.").then().statusCode(200);
+	}
+
+	@Test
+	public void testUpdateUserAsAdmin() {
+		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
+		UsersResource usersResource = kcAdmin.realm(REALM).users();
+		List<UserRepresentation> users = usersResource.search("wilma", 0, 10);
+		assertThat(users, hasSize(1));
+
+		String wilmaId = users.get(0).getId();
+		UserRepresentation updated = new UserRepresentation();
+		updated.setLastName("Feuerstein");
+
+		usersResource.get(wilmaId).update(updated);
+
+		UserRepresentation updatedWilma = usersResource.get(wilmaId).toRepresentation();
+		assertThat(updatedWilma.getLastName(), is("Feuerstein"));
 	}
 
 	private Response requestToken(String username, String password) {

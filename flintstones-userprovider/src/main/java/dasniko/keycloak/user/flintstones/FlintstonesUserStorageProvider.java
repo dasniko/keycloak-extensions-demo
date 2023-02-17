@@ -19,6 +19,8 @@ import org.keycloak.storage.user.UserLookupProvider;
 import org.keycloak.storage.user.UserQueryProvider;
 import org.keycloak.storage.user.UserRegistrationProvider;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -33,6 +35,8 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	private final KeycloakSession session;
 	private final ComponentModel model;
 	private final FlintstonesRepository repository;
+
+	private final List<FlintstoneUserAdapter> newUsers = new ArrayList<>();
 
 	@Override
 	public boolean supportsCredentialType(String credentialType) {
@@ -69,10 +73,6 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	@Override
 	public Stream<String> getDisableableCredentialTypesStream(RealmModel realm, UserModel user) {
 		return Stream.empty();
-	}
-
-	@Override
-	public void close() {
 	}
 
 	@Override
@@ -129,12 +129,27 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public UserModel addUser(RealmModel realm, String username) {
-		return null;
+		FlintstoneUser flintstoneUser = new FlintstoneUser();
+		flintstoneUser.setId(repository.getNextId());
+		flintstoneUser.setUsername(username);
+		FlintstoneUserAdapter newUser = new FlintstoneUserAdapter(session, realm, model, flintstoneUser);
+		newUsers.add(newUser);
+		return newUser;
 	}
 
 	@Override
 	public boolean removeUser(RealmModel realm, UserModel user) {
 		String externalId = StorageId.externalId(user.getId());
 		return repository.removeUser(externalId);
+	}
+
+	@Override
+	public void close() {
+		for (FlintstoneUserAdapter newUser : newUsers) {
+			repository.addUser(newUser.getUser());
+		}
+		if (newUsers.size() > 0) {
+			newUsers.subList(0, newUsers.size()).clear();
+		}
 	}
 }

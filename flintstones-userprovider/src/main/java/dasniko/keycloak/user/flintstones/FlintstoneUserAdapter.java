@@ -1,6 +1,7 @@
 package dasniko.keycloak.user.flintstones;
 
 import dasniko.keycloak.user.flintstones.repo.FlintstoneUser;
+import lombok.Getter;
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.LegacyUserCredentialManager;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
  */
 public class FlintstoneUserAdapter extends AbstractUserAdapter {
 
+	@Getter
 	private final FlintstoneUser user;
 
 	public FlintstoneUserAdapter(KeycloakSession session, RealmModel realm, ComponentModel model, FlintstoneUser user) {
@@ -33,6 +35,11 @@ public class FlintstoneUserAdapter extends AbstractUserAdapter {
 	@Override
 	public String getUsername() {
 		return user.getUsername();
+	}
+
+	@Override
+	public void setUsername(String username) {
+		user.setUsername(username);
 	}
 
 	@Override
@@ -66,8 +73,32 @@ public class FlintstoneUserAdapter extends AbstractUserAdapter {
 	}
 
 	@Override
+	public void setEnabled(boolean enabled) {
+		user.setEnabled(enabled);
+	}
+
+	@Override
 	public Long getCreatedTimestamp() {
 		return user.getCreated();
+	}
+
+	@Override
+	public void setAttribute(String name, List<String> values) {
+		if (!values.isEmpty()) {
+			switch (name) {
+				case UserModel.LAST_NAME:
+					user.setLastName(values.get(0));
+					break;
+				case UserModel.FIRST_NAME:
+					user.setFirstName(values.get(0));
+					break;
+				case UserModel.EMAIL:
+					user.setEmail(values.get(0));
+					break;
+				default:
+					setSingleAttribute(name, values.get(0));
+			}
+		}
 	}
 
 	@Override
