@@ -19,9 +19,11 @@ public class MagicLinkAuthenticatorFactory implements AuthenticatorFactory {
 
 	public static final String PROVIDER_ID = "magic-link";
 
+	private static final Authenticator SINGLETON = new MagicLinkAuthenticator();
+
 	@Override
 	public Authenticator create(KeycloakSession session) {
-		return new MagicLinkAuthenticator();
+		return SINGLETON;
 	}
 
 	@Override

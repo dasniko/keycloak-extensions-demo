@@ -22,7 +22,7 @@ import java.util.Map;
 public class MagicLinkAuthenticator implements Authenticator {
 
 	private static final String SESSION_KEY = "magic-email-key";
-	private static final String QUERY_PARAM = "key";
+	private static final String QUERY_PARAM = "magickey";
 	private static final String MAGIC_LINK_TEMPLATE = "magic-link.ftl";
 
 	@Override
