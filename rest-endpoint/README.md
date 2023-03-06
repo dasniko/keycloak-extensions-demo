@@ -4,4 +4,4 @@ Demo implementation for custom REST resources within Keycloak, public (unauthent
 
 The endpoints are available in every realm:
 
-    /auth/realms/{realm-name}/{provider-id}/{resource-path}
+    /realms/{realm-name}/{provider-id}/{resource-path}
