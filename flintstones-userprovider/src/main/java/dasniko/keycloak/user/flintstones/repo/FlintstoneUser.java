@@ -12,7 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 public class FlintstoneUser {
 
-	private String id;
 	private String username;
 	private String email;
 	private String firstName;
@@ -22,12 +21,11 @@ public class FlintstoneUser {
 	private Long created;
 	private List<String> roles;
 
-	public FlintstoneUser(String id, String firstName, String lastName, boolean enabled, List<String> roles) {
-		this.id = id;
+	public FlintstoneUser(String email, String firstName, String lastName, boolean enabled, List<String> roles) {
+		this.username = email.substring(0, email.indexOf("@"));
+		this.email = email;
 		this.firstName = firstName;
 		this.lastName = lastName;
-		this.username = (firstName + "." + lastName).replaceAll("\\s", "").toLowerCase();
-		this.email = this.username + "@flintstones.com";
 		this.password = firstName.toLowerCase();
 		this.enabled = enabled;
 		this.created = System.currentTimeMillis();

@@ -28,7 +28,7 @@ public class FlintstoneUserAdapter extends AbstractUserAdapter {
 
 	public FlintstoneUserAdapter(KeycloakSession session, RealmModel realm, ComponentModel model, FlintstoneUser user) {
 		super(session, realm, model);
-		this.storageId = new StorageId(storageProviderModel.getId(), user.getId());
+		this.storageId = new StorageId(storageProviderModel.getId(), user.getUsername());
 		this.user = user;
 	}
 

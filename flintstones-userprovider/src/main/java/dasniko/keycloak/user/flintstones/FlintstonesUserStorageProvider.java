@@ -78,7 +78,7 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	@Override
 	public UserModel getUserById(RealmModel realm, String id) {
 		String externalId = StorageId.externalId(id);
-		return new FlintstoneUserAdapter(session, realm, model, repository.findUserById(externalId));
+		return new FlintstoneUserAdapter(session, realm, model, repository.findUserByUsernameOrEmail(externalId));
 	}
 
 	@Override
@@ -130,7 +130,6 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	@Override
 	public UserModel addUser(RealmModel realm, String username) {
 		FlintstoneUser flintstoneUser = new FlintstoneUser();
-		flintstoneUser.setId(repository.getNextId());
 		flintstoneUser.setUsername(username);
 		FlintstoneUserAdapter newUser = new FlintstoneUserAdapter(session, realm, model, flintstoneUser);
 		newUsers.add(newUser);

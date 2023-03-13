@@ -1,8 +1,13 @@
 package dasniko.keycloak.user.flintstones.repo;
 
+import lombok.SneakyThrows;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -12,14 +17,17 @@ public class FlintstonesRepository {
 
 	private final List<FlintstoneUser> users = new ArrayList<>();
 
+	@SneakyThrows
 	public FlintstonesRepository() {
-		List<String> roles = List.of("stoneage");
-		users.add(new FlintstoneUser("1", "Fred", "Flintstone", true, roles));
-		users.add(new FlintstoneUser("2", "Wilma", "Flintstone", true, roles));
-		users.add(new FlintstoneUser("3", "Pebbles", "Flintstone", true, roles));
-		users.add(new FlintstoneUser("4", "Barney", "Rubble", true, roles));
-		users.add(new FlintstoneUser("5", "Betty", "Rubble", true, null));
-		users.add(new FlintstoneUser("6", "Bam Bam", "Rubble", false, null));
+		try (InputStream inputStream = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("/flintstones.csv"))) {
+			List<String> lines = new BufferedReader(new InputStreamReader(inputStream)).lines().collect(Collectors.toList());
+			lines.forEach(line -> {
+				String[] values = line.split(";");
+				users.add(
+					new FlintstoneUser(values[0], values[1], values[2], Boolean.parseBoolean(values[3]), values.length > 4 ? List.of(values[4]) : null)
+				);
+			});
+		}
 	}
 
 	public List<FlintstoneUser> getAllUsers() {
@@ -28,10 +36,6 @@ public class FlintstonesRepository {
 
 	public int getUsersCount() {
 		return users.size();
-	}
-
-	public FlintstoneUser findUserById(String id) {
-		return users.stream().filter(user -> user.getId().equals(id)).findFirst().orElse(null);
 	}
 
 	public FlintstoneUser findUserByUsernameOrEmail(String username) {
@@ -55,20 +59,14 @@ public class FlintstonesRepository {
 		return true;
 	}
 
-	public String getNextId() {
-		String lastId = users.stream().sorted(Comparator.comparing(FlintstoneUser::getId))
-			.map(FlintstoneUser::getId).reduce((first, second) -> second).orElse(null);
-		return (lastId != null) ? Integer.toString(Integer.parseInt(lastId) + 1) : "1";
-	}
-
 	public void addUser(FlintstoneUser user) {
 		user.setCreated(System.currentTimeMillis());
 		user.setPassword(user.getFirstName().toLowerCase());
 		users.add(user);
 	}
 
-	public boolean removeUser(String id) {
-		return users.removeIf(p -> p.getId().equals(id));
+	public boolean removeUser(String username) {
+		return users.removeIf(p -> p.getUsername().equals(username));
 	}
 
 }
