@@ -3,6 +3,7 @@ package dasniko.keycloak.user.flintstones;
 import dasniko.keycloak.user.flintstones.repo.FlintstonesRepository;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.provider.ProviderConfigurationBuilder;
 import org.keycloak.storage.UserStorageProviderFactory;
@@ -16,17 +17,21 @@ public class FlintstonesUserStorageProviderFactory implements UserStorageProvide
 
 	public static final String PROVIDER_ID = "the-flintstones";
 
-	private final FlintstonesRepository repository = new FlintstonesRepository();
+	private FlintstonesRepository repository;
 
 	@Override
 	public FlintstonesUserStorageProvider create(KeycloakSession session, ComponentModel model) {
-		// here you can setup the user storage provider, initiate some connections, etc.
 		return new FlintstonesUserStorageProvider(session, model, repository);
 	}
 
 	@Override
 	public String getId() {
 		return PROVIDER_ID;
+	}
+
+	@Override
+	public void postInit(KeycloakSessionFactory factory) {
+		repository = new FlintstonesRepository();
 	}
 
 	@Override
