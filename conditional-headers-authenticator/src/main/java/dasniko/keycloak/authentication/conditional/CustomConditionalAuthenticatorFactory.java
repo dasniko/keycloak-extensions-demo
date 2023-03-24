@@ -37,7 +37,10 @@ public class CustomConditionalAuthenticatorFactory implements ConditionalAuthent
 
 	@Override
 	public AuthenticationExecutionModel.Requirement[] getRequirementChoices() {
-		return REQUIREMENT_CHOICES;
+		return new AuthenticationExecutionModel.Requirement[] {
+			AuthenticationExecutionModel.Requirement.REQUIRED,
+			AuthenticationExecutionModel.Requirement.DISABLED
+		};
 	}
 
 	@Override
