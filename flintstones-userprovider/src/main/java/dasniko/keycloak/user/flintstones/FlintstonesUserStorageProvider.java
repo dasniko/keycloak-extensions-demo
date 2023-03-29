@@ -3,16 +3,21 @@ package dasniko.keycloak.user.flintstones;
 import dasniko.keycloak.user.flintstones.repo.FlintstoneUser;
 import dasniko.keycloak.user.flintstones.repo.FlintstonesRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.CredentialInput;
 import org.keycloak.credential.CredentialInputUpdater;
 import org.keycloak.credential.CredentialInputValidator;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.ModelException;
+import org.keycloak.models.PasswordPolicy;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.credential.PasswordCredentialModel;
+import org.keycloak.policy.PasswordPolicyProvider;
+import org.keycloak.policy.PolicyError;
 import org.keycloak.storage.StorageId;
 import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.storage.user.UserLookupProvider;
@@ -20,13 +25,16 @@ import org.keycloak.storage.user.UserQueryProvider;
 import org.keycloak.storage.user.UserRegistrationProvider;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
  * @author Niko Köbler, http://www.n-k.de, @dasniko
  */
+@Slf4j
 @RequiredArgsConstructor
 public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	UserLookupProvider, UserQueryProvider, CredentialInputUpdater, CredentialInputValidator,
@@ -35,6 +43,9 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	private final KeycloakSession session;
 	private final ComponentModel model;
 	private final FlintstonesRepository repository;
+
+	// map of loaded users in this transaction
+	protected Map<String, UserModel> loadedUsers = new HashMap<>();
 
 	private final List<FlintstoneUserAdapter> newUsers = new ArrayList<>();
 
@@ -63,6 +74,22 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 			return false;
 		}
 		UserCredentialModel cred = (UserCredentialModel) input;
+
+		if (model.get(FlintstonesUserStorageProviderFactory.USE_PASSWORD_POLICY, false)) {
+			PasswordPolicy passwordPolicy = realm.getPasswordPolicy();
+			if (passwordPolicy != null) {
+				for (String policy : passwordPolicy.getPolicies()) {
+					PasswordPolicyProvider provider = session.getProvider(PasswordPolicyProvider.class, policy);
+					if (provider != null) {
+						PolicyError policyError = provider.validate(user.getUsername(), cred.getChallengeResponse());
+						if (policyError != null) {
+							throw new ModelException(policyError.getMessage(), policyError.getParameters());
+						}
+					}
+				}
+			}
+		}
+
 		return repository.updateCredentials(user.getUsername(), cred.getChallengeResponse());
 	}
 
@@ -78,21 +105,32 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	@Override
 	public UserModel getUserById(RealmModel realm, String id) {
 		String externalId = StorageId.externalId(id);
-		return new FlintstoneUserAdapter(session, realm, model, repository.findUserByUsernameOrEmail(externalId));
+		return findUser(realm, externalId, repository::findUserByUsernameOrEmail);
 	}
 
 	@Override
 	public UserModel getUserByUsername(RealmModel realm, String username) {
-		FlintstoneUser user = repository.findUserByUsernameOrEmail(username);
-		if (user != null) {
-			return new FlintstoneUserAdapter(session, realm, model, user);
-		}
-		return null;
+		return findUser(realm, username, repository::findUserByUsernameOrEmail);
 	}
 
 	@Override
 	public UserModel getUserByEmail(RealmModel realm, String email) {
 		return getUserByUsername(realm, email);
+	}
+
+	private UserModel findUser(RealmModel realm, String identifier, Function<String, FlintstoneUser> fnFindUser) {
+		UserModel adapter = loadedUsers.get(identifier);
+		if (adapter == null) {
+			FlintstoneUser user = fnFindUser.apply(identifier);
+			log.debug("Received user data for identifier <{}> from repository: {}", identifier, user);
+			if (user != null) {
+				adapter = new FlintstoneUserAdapter(session, realm, model, user);
+				loadedUsers.put(identifier, adapter);
+			}
+		} else {
+			log.debug("Found user data for {} in loadedUsers.", identifier);
+		}
+		return adapter;
 	}
 
 	@Override
@@ -129,11 +167,15 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public UserModel addUser(RealmModel realm, String username) {
-		FlintstoneUser flintstoneUser = new FlintstoneUser();
-		flintstoneUser.setUsername(username);
-		FlintstoneUserAdapter newUser = new FlintstoneUserAdapter(session, realm, model, flintstoneUser);
-		newUsers.add(newUser);
-		return newUser;
+		if (model.get(FlintstonesUserStorageProviderFactory.USER_CREATION_ENABLED, false)) {
+			FlintstoneUser flintstoneUser = new FlintstoneUser();
+			flintstoneUser.setUsername(username);
+			FlintstoneUserAdapter newUser = new FlintstoneUserAdapter(session, realm, model, flintstoneUser);
+			newUsers.add(newUser);
+			loadedUsers.put(username, newUser);
+			return newUser;
+		}
+		return null;
 	}
 
 	@Override

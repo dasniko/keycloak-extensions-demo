@@ -17,6 +17,9 @@ public class FlintstonesUserStorageProviderFactory implements UserStorageProvide
 
 	public static final String PROVIDER_ID = "the-flintstones";
 
+	static final String USER_CREATION_ENABLED = "userCreation";
+	static final String USE_PASSWORD_POLICY = "usePasswordPolicy";
+
 	private FlintstonesRepository repository;
 
 	@Override
@@ -37,7 +40,8 @@ public class FlintstonesUserStorageProviderFactory implements UserStorageProvide
 	@Override
 	public List<ProviderConfigProperty> getConfigProperties() {
 		return ProviderConfigurationBuilder.create()
-			.property("myParam", "My Param", "Some Description", ProviderConfigProperty.STRING_TYPE, "some value", null)
+			.property(USER_CREATION_ENABLED, "Sync Registrations", "Should newly created users be created within this store?", ProviderConfigProperty.BOOLEAN_TYPE, "false", null)
+			.property(USE_PASSWORD_POLICY, "Validate password policy", "Determines if Keycloak should validate the password with the realm password policy before updating it.", ProviderConfigProperty.BOOLEAN_TYPE, "false", null)
 			.build();
 	}
 }
