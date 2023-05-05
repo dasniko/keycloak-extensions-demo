@@ -23,6 +23,7 @@
 		<module>email</module>
 		<module>conditional-headers-authenticator</module>
 		<module>mfa-authenticator</module>
+		<module>passkey</module>
 	</modules>
 
 	<properties>
