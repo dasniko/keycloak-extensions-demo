@@ -75,7 +75,7 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 		}
 		UserCredentialModel cred = (UserCredentialModel) input;
 
-		if (model.get(FlintstonesUserStorageProviderFactory.USE_PASSWORD_POLICY, false)) {
+		if (usePasswordPolicy()) {
 			PasswordPolicy passwordPolicy = realm.getPasswordPolicy();
 			if (passwordPolicy != null) {
 				for (String policy : passwordPolicy.getPolicies()) {
@@ -151,7 +151,13 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public Stream<UserModel> searchForUserStream(RealmModel realm, Map<String, String> params, Integer firstResult, Integer maxResults) {
-		return repository.getAllUsers().stream()
+		List<FlintstoneUser> result;
+		if (params.containsKey(UserModel.USERNAME)) {
+			result = List.of(repository.findUserByUsernameOrEmail(params.get(UserModel.USERNAME)));
+		} else {
+			result = repository.getAllUsers();
+		}
+		return result.stream()
 			.map(user -> new FlintstoneUserAdapter(session, realm, model, user));
 	}
 
@@ -167,10 +173,11 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public UserModel addUser(RealmModel realm, String username) {
-		if (model.get(FlintstonesUserStorageProviderFactory.USER_CREATION_ENABLED, false)) {
+		if (syncUsers()) {
 			FlintstoneUser flintstoneUser = new FlintstoneUser();
 			flintstoneUser.setUsername(username);
 			FlintstoneUserAdapter newUser = new FlintstoneUserAdapter(session, realm, model, flintstoneUser);
+			repository.createUser(flintstoneUser);
 			newUsers.add(newUser);
 			loadedUsers.put(username, newUser);
 			return newUser;
@@ -187,10 +194,19 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	@Override
 	public void close() {
 		for (FlintstoneUserAdapter newUser : newUsers) {
-			repository.addUser(newUser.getUser());
+			repository.updateUser(newUser.getUser());
 		}
 		if (newUsers.size() > 0) {
 			newUsers.subList(0, newUsers.size()).clear();
 		}
 	}
+
+	private boolean syncUsers() {
+		return model.get(FlintstonesUserStorageProviderFactory.USER_CREATION_ENABLED, false);
+	}
+
+	private boolean usePasswordPolicy() {
+		return model.get(FlintstonesUserStorageProviderFactory.USE_PASSWORD_POLICY, false);
+	}
+
 }

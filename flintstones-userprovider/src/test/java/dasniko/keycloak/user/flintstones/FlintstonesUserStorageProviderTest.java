@@ -15,6 +15,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -166,6 +167,12 @@ public class FlintstonesUserStorageProviderTest {
 
 		users = usersResource.search("*", 0 , 10);
 		assertThat(users, hasSize(6));
+
+		CredentialRepresentation cred = new CredentialRepresentation();
+		cred.setType(CredentialRepresentation.PASSWORD);
+		cred.setValue("mr.");
+		String userId = usersResource.searchByUsername("mr.slate", true).get(0).getId();
+		usersResource.get(userId).resetPassword(cred);
 
 		requestToken("mr.slate", "mr.").then().statusCode(200);
 	}

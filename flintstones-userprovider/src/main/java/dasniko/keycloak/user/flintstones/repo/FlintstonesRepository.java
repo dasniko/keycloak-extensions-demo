@@ -59,10 +59,17 @@ public class FlintstonesRepository {
 		return true;
 	}
 
-	public void addUser(FlintstoneUser user) {
+	public void createUser(FlintstoneUser user) {
 		user.setCreated(System.currentTimeMillis());
-		user.setPassword(user.getFirstName().toLowerCase());
 		users.add(user);
+	}
+
+	public void updateUser(FlintstoneUser user) {
+		FlintstoneUser existing = findUserByUsernameOrEmail(user.getUsername());
+		existing.setEmail(user.getEmail());
+		existing.setFirstName(user.getFirstName());
+		existing.setLastName(user.getLastName());
+		existing.setEnabled(user.isEnabled());
 	}
 
 	public boolean removeUser(String username) {

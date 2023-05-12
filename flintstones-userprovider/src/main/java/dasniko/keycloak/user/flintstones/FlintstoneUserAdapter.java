@@ -127,4 +127,12 @@ public class FlintstoneUserAdapter extends AbstractUserAdapter {
 		}
 		super.removeRequiredAction(action);
 	}
+
+	@Override
+	public void removeRequiredAction(RequiredAction action) {
+		if (action.name().equals(RequiredAction.UPDATE_PASSWORD.name())) {
+			return;
+		}
+		super.removeRequiredAction(action);
+	}
 }
