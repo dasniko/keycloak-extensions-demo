@@ -1,0 +1,1 @@
+# Keycloak Friendly Captcha Authenticator
