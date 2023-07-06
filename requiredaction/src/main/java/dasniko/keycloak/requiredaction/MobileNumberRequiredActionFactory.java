@@ -1,5 +1,6 @@
 package dasniko.keycloak.requiredaction;
 
+import com.google.auto.service.AutoService;
 import org.keycloak.Config;
 import org.keycloak.authentication.RequiredActionFactory;
 import org.keycloak.authentication.RequiredActionProvider;
@@ -9,6 +10,7 @@ import org.keycloak.models.KeycloakSessionFactory;
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
  */
+@AutoService(RequiredActionFactory.class)
 public class MobileNumberRequiredActionFactory implements RequiredActionFactory {
 
 	@Override
