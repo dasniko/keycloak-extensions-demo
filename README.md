@@ -4,7 +4,7 @@ Demos, examples and playground for [Keycloak](https://www.keycloak.org) extensio
 
 [![CI build](https://github.com/dasniko/keycloak-extensions-demo/actions/workflows/maven.yml/badge.svg)](https://github.com/dasniko/keycloak-extensions-demo/actions/workflows/maven.yml)
 ![](https://img.shields.io/github/license/dasniko/keycloak-extensions-demo?label=License)
-![](https://img.shields.io/badge/Keycloak-21.0-blue)
+![](https://img.shields.io/badge/Keycloak-22.0-blue)
 
 ## Keycloak User Storage Providers
 

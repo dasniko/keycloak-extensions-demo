@@ -1,5 +1,6 @@
 package dasniko.keycloak.authentication.mfa;
 
+import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.AuthenticationFlowError;
@@ -13,7 +14,6 @@ import org.keycloak.models.UserModel;
 import org.keycloak.sessions.AuthenticationSessionModel;
 import org.keycloak.theme.Theme;
 
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.Locale;
 

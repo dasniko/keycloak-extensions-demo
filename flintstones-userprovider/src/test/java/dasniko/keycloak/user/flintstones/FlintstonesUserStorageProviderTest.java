@@ -57,7 +57,7 @@ public class FlintstonesUserStorageProviderTest {
 	@ValueSource(strings = {KeycloakContainer.MASTER_REALM, REALM})
 	public void testRealms(String realm) {
 		String accountServiceUrl = given().pathParam("realm", realm)
-			.when().get(keycloak.getAuthServerUrl() + "realms/{realm}")
+			.when().get(keycloak.getAuthServerUrl() + "/realms/{realm}")
 			.then().statusCode(200).body("realm", equalTo(realm))
 			.extract().path("account-service");
 
@@ -94,7 +94,7 @@ public class FlintstonesUserStorageProviderTest {
 		ExtractableResponse<Response> response = given()
 			.queryParam("response_type", "code")
 			.queryParam("client_id", "account")
-			.queryParam("redirect_uri", keycloak.getAuthServerUrl() + "realms/" + REALM + "/account")
+			.queryParam("redirect_uri", keycloak.getAuthServerUrl() + "/realms/" + REALM + "/account")
 			.queryParam("scope", "openid")
 			.queryParam("kc_action", "UPDATE_PASSWORD")
 			.when().get(authEndpoint)
@@ -135,7 +135,7 @@ public class FlintstonesUserStorageProviderTest {
 	public void testAccessingUsersAsAdmin() {
 		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
 		UsersResource usersResource = kcAdmin.realm(REALM).users();
-		List<UserRepresentation> users = usersResource.search("fred", 0, 10);
+		List<UserRepresentation> users = usersResource.searchByUsername("fred.flintstone", true);
 		assertThat(users, is(not(empty())));
 		assertThat(users, hasSize(1));
 
@@ -181,7 +181,7 @@ public class FlintstonesUserStorageProviderTest {
 	public void testUpdateUserAsAdmin() {
 		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
 		UsersResource usersResource = kcAdmin.realm(REALM).users();
-		List<UserRepresentation> users = usersResource.search("wilma", 0, 10);
+		List<UserRepresentation> users = usersResource.searchByUsername("wilma.flintstone", true);
 		assertThat(users, hasSize(1));
 
 		String wilmaId = users.get(0).getId();
@@ -208,7 +208,7 @@ public class FlintstonesUserStorageProviderTest {
 
 	private ValidatableResponse getOpenIDConfiguration() {
 		return given().pathParam("realm", REALM)
-			.when().get(keycloak.getAuthServerUrl() + "realms/{realm}/.well-known/openid-configuration")
+			.when().get(keycloak.getAuthServerUrl() + "/realms/{realm}/.well-known/openid-configuration")
 			.then().statusCode(200);
 	}
 

@@ -14,7 +14,7 @@ import java.util.stream.Stream;
  * @author Niko Köbler, https://www.n-k.de, @dasniko
  */
 @RequiredArgsConstructor
-public class UserGroupModel implements GroupModel.Streams {
+public class UserGroupModel implements GroupModel {
 
 	private final String name;
 

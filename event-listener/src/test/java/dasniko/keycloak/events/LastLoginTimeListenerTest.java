@@ -41,7 +41,7 @@ public class LastLoginTimeListenerTest {
 		admin.realm(REALM).updateRealmEventsConfig(eventsConfig);
 
 		// "login" user
-		String tokenEndpoint = given().when().get(keycloak.getAuthServerUrl() + "realms/" + REALM + "/.well-known/openid-configuration")
+		String tokenEndpoint = given().when().get(keycloak.getAuthServerUrl() + "/realms/" + REALM + "/.well-known/openid-configuration")
 			.then().statusCode(200).extract().path("token_endpoint");
 		given()
 			.contentType("application/x-www-form-urlencoded")

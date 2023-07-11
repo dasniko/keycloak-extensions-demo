@@ -67,7 +67,7 @@ public class PeanutsUserProviderTest {
 	@ParameterizedTest
 	@ValueSource(strings = { KeycloakContainer.MASTER_REALM, REALM })
 	public void testRealms(String realm) {
-		String accountServiceUrl = given().when().get(keycloak.getAuthServerUrl() + "realms/" + realm)
+		String accountServiceUrl = given().when().get(keycloak.getAuthServerUrl() + "/realms/" + realm)
 			.then().statusCode(200).body("realm", equalTo(realm))
 			.extract().path("account-service");
 
@@ -113,7 +113,7 @@ public class PeanutsUserProviderTest {
 	}
 
 	private Response requestToken(String username, String password) {
-		String tokenEndpoint = given().when().get(keycloak.getAuthServerUrl() + "realms/" + REALM + "/.well-known/openid-configuration")
+		String tokenEndpoint = given().when().get(keycloak.getAuthServerUrl() + "/realms/" + REALM + "/.well-known/openid-configuration")
 			.then().statusCode(200).extract().path("token_endpoint");
 		return given()
 			.contentType("application/x-www-form-urlencoded")

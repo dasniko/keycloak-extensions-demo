@@ -4,6 +4,8 @@ import dasniko.keycloak.user.peanuts.external.CredentialData;
 import dasniko.keycloak.user.peanuts.external.Peanut;
 import dasniko.keycloak.user.peanuts.external.PeanutsClient;
 import dasniko.keycloak.user.peanuts.external.PeanutsClientSimpleHttp;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.CredentialInput;
@@ -23,8 +25,6 @@ import org.keycloak.storage.user.UserLookupProvider;
 import org.keycloak.storage.user.UserQueryProvider;
 import org.keycloak.storage.user.UserRegistrationProvider;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
