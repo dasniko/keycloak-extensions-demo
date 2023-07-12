@@ -17,6 +17,8 @@ public class MfaAuthenticatorFactory implements AuthenticatorFactory {
 
 	public static final String PROVIDER_ID = "custom-mfa";
 
+	private static final Authenticator SINGLETON = new MfaAuthenticator();
+
 	@Override
 	public String getId() {
 		return PROVIDER_ID;
@@ -63,7 +65,7 @@ public class MfaAuthenticatorFactory implements AuthenticatorFactory {
 
 	@Override
 	public Authenticator create(KeycloakSession session) {
-		return new MfaAuthenticator();
+		return SINGLETON;
 	}
 
 	@Override
