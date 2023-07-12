@@ -46,8 +46,7 @@ public class MfaAuthenticatorFactory implements AuthenticatorFactory {
 
 	@Override
 	public boolean isUserSetupAllowed() {
-		return false;
-		// return true;
+		return true;
 	}
 
 	@Override

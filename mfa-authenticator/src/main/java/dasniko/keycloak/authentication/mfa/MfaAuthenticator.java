@@ -98,15 +98,13 @@ public class MfaAuthenticator implements Authenticator {
 
 	@Override
 	public boolean configuredFor(KeycloakSession session, RealmModel realm, UserModel user) {
-		return true;
-		// return user.getFirstAttribute("mobile_number") != null;
+		return user.getFirstAttribute("mobile_number") != null;
 	}
 
 	@Override
 	public void setRequiredActions(KeycloakSession session, RealmModel realm, UserModel user) {
-		// this will only work if you have the required action from here configured:
-		// https://github.com/dasniko/keycloak-extensions-demo/tree/main/requiredaction
-		// user.addRequiredAction("mobile-number-ra");
+		// here I'm referencing the mobile number required action in the "requiredaction" module
+		user.addRequiredAction("mobile-number-ra");
 	}
 
 	@Override
