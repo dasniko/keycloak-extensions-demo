@@ -28,9 +28,10 @@ public class MobileNumberRequiredAction implements RequiredActionProvider {
 
 	@Override
 	public void evaluateTriggers(RequiredActionContext context) {
-		if (context.getUser().getFirstAttribute(MOBILE_NUMBER_FIELD) == null) {
-			context.getUser().addRequiredAction(PROVIDER_ID);
-		}
+		// you would implement something like the following, if this required action should be "self registering" at the user
+		// if (context.getUser().getFirstAttribute(MOBILE_NUMBER_FIELD) == null) {
+		// 	context.getUser().addRequiredAction(PROVIDER_ID);
+		// }
 	}
 
 	@Override
