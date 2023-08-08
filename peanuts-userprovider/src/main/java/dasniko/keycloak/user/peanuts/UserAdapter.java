@@ -11,7 +11,9 @@ import org.keycloak.models.RoleModel;
 import org.keycloak.models.SubjectCredentialManager;
 import org.keycloak.models.UserModel;
 import org.keycloak.storage.StorageId;
+import org.keycloak.storage.UserStorageUtil;
 import org.keycloak.storage.adapter.AbstractUserAdapter;
+import org.keycloak.storage.federated.UserFederatedStorageProvider;
 
 import java.util.List;
 import java.util.Map;
@@ -22,7 +24,7 @@ import java.util.stream.Stream;
 /**
  * @author Niko Köbler, http://www.n-k.de, @dasniko
  */
-public class UserAdapter extends AbstractUserAdapter.Streams {
+public class UserAdapter extends AbstractUserAdapter {
 
 	private final Peanut user;
 
@@ -95,6 +97,81 @@ public class UserAdapter extends AbstractUserAdapter.Streams {
 			return user.getRoles().stream().map(roleName -> new UserRoleModel(roleName, realm)).collect(Collectors.toSet());
 		}
 		return Set.of();
+	}
+
+	@Override
+	public Stream<String> getRequiredActionsStream() {
+		return getFederatedStorage().getRequiredActionsStream(realm, this.getId());
+	}
+
+	@Override
+	public void addRequiredAction(String action) {
+		getFederatedStorage().addRequiredAction(realm, this.getId(), action);
+	}
+
+	@Override
+	public void removeRequiredAction(String action) {
+		getFederatedStorage().removeRequiredAction(realm, this.getId(), action);
+	}
+
+	@Override
+	public void addRequiredAction(RequiredAction action) {
+		getFederatedStorage().addRequiredAction(realm, this.getId(), action.name());
+	}
+
+	@Override
+	public void removeRequiredAction(RequiredAction action) {
+		getFederatedStorage().removeRequiredAction(realm, this.getId(), action.name());
+	}
+
+
+	@Override
+	public void setAttribute(String name, List<String> values) {
+		// intended, see commit message
+	}
+
+	@Override
+	public void setFirstName(String firstName) {
+		// intended, see commit message
+	}
+
+	@Override
+	public void setLastName(String lastName) {
+		// intended, see commit message
+	}
+
+	@Override
+	public void setEmail(String email) {
+		// intended, see commit message
+	}
+
+	@Override
+	public void setEmailVerified(boolean verified) {
+		// intended, see commit message
+	}
+
+	@Override
+	public void setEnabled(boolean enabled) {
+		// intended, see commit message
+	}
+
+	@Override
+	public void setCreatedTimestamp(Long timestamp) {
+		// intended, see commit message
+	}
+
+	@Override
+	public void setSingleAttribute(String name, String value) {
+		// intended, see commit message
+	}
+
+	@Override
+	public void removeAttribute(String name) {
+		// intended, see commit message
+	}
+
+	UserFederatedStorageProvider getFederatedStorage() {
+		return UserStorageUtil.userFederatedStorage(session);
 	}
 
 }
