@@ -184,13 +184,12 @@ public class FlintstonesUserStorageProviderTest {
 		List<UserRepresentation> users = usersResource.searchByUsername("wilma.flintstone", true);
 		assertThat(users, hasSize(1));
 
-		String wilmaId = users.get(0).getId();
-		UserRepresentation updated = new UserRepresentation();
-		updated.setLastName("Feuerstein");
+		UserRepresentation wilma = users.get(0);
+		wilma.setLastName("Feuerstein");
 
-		usersResource.get(wilmaId).update(updated);
+		usersResource.get(wilma.getId()).update(wilma);
 
-		UserRepresentation updatedWilma = usersResource.get(wilmaId).toRepresentation();
+		UserRepresentation updatedWilma = usersResource.get(wilma.getId()).toRepresentation();
 		assertThat(updatedWilma.getLastName(), is("Feuerstein"));
 	}
 

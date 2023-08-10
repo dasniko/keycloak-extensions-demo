@@ -45,8 +45,8 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	private final FlintstonesRepository repository;
 
 	// map of loaded users in this transaction
-	protected Map<String, UserModel> loadedUsers = new HashMap<>();
-
+	private final Map<String, UserModel> loadedUsers = new HashMap<>();
+	// list of newly created users in this transaction
 	private final List<FlintstoneUserAdapter> newUsers = new ArrayList<>();
 
 	@Override
@@ -61,19 +61,17 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public boolean isValid(RealmModel realm, UserModel user, CredentialInput input) {
-		if (!supportsCredentialType(input.getType()) || !(input instanceof UserCredentialModel)) {
+		if (!supportsCredentialType(input.getType()) || !(input instanceof UserCredentialModel cred)) {
 			return false;
 		}
-		UserCredentialModel cred = (UserCredentialModel) input;
 		return repository.validateCredentials(user.getUsername(), cred.getChallengeResponse());
 	}
 
 	@Override
 	public boolean updateCredential(RealmModel realm, UserModel user, CredentialInput input) {
-		if (!supportsCredentialType(input.getType()) || !(input instanceof UserCredentialModel)) {
+		if (!supportsCredentialType(input.getType()) || !(input instanceof UserCredentialModel cred)) {
 			return false;
 		}
-		UserCredentialModel cred = (UserCredentialModel) input;
 
 		if (usePasswordPolicy()) {
 			PasswordPolicy passwordPolicy = realm.getPasswordPolicy();
@@ -139,26 +137,16 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	}
 
 	@Override
-	public Stream<UserModel> searchForUserStream(RealmModel realm, String search) {
-		return repository.findUsers(search).stream()
-			.map(user -> new FlintstoneUserAdapter(session, realm, model, user));
-	}
-
-	@Override
-	public Stream<UserModel> searchForUserStream(RealmModel realm, String search, Integer firstResult, Integer maxResults) {
-		return searchForUserStream(realm, search);
-	}
-
-	@Override
 	public Stream<UserModel> searchForUserStream(RealmModel realm, Map<String, String> params, Integer firstResult, Integer maxResults) {
 		List<FlintstoneUser> result;
 		if (params.containsKey(UserModel.USERNAME)) {
 			result = List.of(repository.findUserByUsernameOrEmail(params.get(UserModel.USERNAME)));
+		} else if (params.containsKey(UserModel.SEARCH)) {
+			result = repository.findUsers(params.get(UserModel.SEARCH));
 		} else {
 			result = repository.getAllUsers();
 		}
-		return result.stream()
-			.map(user -> new FlintstoneUserAdapter(session, realm, model, user));
+		return result.stream().map(user -> new FlintstoneUserAdapter(session, realm, model, user));
 	}
 
 	@Override
@@ -193,12 +181,16 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public void close() {
-		for (FlintstoneUserAdapter newUser : newUsers) {
+		newUsers.forEach(newUser -> {
 			repository.updateUser(newUser.getUser());
-		}
-		if (newUsers.size() > 0) {
-			newUsers.subList(0, newUsers.size()).clear();
-		}
+			loadedUsers.remove(newUser.getUsername());
+		});
+		loadedUsers.values().forEach(user -> {
+			FlintstoneUserAdapter userAdapter = (FlintstoneUserAdapter) user;
+			if (userAdapter.isDirty()) {
+				repository.updateUser(userAdapter.getUser());
+			}
+		});
 	}
 
 	private boolean syncUsers() {

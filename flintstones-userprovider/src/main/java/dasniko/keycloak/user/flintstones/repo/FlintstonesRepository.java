@@ -20,7 +20,7 @@ public class FlintstonesRepository {
 	@SneakyThrows
 	public FlintstonesRepository() {
 		try (InputStream inputStream = Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("/flintstones.csv"))) {
-			List<String> lines = new BufferedReader(new InputStreamReader(inputStream)).lines().collect(Collectors.toList());
+			List<String> lines = new BufferedReader(new InputStreamReader(inputStream)).lines().toList();
 			lines.forEach(line -> {
 				String[] values = line.split(";");
 				users.add(
@@ -38,10 +38,15 @@ public class FlintstonesRepository {
 		return users.size();
 	}
 
-	public FlintstoneUser findUserByUsernameOrEmail(String username) {
+	private FlintstoneUser findUserByUsernameOrEmailInternal(String username) {
 		return users.stream()
 			.filter(user -> user.getUsername().equalsIgnoreCase(username) || user.getEmail().equalsIgnoreCase(username))
 			.findFirst().orElse(null);
+	}
+
+	public FlintstoneUser findUserByUsernameOrEmail(String username) {
+		FlintstoneUser user = findUserByUsernameOrEmailInternal(username);
+		return user != null ? user.clone() : null;
 	}
 
 	public List<FlintstoneUser> findUsers(String query) {
@@ -51,11 +56,11 @@ public class FlintstonesRepository {
 	}
 
 	public boolean validateCredentials(String username, String password) {
-		return findUserByUsernameOrEmail(username).getPassword().equals(password);
+		return findUserByUsernameOrEmailInternal(username).getPassword().equals(password);
 	}
 
 	public boolean updateCredentials(String username, String password) {
-		findUserByUsernameOrEmail(username).setPassword(password);
+		findUserByUsernameOrEmailInternal(username).setPassword(password);
 		return true;
 	}
 
@@ -65,7 +70,7 @@ public class FlintstonesRepository {
 	}
 
 	public void updateUser(FlintstoneUser user) {
-		FlintstoneUser existing = findUserByUsernameOrEmail(user.getUsername());
+		FlintstoneUser existing = findUserByUsernameOrEmailInternal(user.getUsername());
 		existing.setEmail(user.getEmail());
 		existing.setFirstName(user.getFirstName());
 		existing.setLastName(user.getLastName());

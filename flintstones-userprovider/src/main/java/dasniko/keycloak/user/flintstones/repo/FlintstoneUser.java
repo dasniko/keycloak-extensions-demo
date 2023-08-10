@@ -2,6 +2,7 @@ package dasniko.keycloak.user.flintstones.repo;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 
 import java.util.List;
 
@@ -10,7 +11,7 @@ import java.util.List;
  */
 @Data
 @NoArgsConstructor
-public class FlintstoneUser {
+public class FlintstoneUser implements Cloneable {
 
 	private String username;
 	private String email;
@@ -32,4 +33,9 @@ public class FlintstoneUser {
 		this.roles = roles;
 	}
 
+	@Override
+	@SneakyThrows
+	public FlintstoneUser clone() {
+		return (FlintstoneUser) super.clone();
+	}
 }
