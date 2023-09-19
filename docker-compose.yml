@@ -1,0 +1,33 @@
+version: '3.8'
+volumes:
+  kc_data:
+    name: keycloak-extensions-demo-data
+services:
+  keycloak:
+    container_name: keycloak-extensions-demo
+    image: quay.io/keycloak/keycloak:22.0
+    command: start-dev
+    environment:
+      DEBUG: 'true'
+      DEBUG_PORT: '*:8787'
+      KC_FEATURES: preview
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - '8080:8080'
+      - '8787:8787'
+    volumes:
+      - kc_data:/opt/keycloak/data
+      - ./captcha/target/dasniko.keycloak-captcha.jar:/opt/keycloak/providers/captcha.jar
+      - ./conditional-headers-authenticator/target/dasniko.keycloak-conditional-headers-authenticator.jar:/opt/keycloak/providers/conditional-headers-authenticator.jar
+      - ./event-listener/target/dasniko.keycloak-event-listener.jar:/opt/keycloak/providers/event-listener.jar
+      - ./flintstones-userprovider/target/dasniko.keycloak-flintstones-userprovider.jar:/opt/keycloak/providers/flintstones-userprovider.jar
+      - ./magiclink/target/dasniko.keycloak-magiclink.jar:/opt/keycloak/providers/magiclink.jar
+      - ./mfa-authenticator/target/dasniko.keycloak-mfa-authenticator.jar:/opt/keycloak/providers/mfa-authenticator.jar
+      - ./passkey/target/dasniko.keycloak-passkey.jar:/opt/keycloak/providers/passkey.jar
+      - ./peanuts-userprovider/target/dasniko.keycloak-peanuts-userprovider.jar:/opt/keycloak/providers/peanuts-userprovider.jar
+      - ./requiredaction/target/dasniko.keycloak-requiredaction.jar:/opt/keycloak/providers/requiredaction.jar
+      - ./rest-endpoint/target/dasniko.keycloak-rest-endpoint.jar:/opt/keycloak/providers/rest-endpoint.jar
+      - ./tokenmapper/target/dasniko.keycloak-tokenmapper.jar:/opt/keycloak/providers/tokenmapper.jar
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

@@ -53,6 +53,10 @@ _(This was for long time not possible in Keycloak ootb, thus this event listener
 
 [Email Provider](./email) for custom templates in JSON format (no actual emal, but for processing through external/3rd party services) and sending emails via a vendor specific (here: AWS SES) protocol, instead of SMTP.
 
-## Custom Action Token
+## Demo Docker Compose Environment
 
-[ActionToken](./actiontoken) _t.b.d._
+There's a `docker-compose.yml` definition to use with Docker Compose. No Warranties, use at your own risk and fortune, I'm not giving any support to this!
+
+Build and run all the stuff with:
+
+    & ./mvnw clean package -DskipTests && docker compose up
