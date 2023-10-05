@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 public class FlintstoneUser implements Cloneable {
 
+	private String id;
 	private String username;
 	private String email;
 	private String firstName;
@@ -22,7 +23,8 @@ public class FlintstoneUser implements Cloneable {
 	private Long created;
 	private List<String> roles;
 
-	public FlintstoneUser(String email, String firstName, String lastName, boolean enabled, List<String> roles) {
+	public FlintstoneUser(String id, String email, String firstName, String lastName, boolean enabled, List<String> roles) {
+		this.id = id;
 		this.username = email.substring(0, email.indexOf("@"));
 		this.email = email;
 		this.firstName = firstName;

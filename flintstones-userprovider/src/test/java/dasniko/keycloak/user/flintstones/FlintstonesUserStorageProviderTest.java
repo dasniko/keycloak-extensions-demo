@@ -8,6 +8,7 @@ import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -39,7 +40,7 @@ import static org.hamcrest.Matchers.not;
  */
 @Slf4j
 @Testcontainers
-@TestMethodOrder(MethodOrderer.MethodName.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class FlintstonesUserStorageProviderTest {
 
 	static final String REALM = "flintstones";
@@ -50,9 +51,11 @@ public class FlintstonesUserStorageProviderTest {
 	private static final KeycloakContainer keycloak = new KeycloakContainer()
 		.withRealmImportFile("/flintstones-realm.json")
 		.withEnv("KC_SPI_EVENTS_LISTENER_JBOSS_LOGGING_SUCCESS_LEVEL", "info")
+		.withEnv("KC_LOG_LEVEL", "INFO,dasniko:debug")
 		.withProviderClassesFrom("target/classes");
 
 
+	@Order(1)
 	@ParameterizedTest
 	@ValueSource(strings = {KeycloakContainer.MASTER_REALM, REALM})
 	public void testRealms(String realm) {
@@ -64,6 +67,7 @@ public class FlintstonesUserStorageProviderTest {
 		given().when().get(accountServiceUrl).then().statusCode(200);
 	}
 
+	@Order(2)
 	@ParameterizedTest
 	@ValueSource(strings = {"fred.flintstone@flintstones.com", FRED_FLINTSTONE})
 	public void testLoginAsUserAndCheckAccessToken(String userIdentifier) throws IOException {
@@ -83,11 +87,13 @@ public class FlintstonesUserStorageProviderTest {
 	}
 
 	@Test
+	@Order(3)
 	public void testLoginAsUserWithInvalidPassword() {
 		requestToken(FRED_FLINTSTONE, "invalid").then().statusCode(401);
 	}
 
 	@Test
+	@Order(4)
 	public void testUpdatePassword() {
 		// call update password action directly
 		String authEndpoint = getOpenIDConfiguration().extract().path("authorization_endpoint");
@@ -132,6 +138,7 @@ public class FlintstonesUserStorageProviderTest {
 	}
 
 	@Test
+	@Order(5)
 	public void testAccessingUsersAsAdmin() {
 		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
 		UsersResource usersResource = kcAdmin.realm(REALM).users();
@@ -145,6 +152,7 @@ public class FlintstonesUserStorageProviderTest {
 	}
 
 	@Test
+	@Order(6)
 	public void testSearchAllUsersAndRemoveUserAsAdmin() {
 		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
 		UsersResource usersResource = kcAdmin.realm(REALM).users();
@@ -178,6 +186,7 @@ public class FlintstonesUserStorageProviderTest {
 	}
 
 	@Test
+	@Order(7)
 	public void testUpdateUserAsAdmin() {
 		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
 		UsersResource usersResource = kcAdmin.realm(REALM).users();

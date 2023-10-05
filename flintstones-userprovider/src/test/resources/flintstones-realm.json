@@ -12,6 +12,9 @@
         "providerId": "the-flintstones",
         "subComponents": {},
         "config": {
+					"apiBaseUrl": [
+						"http://localhost:8000"
+					],
 					"userCreation": [
 						"true"
 					],

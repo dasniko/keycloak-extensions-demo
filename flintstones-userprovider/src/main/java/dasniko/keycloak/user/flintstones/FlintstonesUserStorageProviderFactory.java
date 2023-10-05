@@ -1,6 +1,8 @@
 package dasniko.keycloak.user.flintstones;
 
-import dasniko.keycloak.user.flintstones.repo.FlintstonesRepository;
+import com.google.auto.service.AutoService;
+import dasniko.keycloak.user.flintstones.repo.FlintstonesApiClient;
+import dasniko.keycloak.user.flintstones.repo.FlintstonesApiServer;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
@@ -13,18 +15,21 @@ import java.util.List;
 /**
  * @author Niko Köbler, http://www.n-k.de, @dasniko
  */
+@AutoService(UserStorageProviderFactory.class)
 public class FlintstonesUserStorageProviderFactory implements UserStorageProviderFactory<FlintstonesUserStorageProvider> {
 
 	public static final String PROVIDER_ID = "the-flintstones";
 
+	public static final String USER_API_BASE_URL = "apiBaseUrl";
 	static final String USER_CREATION_ENABLED = "userCreation";
 	static final String USE_PASSWORD_POLICY = "usePasswordPolicy";
 
-	private FlintstonesRepository repository;
+	private FlintstonesApiServer apiServer;
 
 	@Override
 	public FlintstonesUserStorageProvider create(KeycloakSession session, ComponentModel model) {
-		return new FlintstonesUserStorageProvider(session, model, repository);
+		FlintstonesApiClient apiClient = new FlintstonesApiClient(session, model);
+		return new FlintstonesUserStorageProvider(session, model, apiClient);
 	}
 
 	@Override
@@ -34,14 +39,22 @@ public class FlintstonesUserStorageProviderFactory implements UserStorageProvide
 
 	@Override
 	public void postInit(KeycloakSessionFactory factory) {
-		repository = new FlintstonesRepository();
+		apiServer = new FlintstonesApiServer();
 	}
 
 	@Override
 	public List<ProviderConfigProperty> getConfigProperties() {
 		return ProviderConfigurationBuilder.create()
+			.property(USER_API_BASE_URL, "API Base URL", "", ProviderConfigProperty.STRING_TYPE, "http://localhost:8000", null)
 			.property(USER_CREATION_ENABLED, "Sync Registrations", "Should newly created users be created within this store?", ProviderConfigProperty.BOOLEAN_TYPE, "false", null)
 			.property(USE_PASSWORD_POLICY, "Validate password policy", "Determines if Keycloak should validate the password with the realm password policy before updating it.", ProviderConfigProperty.BOOLEAN_TYPE, "false", null)
 			.build();
+	}
+
+	@Override
+	public void close() {
+		if (apiServer != null) {
+			apiServer.stop();
+		}
 	}
 }
