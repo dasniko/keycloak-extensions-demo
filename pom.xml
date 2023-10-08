@@ -16,7 +16,6 @@
 		<module>flintstones-userprovider</module>
 		<module>peanuts-userprovider</module>
 		<module>rest-endpoint</module>
-		<module>actiontoken</module>
 		<module>requiredaction</module>
 		<module>magiclink</module>
 		<module>captcha</module>
