@@ -20,7 +20,9 @@ Demos, examples and playground for [Keycloak](https://www.keycloak.org) extensio
 
 [MFA Authenticator](./mfa-authenticator) - very simple(!!!) demo authenticator which prints a generated OTP to stdout.
 
-[Conditional HttpHeaders Authenticator](./conditional-headers-authenticator) - condition for authenticators which will decide upon a header and given value (or negated value) if `true`/`false`.
+[Conditional Authenticator](./conditional-headers-authenticator) - conditions for authenticators which will decide upon
+* a header and given value (or negated value) if `true`/`false`
+* a authentication session note and given value (or negated value) if `true`/`false`
 
 ## Keycloak Event Listeners
 

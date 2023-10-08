@@ -12,16 +12,16 @@ import java.util.Map;
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
  */
-public class CustomConditionalAuthenticator implements ConditionalAuthenticator {
+public class ConditionalHeaderAuthenticator implements ConditionalAuthenticator {
 
-	static final CustomConditionalAuthenticator SINGLETON = new CustomConditionalAuthenticator();
+	static final ConditionalHeaderAuthenticator SINGLETON = new ConditionalHeaderAuthenticator();
 
 	@Override
 	public boolean matchCondition(AuthenticationFlowContext context) {
 		Map<String, String> config = context.getAuthenticatorConfig().getConfig();
-		String headerName = config.get(CustomConditionalAuthenticatorFactory.CONF_HEADER_NAME);
-		String headerValue = config.get(CustomConditionalAuthenticatorFactory.CONF_HEADER_EXPECTED_VALUE);
-		boolean negateOutput = Boolean.parseBoolean(config.get(CustomConditionalAuthenticatorFactory.CONF_NOT));
+		String headerName = config.get(ConditionalHeaderAuthenticatorFactory.CONF_HEADER_NAME);
+		String headerValue = config.get(ConditionalHeaderAuthenticatorFactory.CONF_HEADER_EXPECTED_VALUE);
+		boolean negateOutput = Boolean.parseBoolean(config.get(ConditionalHeaderAuthenticatorFactory.CONF_NOT));
 
 		HttpHeaders httpHeaders = context.getHttpRequest().getHttpHeaders();
 		String customHeader = httpHeaders.getHeaderString(headerName);

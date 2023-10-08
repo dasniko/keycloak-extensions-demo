@@ -10,7 +10,7 @@
 		<version>1.0-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>conditional-headers-authenticator</artifactId>
+	<artifactId>conditional-authenticators</artifactId>
 	<version>1.0-SNAPSHOT</version>
 
 	<dependencies>
@@ -33,6 +33,10 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.google.auto.service</groupId>
+			<artifactId>auto-service</artifactId>
 		</dependency>
 	</dependencies>
 

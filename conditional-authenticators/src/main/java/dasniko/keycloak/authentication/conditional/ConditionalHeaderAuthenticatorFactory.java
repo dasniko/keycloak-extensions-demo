@@ -1,6 +1,8 @@
 package dasniko.keycloak.authentication.conditional;
 
+import com.google.auto.service.AutoService;
 import org.keycloak.Config;
+import org.keycloak.authentication.AuthenticatorFactory;
 import org.keycloak.authentication.authenticators.conditional.ConditionalAuthenticator;
 import org.keycloak.authentication.authenticators.conditional.ConditionalAuthenticatorFactory;
 import org.keycloak.models.AuthenticationExecutionModel;
@@ -12,7 +14,8 @@ import java.util.List;
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
  */
-public class CustomConditionalAuthenticatorFactory implements ConditionalAuthenticatorFactory {
+@AutoService(AuthenticatorFactory.class)
+public class ConditionalHeaderAuthenticatorFactory implements ConditionalAuthenticatorFactory {
 
 	public static final String PROVIDER_ID = "conditional-custom-header";
 
@@ -22,7 +25,7 @@ public class CustomConditionalAuthenticatorFactory implements ConditionalAuthent
 
 	@Override
 	public ConditionalAuthenticator getSingleton() {
-		return CustomConditionalAuthenticator.SINGLETON;
+		return ConditionalHeaderAuthenticator.SINGLETON;
 	}
 
 	@Override
