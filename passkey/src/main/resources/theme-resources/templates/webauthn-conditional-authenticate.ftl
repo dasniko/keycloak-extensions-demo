@@ -64,7 +64,7 @@
 								<div id="kc-form-buttons" class="${properties.kcFormGroupClass!}">
 									<input type="hidden" id="id-hidden-input" name="credentialId" <#if auth.selectedCredential?has_content>value="${auth.selectedCredential}"</#if>/>
 									<input tabindex="4" class="${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!}" name="login" id="kc-login" type="submit" value="${msg("doLogIn")}"/>
-									<input tabindex="5" class="${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!}" id="authenticateWebAuthnButton" type="button" onclick="startWebAuthnAuthentication()" value="${kcSanitize(msg("webauthn-doAuthenticate"))}"/>
+									<input tabindex="5" class="${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!}" style="margin-top: 0.5rem" id="authenticateWebAuthnButton" type="button" onclick="startWebAuthnAuthentication()" value="${kcSanitize(msg("webauthn-doAuthenticate"))}"/>
 								</div>
 							</form>
             </#if>
