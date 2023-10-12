@@ -11,6 +11,7 @@
 	<packaging>pom</packaging>
 
 	<modules>
+		<module>utils</module>
 		<module>event-listener</module>
 		<module>tokenmapper</module>
 		<module>flintstones-userprovider</module>
@@ -23,7 +24,7 @@
 		<module>conditional-authenticators</module>
 		<module>mfa-authenticator</module>
 		<module>passkey</module>
-	</modules>
+    </modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
