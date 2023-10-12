@@ -1,4 +1,4 @@
-package dasniko.keycloak.resource;
+package dasniko.keycloak.resource.admin;
 
 import com.google.auto.service.AutoService;
 import org.keycloak.Config;

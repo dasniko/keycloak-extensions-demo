@@ -1,4 +1,4 @@
-package dasniko.keycloak.resource;
+package dasniko.keycloak.resource.admin;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;

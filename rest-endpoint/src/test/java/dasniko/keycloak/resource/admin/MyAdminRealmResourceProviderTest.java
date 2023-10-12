@@ -1,4 +1,4 @@
-package dasniko.keycloak.resource;
+package dasniko.keycloak.resource.admin;
 
 import dasniko.testcontainers.keycloak.KeycloakContainer;
 import org.junit.jupiter.api.Test;
