@@ -104,9 +104,9 @@ public class MfaAuthenticator implements Authenticator {
 	@Override
 	public void setRequiredActions(KeycloakSession session, RealmModel realm, UserModel user) {
 		// here I'm referencing the mobile number required action in the "requiredaction" module
-		user.addRequiredAction("mobile-number-ra");
-		// alternatively, not saved to the user, but only to the current authentication session:
-		// session.getContext().getAuthenticationSession().addRequiredAction("mobile-number-ra");
+		session.getContext().getAuthenticationSession().addRequiredAction("mobile-number-ra");
+		// alternatively, not saved to the current authentication session, but to the user directly:
+		// user.addRequiredAction("mobile-number-ra");
 	}
 
 	@Override
