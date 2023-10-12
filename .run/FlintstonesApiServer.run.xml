@@ -1,0 +1,21 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="FlintstonesApiServer" type="Application" factoryName="Application" nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME" value="dasniko.keycloak.user.flintstones.repo.FlintstonesApiServer" />
+    <module name="flintstones-userprovider" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/flintstones-userprovider" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="dasniko.keycloak.user.flintstones.repo.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <extension name="software.aws.toolkits.jetbrains.core.execution.JavaAwsConnectionExtension">
+      <option name="credential" />
+      <option name="region" />
+      <option name="useCurrentConnection" value="false" />
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
