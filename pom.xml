@@ -11,24 +11,11 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>utils</module>
-		<module>event-listener</module>
-		<module>tokenmapper</module>
-		<module>flintstones-userprovider</module>
-		<module>peanuts-userprovider</module>
-		<module>rest-endpoint</module>
 		<module>requiredaction</module>
-		<module>magiclink</module>
-		<module>captcha</module>
-		<module>email</module>
-		<module>conditional-authenticators</module>
-		<module>mfa-authenticator</module>
-		<module>passkey</module>
-    </modules>
+	</modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<aws.version>2.17.209</aws.version>
 		<keycloak.version>22.0.0</keycloak.version>
 		<maven.compiler.version>3.11.0</maven.compiler.version>
 		<maven.compiler.release>17</maven.compiler.release>
@@ -45,28 +32,6 @@
 				<version>${keycloak.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
-			</dependency>
-			<dependency>
-				<groupId>software.amazon.awssdk</groupId>
-				<artifactId>sns</artifactId>
-				<version>${aws.version}</version>
-				<exclusions>
-					<exclusion>
-						<groupId>software.amazon.awssdk</groupId>
-						<artifactId>netty-nio-client</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-			<dependency>
-				<groupId>software.amazon.awssdk</groupId>
-				<artifactId>ses</artifactId>
-				<version>${aws.version}</version>
-				<exclusions>
-					<exclusion>
-						<groupId>software.amazon.awssdk</groupId>
-						<artifactId>netty-nio-client</artifactId>
-					</exclusion>
-				</exclusions>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
