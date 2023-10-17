@@ -85,13 +85,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<configuration>
-					<artifactSet>
-						<includes>
-							<include>org.jboss.resteasy:resteasy-client*</include>
-						</includes>
-					</artifactSet>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
