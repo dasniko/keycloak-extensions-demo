@@ -111,6 +111,12 @@
 						}
 					}
 
+					if (!isCMA && !forceAuthentication) {
+						// in case CMA is not available and authentication is not forced, e.g. button was not pressed,
+						// abort the conditional attempt, do not intiate a get-credentials call if not explicitly requested.
+						return;
+					}
+
 					abortController = new AbortController();
 
 					const challenge = "${challenge}";
