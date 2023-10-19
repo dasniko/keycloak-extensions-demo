@@ -88,6 +88,8 @@
 							<excludes>
 								<exclude>org.keycloak*</exclude>
 								<exclude>org.apache.httpcomponents:httpcore</exclude>
+								<exclude>com.google*</exclude>
+								<exclude>org.checkerframework*</exclude>
 							</excludes>
 						</artifactSet>
 					</configuration>
@@ -109,11 +111,11 @@
 		</pluginManagement>
 	</build>
 
-	<repositories>
+	<!--repositories>
 		<repository>
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
 		</repository>
-	</repositories>
+	</repositories-->
 
 </project>

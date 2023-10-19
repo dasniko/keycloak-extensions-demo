@@ -1,5 +1,6 @@
 package dasniko.keycloak.passkey.authentication;
 
+import dasniko.keycloak.util.AuthenticationMethodReference;
 import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.authentication.AuthenticationFlowContext;
@@ -10,8 +11,6 @@ import org.keycloak.forms.login.freemarker.model.LoginBean;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
-import org.keycloak.models.credential.PasswordCredentialModel;
-import org.keycloak.models.credential.WebAuthnCredentialModel;
 
 @Slf4j
 public class WebAuthnConditionalAuthenticator extends WebAuthnPasswordlessAuthenticator {
@@ -36,15 +35,15 @@ public class WebAuthnConditionalAuthenticator extends WebAuthnPasswordlessAuthen
 	public void action(AuthenticationFlowContext context) {
 		MultivaluedMap<String, String> formData = context.getHttpRequest().getDecodedFormParameters();
 
-		String credentialTypeUsed = WebAuthnCredentialModel.TYPE_PASSWORDLESS;
+		AuthenticationMethodReference authenticationMethodReference = AuthenticationMethodReference.USER;
 		if (formData.containsKey("username") && formData.containsKey("password")) {
 			UsernamePasswordForm usernamePasswordForm = new UsernamePasswordForm();
 			usernamePasswordForm.action(context);
-			credentialTypeUsed = PasswordCredentialModel.TYPE;
+			authenticationMethodReference = AuthenticationMethodReference.PWD;
 		} else {
 			super.action(context);
 		}
-		context.getAuthenticationSession().setAuthNote("credentialTypeUsed", credentialTypeUsed);
+		context.getAuthenticationSession().setAuthNote("amr", authenticationMethodReference.value);
 
 	}
 
