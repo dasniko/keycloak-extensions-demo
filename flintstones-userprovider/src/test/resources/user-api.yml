@@ -76,7 +76,7 @@ paths:
         - users
       requestBody:
         content:
-          applcation/json:
+          application/json:
             schema:
               $ref: '#/components/schemas/User'
       responses:
@@ -151,7 +151,7 @@ paths:
             type: string
       requestBody:
         content:
-          applcation/json:
+          application/json:
             schema:
               $ref: '#/components/schemas/User'
       responses:
