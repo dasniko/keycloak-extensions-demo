@@ -19,7 +19,7 @@ services:
     volumes:
       - kc_data:/opt/keycloak/data
       - ./captcha/target/dasniko.keycloak-captcha.jar:/opt/keycloak/providers/captcha.jar
-      - ./conditional-headers-authenticator/target/dasniko.keycloak-conditional-headers-authenticator.jar:/opt/keycloak/providers/conditional-headers-authenticator.jar
+      - ./conditional-authenticators/target/dasniko.keycloak-conditional-authenticators.jar:/opt/keycloak/providers/conditional-authenticators.jar
       - ./event-listener/target/dasniko.keycloak-event-listener.jar:/opt/keycloak/providers/event-listener.jar
       - ./flintstones-userprovider/target/dasniko.keycloak-flintstones-userprovider.jar:/opt/keycloak/providers/flintstones-userprovider.jar
       - ./magiclink/target/dasniko.keycloak-magiclink.jar:/opt/keycloak/providers/magiclink.jar
