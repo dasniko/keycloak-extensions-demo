@@ -24,7 +24,8 @@
 		<module>conditional-authenticators</module>
 		<module>mfa-authenticator</module>
 		<module>passkey</module>
-    </modules>
+    <module>initializer</module>
+  </modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
