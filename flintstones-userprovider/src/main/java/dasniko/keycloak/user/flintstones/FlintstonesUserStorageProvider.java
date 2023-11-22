@@ -3,7 +3,6 @@ package dasniko.keycloak.user.flintstones;
 import dasniko.keycloak.user.flintstones.repo.Credential;
 import dasniko.keycloak.user.flintstones.repo.FlintstoneUser;
 import dasniko.keycloak.user.flintstones.repo.FlintstonesApiClient;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.CredentialInput;
@@ -25,18 +24,12 @@ import org.keycloak.storage.user.UserLookupProvider;
 import org.keycloak.storage.user.UserQueryProvider;
 import org.keycloak.storage.user.UserRegistrationProvider;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-/**
- * @author Niko Köbler, http://www.n-k.de, @dasniko
- */
 @Slf4j
-@RequiredArgsConstructor
 public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	UserLookupProvider, UserQueryProvider, CredentialInputUpdater, CredentialInputValidator,
 	UserRegistrationProvider {
@@ -45,10 +38,15 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	private final ComponentModel model;
 	private final FlintstonesApiClient apiClient;
 
-	// map of loaded users in this transaction
-	private final Map<String, UserModel> loadedUsers = new HashMap<>();
-	// list of newly created users in this transaction
-	private final List<FlintstoneUserAdapter> newUsers = new ArrayList<>();
+	// user handling in this transaction
+	UserModelTransaction tx = new UserModelTransaction(this::updateUser);
+
+	public FlintstonesUserStorageProvider(KeycloakSession session, ComponentModel model, FlintstonesApiClient apiClient) {
+		this.session = session;
+		this.model = model;
+		this.apiClient = apiClient;
+		session.getTransactionManager().enlistAfterCompletion(tx);
+	}
 
 	@Override
 	public boolean supportsCredentialType(String credentialType) {
@@ -120,13 +118,13 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	}
 
 	private UserModel findUser(RealmModel realm, String identifier, Function<String, FlintstoneUser> fnFindUser) {
-		UserModel adapter = loadedUsers.get(identifier);
+		UserModel adapter = tx.findUser(identifier);
 		if (adapter == null) {
 			FlintstoneUser user = fnFindUser.apply(identifier);
 			log.debug("Received user data for identifier <{}> from repository: {}", identifier, user);
 			if (user != null) {
 				adapter = new FlintstoneUserAdapter(session, realm, model, user);
-				loadedUsers.put(identifier, adapter);
+				tx.addUser(identifier, adapter);
 			}
 		} else {
 			log.debug("Found user data for {} in loadedUsers.", identifier);
@@ -168,8 +166,7 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 			apiClient.createUser(flintstoneUser);
 			flintstoneUser = apiClient.getUserByUsername(username);
 			FlintstoneUserAdapter newUser = new FlintstoneUserAdapter(session, realm, model, flintstoneUser);
-			newUsers.add(newUser);
-			loadedUsers.put(username, newUser);
+			tx.addUser(username, newUser);
 			return newUser;
 		}
 		return null;
@@ -183,16 +180,6 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public void close() {
-		newUsers.forEach(newUser -> {
-			apiClient.updateUser(newUser.getUser());
-			loadedUsers.remove(newUser.getUsername());
-		});
-		loadedUsers.values().forEach(user -> {
-			FlintstoneUserAdapter userAdapter = (FlintstoneUserAdapter) user;
-			if (userAdapter.isDirty()) {
-				apiClient.updateUser(userAdapter.getUser());
-			}
-		});
 	}
 
 	private boolean syncUsers() {
@@ -201,6 +188,13 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	private boolean usePasswordPolicy() {
 		return model.get(FlintstonesUserStorageProviderFactory.USE_PASSWORD_POLICY, false);
+	}
+
+	private void updateUser(UserModel user) {
+		FlintstoneUserAdapter userAdapter = (FlintstoneUserAdapter) user;
+		if (userAdapter.isDirty()) {
+			apiClient.updateUser(userAdapter.getUser());
+		}
 	}
 
 }
