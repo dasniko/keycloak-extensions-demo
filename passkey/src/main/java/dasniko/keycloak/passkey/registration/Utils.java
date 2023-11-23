@@ -83,7 +83,7 @@ class Utils {
 
 		KeycloakSession session = context.getSession();
 		UserProfileProvider profileProvider = session.getProvider(UserProfileProvider.class);
-		UserProfile profile = profileProvider.create(UserProfileContext.REGISTRATION_USER_CREATION, userAttributes);
+		UserProfile profile = profileProvider.create(UserProfileContext.REGISTRATION, userAttributes);
 		UserModel user = profile.create();
 
 		user.setEnabled(true);
