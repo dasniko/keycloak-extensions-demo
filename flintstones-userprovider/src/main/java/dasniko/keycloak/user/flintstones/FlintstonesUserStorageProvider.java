@@ -2,7 +2,6 @@ package dasniko.keycloak.user.flintstones;
 
 import dasniko.keycloak.user.flintstones.repo.Credential;
 import dasniko.keycloak.user.flintstones.repo.FlintstoneUser;
-import dasniko.keycloak.user.flintstones.repo.FlintstonesApiClient;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.CredentialInput;

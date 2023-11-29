@@ -5,7 +5,7 @@
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/flintstones-userprovider" />
     <extension name="coverage">
       <pattern>
-        <option name="PATTERN" value="dasniko.keycloak.user.flintstones.repo.*" />
+        <option name="PATTERN" value="dasniko.keycloak.user.flintstones.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>

@@ -1,7 +1,8 @@
-package dasniko.keycloak.user.flintstones.repo;
+package dasniko.keycloak.user.flintstones;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import dasniko.keycloak.user.flintstones.FlintstonesUserStorageProviderFactory;
+import dasniko.keycloak.user.flintstones.repo.Credential;
+import dasniko.keycloak.user.flintstones.repo.FlintstoneUser;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.impl.client.CloseableHttpClient;

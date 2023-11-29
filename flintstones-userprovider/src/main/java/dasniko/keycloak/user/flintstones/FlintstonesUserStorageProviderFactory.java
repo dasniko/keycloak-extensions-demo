@@ -1,7 +1,6 @@
 package dasniko.keycloak.user.flintstones;
 
 import com.google.auto.service.AutoService;
-import dasniko.keycloak.user.flintstones.repo.FlintstonesApiClient;
 import dasniko.keycloak.user.flintstones.repo.FlintstonesApiServer;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.models.KeycloakSession;
@@ -20,7 +19,7 @@ public class FlintstonesUserStorageProviderFactory implements UserStorageProvide
 
 	public static final String PROVIDER_ID = "the-flintstones";
 
-	public static final String USER_API_BASE_URL = "apiBaseUrl";
+	static final String USER_API_BASE_URL = "apiBaseUrl";
 	static final String USER_CREATION_ENABLED = "userCreation";
 	static final String USE_PASSWORD_POLICY = "usePasswordPolicy";
 
