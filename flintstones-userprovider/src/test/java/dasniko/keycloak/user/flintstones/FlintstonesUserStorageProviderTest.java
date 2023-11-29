@@ -7,6 +7,7 @@ import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -16,8 +17,11 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.common.util.MultivaluedHashMap;
+import org.keycloak.representations.idm.ComponentRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.keycloak.storage.UserStorageProvider;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -53,6 +57,27 @@ public class FlintstonesUserStorageProviderTest {
 		.withEnv("KC_SPI_EVENTS_LISTENER_JBOSS_LOGGING_SUCCESS_LEVEL", "info")
 		.withEnv("KC_LOG_LEVEL", "INFO,dasniko:debug")
 		.withProviderClassesFrom("target/classes");
+
+	@BeforeAll
+	static void beforeAll() {
+		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
+
+		ComponentRepresentation componentRep = new ComponentRepresentation();
+		componentRep.setProviderId(FlintstonesUserStorageProviderFactory.PROVIDER_ID);
+		componentRep.setName(FlintstonesUserStorageProviderFactory.PROVIDER_ID);
+		componentRep.setProviderType(UserStorageProvider.class.getTypeName());
+
+		MultivaluedHashMap<String, String> config = new MultivaluedHashMap<>();
+		config.add(FlintstonesUserStorageProviderFactory.USER_API_BASE_URL, "http://localhost:8000");
+		config.add(FlintstonesUserStorageProviderFactory.USER_CREATION_ENABLED, "true");
+		config.add("enabled", "true");
+		componentRep.setConfig(config);
+
+		kcAdmin.realm("flintstones")
+			.components()
+			.add(componentRep)
+			.close();
+	}
 
 
 	@Order(1)
