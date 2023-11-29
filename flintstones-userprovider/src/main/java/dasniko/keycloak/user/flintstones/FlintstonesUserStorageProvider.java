@@ -102,8 +102,19 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public UserModel getUserById(RealmModel realm, String id) {
-		String externalId = StorageId.externalId(id);
-		return findUser(realm, externalId, apiClient::getUserById);
+		UserModel adapter = tx.findUser(id);
+		if (adapter == null) {
+			String externalId = StorageId.externalId(id);
+			FlintstoneUser user = apiClient.getUserById(externalId);
+			log.debug("Received user data for externalId <{}> from repository: {}", externalId, user);
+			if (user != null) {
+				adapter = new FlintstoneUserAdapter(session, realm, model, user);
+				tx.addUser(id, adapter);
+			}
+		} else {
+			log.debug("Found user data for {} in loadedUsers.", id);
+		}
+		return adapter;
 	}
 
 	@Override
@@ -117,16 +128,12 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	}
 
 	private UserModel findUser(RealmModel realm, String identifier, Function<String, FlintstoneUser> fnFindUser) {
-		UserModel adapter = tx.findUser(identifier);
-		if (adapter == null) {
-			FlintstoneUser user = fnFindUser.apply(identifier);
-			log.debug("Received user data for identifier <{}> from repository: {}", identifier, user);
-			if (user != null) {
-				adapter = new FlintstoneUserAdapter(session, realm, model, user);
-				tx.addUser(identifier, adapter);
-			}
-		} else {
-			log.debug("Found user data for {} in loadedUsers.", identifier);
+		UserModel adapter = null;
+		FlintstoneUser user = fnFindUser.apply(identifier);
+		log.debug("Received user data for identifier <{}> from repository: {}", identifier, user);
+		if (user != null) {
+			adapter = new FlintstoneUserAdapter(session, realm, model, user);
+			tx.addUser(adapter.getId(), adapter);
 		}
 		return adapter;
 	}
