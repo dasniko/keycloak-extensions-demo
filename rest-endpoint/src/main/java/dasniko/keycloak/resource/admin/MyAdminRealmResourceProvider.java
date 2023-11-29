@@ -4,7 +4,6 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import lombok.RequiredArgsConstructor;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
@@ -17,16 +16,15 @@ import java.util.List;
 import java.util.Map;
 
 
-@RequiredArgsConstructor
 public class MyAdminRealmResourceProvider implements AdminRealmResourceProvider {
 
-	private final KeycloakSession session;
-
+	private KeycloakSession session;
 	private RealmModel realm;
 	private AdminPermissionEvaluator auth;
 
 	@Override
 	public Object getResource(KeycloakSession session, RealmModel realm, AdminPermissionEvaluator auth, AdminEventBuilder adminEvent) {
+		this.session = session;
 		this.realm = realm;
 		this.auth = auth;
 		return this;

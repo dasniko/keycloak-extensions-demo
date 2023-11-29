@@ -16,7 +16,7 @@ public class MyAdminRealmResourceProviderFactory implements AdminRealmResourcePr
 
 	@Override
 	public AdminRealmResourceProvider create(KeycloakSession session) {
-		return new MyAdminRealmResourceProvider(session);
+		return new MyAdminRealmResourceProvider();
 	}
 
 	@Override
