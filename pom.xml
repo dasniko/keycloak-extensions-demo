@@ -12,6 +12,7 @@
 
 	<modules>
 		<module>utils</module>
+		<module>custom-sms-spi</module>
 		<module>event-listener</module>
 		<module>tokenmapper</module>
 		<module>flintstones-userprovider</module>
