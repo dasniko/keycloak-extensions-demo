@@ -31,6 +31,16 @@
 			<artifactId>keycloak-services</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>dasniko.keycloak</groupId>
+			<artifactId>custom-spi</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>dasniko.keycloak</groupId>
+			<artifactId>requiredaction</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 		</dependency>
