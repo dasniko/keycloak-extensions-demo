@@ -32,7 +32,7 @@
 		</dependency>
 		<dependency>
 			<groupId>dasniko.keycloak</groupId>
-			<artifactId>custom-spi</artifactId>
+			<artifactId>custom-sms-spi</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
