@@ -17,6 +17,8 @@ tags:
     description: Operations about users
   - name: credentials
     description: Operations on credentials
+  - name: groups
+    description: Operations about groups
 
 paths:
   /users:
@@ -238,6 +240,43 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         404:
           description: User not found
+  /groups/members:
+    get:
+      summary: Members of a specific group
+      operationId: searchGroupMembers
+      tags:
+        - groups
+      parameters:
+        - name: name
+          in: query
+          description: search groups by name
+          schema:
+            type: string
+        - name: first
+          in: query
+          description: number of first result to return
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: max
+          in: query
+          description: number of max results to return
+          schema:
+            type: integer
+            minimum: 1
+            default: 20
+      responses:
+        200:
+          description: group members of the requested group name
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
 
 components:
   responses:
@@ -280,6 +319,11 @@ components:
         created:
           type: number
           example: 1672531200
+        groups:
+          type: array
+          items:
+            type: string
+            example: Flintstone
         roles:
           type: array
           items:

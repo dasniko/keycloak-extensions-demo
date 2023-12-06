@@ -156,7 +156,8 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public Stream<UserModel> getGroupMembersStream(RealmModel realm, GroupModel group, Integer firstResult, Integer maxResults) {
-		return Stream.empty();
+		return apiClient.searchGroupMembers(group.getName(), firstResult, maxResults)
+			.stream().map(user -> new FlintstoneUserAdapter(session, realm, model, user));
 	}
 
 	@Override

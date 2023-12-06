@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 public class FlintstonesApiServer {
 
 	private static final int PORT = 8000;
+	private final ObjectMapper mapper = new ObjectMapper();
 	private HttpServer server;
 
 	public FlintstonesApiServer() {
@@ -35,7 +36,8 @@ public class FlintstonesApiServer {
 		long start = System.currentTimeMillis();
 
 		server = HttpServer.create(new InetSocketAddress(PORT), 0);
-		server.createContext("/users", new FlintstonesHandler());
+		server.createContext("/users", new FlintstonesHandler(mapper, this::writeResponse));
+		server.createContext("/groups", new GroupsHandler(this::writeResponse));
 		server.setExecutor(null);
 		server.start();
 
@@ -50,7 +52,13 @@ public class FlintstonesApiServer {
 
 	private static class FlintstonesHandler implements HttpHandler {
 		private final FlintstonesRepository repository = new FlintstonesRepository();
-		private final ObjectMapper mapper = new ObjectMapper();
+		private final ObjectMapper mapper;
+		private final TriConsumer<HttpExchange, Object, Integer> responseWriter;
+
+		public FlintstonesHandler(ObjectMapper mapper, TriConsumer<HttpExchange, Object, Integer> responseWriter) {
+			this.mapper = mapper;
+			this.responseWriter = responseWriter;
+		}
 
 		@Override
 		public void handle(HttpExchange exchange) throws IOException {
@@ -137,15 +145,57 @@ public class FlintstonesApiServer {
 				}
 			}
 
-			byte[] bytes = mapper.writeValueAsBytes(entity);
-			exchange.getResponseHeaders().add("Content-Type", "application/json");
-			exchange.sendResponseHeaders(status, bytes.length);
-			OutputStream os = exchange.getResponseBody();
-			os.write(bytes);
-			os.flush();
-			os.close();
+			responseWriter.accept(exchange, entity, status);
 
 			log.debug("Processed request for {} - {} in {} ms.", method, uriString, System.currentTimeMillis() - start);
 		}
+	}
+
+	private static class GroupsHandler implements HttpHandler {
+		private final FlintstonesRepository repository = new FlintstonesRepository();
+		private final TriConsumer<HttpExchange, Object, Integer> responseWriter;
+
+		public GroupsHandler(TriConsumer<HttpExchange, Object, Integer> responseWriter) {
+			this.responseWriter = responseWriter;
+		}
+
+		@Override
+		public void handle(HttpExchange exchange) throws IOException {
+			String method = exchange.getRequestMethod();
+			String uriString = exchange.getRequestURI().toString();
+			log.debug("Received request for {} - {}", method, uriString);
+			long start = System.currentTimeMillis();
+
+			Object entity;
+			int status = 200;
+
+			List<FlintstoneUser> users = List.of();
+			if ("GET".equalsIgnoreCase(method)) {
+				String query = exchange.getRequestURI().getQuery();
+				if (query != null) {
+					Map<String, String> queryParams = Arrays.stream(query.split("&"))
+						.map(s -> s.split("=")).collect(Collectors.toMap(k -> k[0], v -> v[1]));
+					if (queryParams.containsKey("name")) {
+						users = repository.findUsersByGroupname(queryParams.get("name"));
+					}
+				}
+			}
+			entity = users;
+
+			responseWriter.accept(exchange, entity, status);
+
+			log.debug("Processed request for {} - {} in {} ms.", method, uriString, System.currentTimeMillis() - start);
+		}
+	}
+
+	@SneakyThrows
+	private void writeResponse(HttpExchange exchange, Object entity, int status) {
+		byte[] bytes = mapper.writeValueAsBytes(entity);
+		exchange.getResponseHeaders().add("Content-Type", "application/json");
+		exchange.sendResponseHeaders(status, bytes.length);
+		OutputStream os = exchange.getResponseBody();
+		os.write(bytes);
+		os.flush();
+		os.close();
 	}
 }

@@ -105,6 +105,22 @@ public class FlintstonesApiClient {
 		return SimpleHttp.doPut(url, httpClient).json(credential).asStatus() == 204;
 	}
 
+	@SneakyThrows
+	public List<FlintstoneUser> searchGroupMembers(String name, int first, int max) {
+		String url = String.format("%s/groups/members", baseUrl);
+		SimpleHttp simpleHttp = prepareGetRequest(url);
+		if (name != null) {
+			simpleHttp.param("name", name);
+		}
+		if (first >= 0) {
+			simpleHttp.param("first", String.valueOf(first));
+		}
+		if (max >= 0) {
+			simpleHttp.param("max", String.valueOf(max));
+		}
+		return simpleHttp.asJson(new TypeReference<>() {});
+	}
+
 	private SimpleHttp prepareGetRequest(String url) {
 		return SimpleHttp.doGet(url, httpClient).acceptJson();
 	}

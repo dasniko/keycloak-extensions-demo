@@ -4,6 +4,7 @@ import dasniko.keycloak.user.flintstones.repo.FlintstoneUser;
 import lombok.Getter;
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.component.ComponentModel;
+import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
@@ -153,6 +154,14 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 		attributes.add(UserModel.FIRST_NAME, getFirstName());
 		attributes.add(UserModel.LAST_NAME, getLastName());
 		return attributes;
+	}
+
+	@Override
+	protected Set<GroupModel> getGroupsInternal() {
+		if (user.getGroups() != null) {
+			return user.getGroups().stream().map(FlintstoneUserGroupModel::new).collect(Collectors.toSet());
+		}
+		return Set.of();
 	}
 
 	@Override

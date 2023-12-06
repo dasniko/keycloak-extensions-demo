@@ -21,6 +21,7 @@ public class FlintstoneUser implements Cloneable {
 	private String password;
 	private boolean enabled;
 	private Long created;
+	private List<String> groups;
 	private List<String> roles;
 
 	public FlintstoneUser(String id, String email, String firstName, String lastName, boolean enabled, List<String> roles) {
@@ -32,6 +33,7 @@ public class FlintstoneUser implements Cloneable {
 		this.password = firstName.toLowerCase();
 		this.enabled = enabled;
 		this.created = System.currentTimeMillis();
+		this.groups = List.of(lastName);
 		this.roles = roles;
 	}
 

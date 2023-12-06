@@ -55,6 +55,10 @@ public class FlintstonesRepository {
 			.collect(Collectors.toList());
 	}
 
+	List<FlintstoneUser> findUsersByGroupname(String groupName) {
+		return users.stream().filter(user -> user.getGroups().contains(groupName)).toList();
+	}
+
 	boolean validateCredentials(String id, String password) {
 		return findUserById(id).getPassword().equals(password);
 	}
