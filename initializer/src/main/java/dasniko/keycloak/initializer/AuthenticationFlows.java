@@ -34,6 +34,7 @@ public class AuthenticationFlows {
 		flow.setProviderId("basic-flow");
 		flow.setDescription("browser based step-up authentication");
 		flow.setTopLevel(true);
+		flow.setBuiltIn(true);
 		flow = realm.addAuthenticationFlow(flow);
 
 		addAlternativeExecutionToFlow(realm, flow, CookieAuthenticatorFactory.PROVIDER_ID);

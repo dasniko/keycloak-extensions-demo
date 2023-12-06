@@ -2,20 +2,16 @@ package dasniko.keycloak.initializer;
 
 import com.google.auto.service.AutoService;
 import lombok.extern.slf4j.Slf4j;
-import org.keycloak.Config;
-import org.keycloak.events.EventListenerProvider;
-import org.keycloak.events.EventListenerProviderFactory;
-import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
 import org.keycloak.provider.ProviderEvent;
 
 @Slf4j
-@AutoService(EventListenerProviderFactory.class)
-public class RealmInitializerProvider implements EventListenerProviderFactory {
+@AutoService(InitializerProviderFactory.class)
+public class RealmInitializerProvider implements InitializerProviderFactory {
 
-	public static final String PROVIDER_ID = "kcInitializer - don't use!";
+	public static final String PROVIDER_ID = "kcInitializer";
 
 	@Override
 	public String getId() {
@@ -44,22 +40,6 @@ public class RealmInitializerProvider implements EventListenerProviderFactory {
 					createdRealm.addToDefaultRoles(userRole);
 				}
 			});
-	}
-
-	@Override
-	public EventListenerProvider create(KeycloakSession session) {
-		// unused
-		return null;
-	}
-
-	@Override
-	public void init(Config.Scope config) {
-		// unused
-	}
-
-	@Override
-	public void close() {
-		// unused
 	}
 
 }
