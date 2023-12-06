@@ -23,7 +23,7 @@ public class MyAdminRealmResourceProviderTest {
 		AccessTokenResponse accessTokenResponse = keycloakClient.tokenManager().getAccessToken();
 
 		given().baseUri(keycloak.getAuthServerUrl())
-			.basePath("/admin/realms/master/" + MyAdminRealmResourceProviderFactory.PROVIDER_ID)
+			.basePath("/admin/realms/master/" + MyAdminRealmResourceProvider.PROVIDER_ID)
 			.auth().oauth2(accessTokenResponse.getToken())
 			.when().get()
 			.then().statusCode(200)

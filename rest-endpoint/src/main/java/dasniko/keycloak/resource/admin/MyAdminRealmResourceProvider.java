@@ -1,55 +1,53 @@
 package dasniko.keycloak.resource.admin;
 
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
+import com.google.auto.service.AutoService;
+import org.keycloak.Config;
+import org.keycloak.common.Profile;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.RealmModel;
-import org.keycloak.models.UserModel;
+import org.keycloak.provider.EnvironmentDependentProviderFactory;
 import org.keycloak.services.resources.admin.AdminEventBuilder;
 import org.keycloak.services.resources.admin.ext.AdminRealmResourceProvider;
+import org.keycloak.services.resources.admin.ext.AdminRealmResourceProviderFactory;
 import org.keycloak.services.resources.admin.permissions.AdminPermissionEvaluator;
-import org.keycloak.services.resources.admin.permissions.UserPermissionEvaluator;
 
-import java.util.List;
-import java.util.Map;
+@AutoService(AdminRealmResourceProviderFactory.class)
+public class MyAdminRealmResourceProvider
+	implements AdminRealmResourceProviderFactory, EnvironmentDependentProviderFactory, AdminRealmResourceProvider {
 
+	public static final String PROVIDER_ID = "my-admin-rest-resource";
 
-public class MyAdminRealmResourceProvider implements AdminRealmResourceProvider {
-
-	private KeycloakSession session;
-	private RealmModel realm;
-	private AdminPermissionEvaluator auth;
+	@Override
+	public AdminRealmResourceProvider create(KeycloakSession session) {
+		return this;
+	}
 
 	@Override
 	public Object getResource(KeycloakSession session, RealmModel realm, AdminPermissionEvaluator auth, AdminEventBuilder adminEvent) {
-		this.session = session;
-		this.realm = realm;
-		this.auth = auth;
-		return this;
+		return new MyAdminRealmResource(session, realm, auth);
+	}
+
+	@Override
+	public void init(Config.Scope config) {
+	}
+
+	@Override
+	public void postInit(KeycloakSessionFactory factory) {
 	}
 
 	@Override
 	public void close() {
 	}
 
-	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response getListOfUsers() {
-		// do the authorization with the existing admin permissions (e.g. realm management roles)
-		final UserPermissionEvaluator userPermissionEvaluator = auth.users();
-		userPermissionEvaluator.requireQuery();
+	@Override
+	public String getId() {
+		return PROVIDER_ID;
+	}
 
-		// collect/manipulate data accordingly to your requirements
-		List<Map<String, String>> userList = session.users()
-			.searchForUserStream(realm, Map.of(UserModel.SEARCH, "*"))
-			.filter(userModel -> userModel.getServiceAccountClientLink() == null)
-			.map(userModel -> Map.of("username", userModel.getUsername()))
-			.toList();
-
-		// then return the desired result
-		return Response.ok(userList).build();
+	@Override
+	public boolean isSupported() {
+		return Profile.isFeatureEnabled(Profile.Feature.ADMIN2);
 	}
 
 }
