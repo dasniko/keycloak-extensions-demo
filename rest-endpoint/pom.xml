@@ -67,6 +67,25 @@
 
 	<build>
 		<finalName>${project.groupId}-${project.artifactId}</finalName>
+		<plugins>
+			<plugin>
+				<groupId>io.smallrye</groupId>
+				<artifactId>smallrye-open-api-maven-plugin</artifactId>
+				<version>3.7.0</version>
+				<configuration>
+					<outputDirectory>${project.build.directory}/apidocs-rest/swagger/apidocs</outputDirectory>
+					<infoTitle>Keycloak REST API Extension</infoTitle>
+					<infoDescription>This is a REST API reference for the Keycloak REST API extensions.</infoDescription>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate-schema</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
 	</build>
 
 </project>
