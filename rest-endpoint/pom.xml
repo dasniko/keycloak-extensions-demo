@@ -73,7 +73,8 @@
 				<artifactId>smallrye-open-api-maven-plugin</artifactId>
 				<version>3.7.0</version>
 				<configuration>
-					<outputDirectory>${project.build.directory}/apidocs-rest/swagger/apidocs</outputDirectory>
+					<outputDirectory>${project.build.directory}/openapi</outputDirectory>
+					<scanPackages>dasniko.keycloak.resource</scanPackages>
 					<infoTitle>Keycloak REST API Extension</infoTitle>
 					<infoDescription>This is a REST API reference for the Keycloak REST API extensions.</infoDescription>
 				</configuration>

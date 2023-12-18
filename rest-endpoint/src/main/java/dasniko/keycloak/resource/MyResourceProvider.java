@@ -24,7 +24,7 @@ import java.util.Map;
  * @author Niko Köbler, https://www.n-k.de, @dasniko
  */
 @RequiredArgsConstructor
-@Path("")
+//@Path("/realms/{realm}/" + MyResourceProviderFactory.PROVIDER_ID)
 public class MyResourceProvider implements RealmResourceProvider {
 
 	private final KeycloakSession session;

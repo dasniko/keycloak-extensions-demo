@@ -25,7 +25,7 @@ public class MyAdminRealmResourceProviderTest {
 		given().baseUri(keycloak.getAuthServerUrl())
 			.basePath("/admin/realms/master/" + MyAdminRealmResourceProvider.PROVIDER_ID)
 			.auth().oauth2(accessTokenResponse.getToken())
-			.when().get()
+			.when().get("users")
 			.then().statusCode(200)
 			.body("size()", is(1));
 	}

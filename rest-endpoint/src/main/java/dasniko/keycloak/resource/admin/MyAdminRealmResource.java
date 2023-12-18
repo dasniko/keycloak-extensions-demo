@@ -1,6 +1,7 @@
 package dasniko.keycloak.resource.admin;
 
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
+//@Path("/admin/realms/{realm}/" + MyAdminRealmResourceProvider.PROVIDER_ID)
 public class MyAdminRealmResource {
 
 	private final KeycloakSession session;
@@ -22,6 +24,7 @@ public class MyAdminRealmResource {
 	private final AdminPermissionEvaluator auth;
 
 	@GET
+	@Path("users")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getListOfUsers() {
 		// do the authorization with the existing admin permissions (e.g. realm management roles)
