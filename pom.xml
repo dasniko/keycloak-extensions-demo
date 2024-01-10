@@ -26,7 +26,8 @@
 		<module>mfa-authenticator</module>
 		<module>passkey</module>
     <module>initializer</module>
-  </modules>
+		<module>actiontoken</module>
+	</modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
