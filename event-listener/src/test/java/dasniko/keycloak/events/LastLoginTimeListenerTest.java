@@ -37,11 +37,11 @@ public class LastLoginTimeListenerTest {
 
 		// configure custom events listener
 		RealmEventsConfigRepresentation eventsConfig = new RealmEventsConfigRepresentation();
-		eventsConfig.setEventsListeners(List.of("jboss-logging", "last-login-time"));
+		eventsConfig.setEventsListeners(List.of(LastLoginTimeListenerFactory.PROVIDER_ID));
 		admin.realm(REALM).updateRealmEventsConfig(eventsConfig);
 
 		// "login" user
-		String tokenEndpoint = given().when().get(keycloak.getAuthServerUrl() + "/realms/" + REALM + "/.well-known/openid-configuration")
+		String tokenEndpoint = given().when().get(keycloak.getAuthServerUrl() + "/realms/{realm}/.well-known/openid-configuration", REALM)
 			.then().statusCode(200).extract().path("token_endpoint");
 		given()
 			.contentType("application/x-www-form-urlencoded")
