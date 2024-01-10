@@ -1,6 +1,5 @@
 package dasniko.keycloak.authentication.mfa;
 
-import dasniko.keycloak.sms.logging.LoggingSmsProviderFactory;
 import org.keycloak.Config;
 import org.keycloak.authentication.Authenticator;
 import org.keycloak.authentication.AuthenticatorFactory;
@@ -62,23 +61,23 @@ public class MfaAuthenticatorFactory implements AuthenticatorFactory {
 		length.setLabel("Code length");
 		length.setHelpText("The number of digits of the generated code.");
 		length.setType(ProviderConfigProperty.STRING_TYPE);
-		length.setDefaultValue("6");
+		length.setDefaultValue(MfaConstants.CONFIG_PROPERTY_LENGTH_DEFAULT);
 
 		ProviderConfigProperty ttl = new ProviderConfigProperty();
 		ttl.setName(MfaConstants.CONFIG_PROPERTY_TTL);
 		ttl.setLabel("Time-to-live");
 		ttl.setHelpText("The time to live in seconds for the code to be valid.");
 		ttl.setType(ProviderConfigProperty.STRING_TYPE);
-		ttl.setDefaultValue("300");
+		ttl.setDefaultValue(MfaConstants.CONFIG_PROPERTY_TTL_DEFAULT);
 
 		ProviderConfigProperty provider = new ProviderConfigProperty();
 		provider.setName(MfaConstants.CONFIG_PROPERTY_PROVIDER);
 		provider.setLabel("Provider ID");
 		provider.setHelpText("ID of the SMS provider implementation to use.");
 		provider.setType(ProviderConfigProperty.STRING_TYPE);
-		provider.setDefaultValue(LoggingSmsProviderFactory.PROVIDER_ID);
+		provider.setDefaultValue(MfaConstants.CONFIG_PROPERTY_PROVIDER_DEFAULT);
 
-		return List.of(length, ttl);
+		return List.of(length, ttl, provider);
 	}
 
 	@Override

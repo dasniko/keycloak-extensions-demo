@@ -19,6 +19,7 @@ import org.keycloak.theme.Theme;
 
 import java.io.IOException;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
@@ -34,8 +35,8 @@ public class MfaAuthenticator implements Authenticator {
 		KeycloakSession session = context.getSession();
 		UserModel user = context.getUser();
 
-		int length = Integer.parseInt(config.getConfig().get(MfaConstants.CONFIG_PROPERTY_LENGTH));
-		int ttl = Integer.parseInt(config.getConfig().get(MfaConstants.CONFIG_PROPERTY_TTL));
+		int length = getInt(config, MfaConstants.CONFIG_PROPERTY_LENGTH, MfaConstants.CONFIG_PROPERTY_LENGTH_DEFAULT);
+		int ttl = getInt(config, MfaConstants.CONFIG_PROPERTY_TTL, MfaConstants.CONFIG_PROPERTY_TTL_DEFAULT);
 
 		String code = SecretGenerator.getInstance().randomString(length, SecretGenerator.DIGITS);
 		AuthenticationSessionModel authSession = context.getAuthenticationSession();
@@ -48,13 +49,13 @@ public class MfaAuthenticator implements Authenticator {
 			String mfaAuthText = theme.getMessages(locale).getProperty("mfaAuthText");
 			String mfaText = String.format(mfaAuthText, code, Math.floorDiv(ttl, 60));
 
-			String providerId = config.getConfig().get(MfaConstants.CONFIG_PROPERTY_PROVIDER);
+			String providerId = get(config, MfaConstants.CONFIG_PROPERTY_PROVIDER, MfaConstants.CONFIG_PROPERTY_PROVIDER_DEFAULT);
 			SmsProvider smsProvider = session.getProvider(SmsProvider.class, providerId);
 			smsProvider.sendMessage(getMobileNumber(user), mfaText);
 
 			context.challenge(context.form().setAttribute("realm", context.getRealm()).createForm(TPL_CODE));
 		} catch (IOException e) {
-			context.failureChallenge(AuthenticationFlowError.INTERNAL_ERROR,
+			context.failure(AuthenticationFlowError.INTERNAL_ERROR,
 				context.form().createErrorPage(Response.Status.INTERNAL_SERVER_ERROR));
 		}
 	}
@@ -68,7 +69,7 @@ public class MfaAuthenticator implements Authenticator {
 		String expiration = authSession.getAuthNote(MfaConstants.AUTH_NOTE_EXPIRATION);
 
 		if (code == null || expiration == null) {
-			context.failureChallenge(AuthenticationFlowError.INTERNAL_ERROR,
+			context.failure(AuthenticationFlowError.INTERNAL_ERROR,
 				context.form().createErrorPage(Response.Status.INTERNAL_SERVER_ERROR));
 			return;
 		}
@@ -118,6 +119,21 @@ public class MfaAuthenticator implements Authenticator {
 
 	private String getMobileNumber(UserModel user) {
 		return user.getFirstAttribute("mobile_number");
+	}
+
+	private String get(AuthenticatorConfigModel configModel, String key, String defaultValue) {
+		if (configModel != null) {
+			Map<String, String> config = configModel.getConfig();
+			if (config != null) {
+				return config.getOrDefault(key, defaultValue);
+			}
+			return defaultValue;
+		}
+		return defaultValue;
+	}
+
+	private int getInt(AuthenticatorConfigModel configModel, String key, String defaultValue) {
+		return Integer.parseInt(get(configModel, key, defaultValue));
 	}
 
 }
