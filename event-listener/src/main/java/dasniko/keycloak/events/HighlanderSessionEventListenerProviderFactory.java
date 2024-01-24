@@ -1,14 +1,13 @@
 package dasniko.keycloak.events;
 
+import com.google.auto.service.AutoService;
 import org.keycloak.Config;
 import org.keycloak.events.EventListenerProvider;
 import org.keycloak.events.EventListenerProviderFactory;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 
-/**
- * @author Niko Köbler, https://www.n-k.de, @dasniko
- */
+@AutoService(EventListenerProviderFactory.class)
 public class HighlanderSessionEventListenerProviderFactory implements EventListenerProviderFactory {
 
 	public static final String PROVIDER_ID = "highlander-session";

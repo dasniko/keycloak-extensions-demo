@@ -1,6 +1,7 @@
 package dasniko.keycloak.events;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.auto.service.AutoService;
 import org.keycloak.Config;
 import org.keycloak.events.EventListenerProvider;
 import org.keycloak.events.EventListenerProviderFactory;
@@ -8,9 +9,7 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import software.amazon.awssdk.services.sns.SnsClient;
 
-/**
- * @author Niko Köbler, https://www.n-k.de, @dasniko
- */
+@AutoService(EventListenerProviderFactory.class)
 public class AwsSnsEventListenerProviderFactory implements EventListenerProviderFactory {
 
 	public static final String PROVIDER_ID = "aws-sns-publisher";
