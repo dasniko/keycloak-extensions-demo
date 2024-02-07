@@ -14,14 +14,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.common.util.MultivaluedHashMap;
+import org.keycloak.constants.ServiceUrlConstants;
 import org.keycloak.representations.idm.ComponentRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.storage.UserStorageProvider;
+import org.keycloak.utils.MediaType;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -84,8 +87,8 @@ public class FlintstonesUserStorageProviderTest {
 	@ParameterizedTest
 	@ValueSource(strings = {KeycloakContainer.MASTER_REALM, REALM})
 	public void testRealms(String realm) {
-		String accountServiceUrl = given().pathParam("realm", realm)
-			.when().get(keycloak.getAuthServerUrl() + "/realms/{realm}")
+		String accountServiceUrl = given().pathParam("realm-name", realm)
+			.when().get(keycloak.getAuthServerUrl() + ServiceUrlConstants.REALM_INFO_PATH)
 			.then().statusCode(200).body("realm", equalTo(realm))
 			.extract().path("account-service");
 
@@ -123,10 +126,10 @@ public class FlintstonesUserStorageProviderTest {
 		// call update password action directly
 		String authEndpoint = getOpenIDConfiguration().extract().path("authorization_endpoint");
 		ExtractableResponse<Response> response = given()
-			.queryParam("response_type", "code")
-			.queryParam("client_id", "account")
-			.queryParam("redirect_uri", keycloak.getAuthServerUrl() + "/realms/" + REALM + "/account")
-			.queryParam("scope", "openid")
+			.queryParam(OAuth2Constants.RESPONSE_TYPE, OAuth2Constants.CODE)
+			.queryParam(OAuth2Constants.CLIENT_ID, "account")
+			.queryParam(OAuth2Constants.REDIRECT_URI, keycloak.getAuthServerUrl() + "/realms/" + REALM + "/account")
+			.queryParam(OAuth2Constants.SCOPE, OAuth2Constants.SCOPE_OPENID)
 			.queryParam("kc_action", "UPDATE_PASSWORD")
 			.when().get(authEndpoint)
 			.then().statusCode(200).extract();
@@ -135,7 +138,7 @@ public class FlintstonesUserStorageProviderTest {
 
 		// authenticate
 		String location = given().cookies(cookies)
-			.contentType("application/x-www-form-urlencoded")
+			.contentType(MediaType.APPLICATION_FORM_URLENCODED)
 			.formParam("username", FRED_FLINTSTONE)
 			.formParam("password", "fred")
 			.when().post(formUrl)
@@ -150,7 +153,7 @@ public class FlintstonesUserStorageProviderTest {
 
 		// update password
 		given().cookies(cookies)
-			.contentType("application/x-www-form-urlencoded")
+			.contentType(MediaType.APPLICATION_FORM_URLENCODED)
 			.formParam("username", FRED_FLINTSTONE)
 			.formParam("password-new", "changed")
 			.formParam("password-confirm", "changed")
@@ -230,18 +233,18 @@ public class FlintstonesUserStorageProviderTest {
 	private Response requestToken(String username, String password) {
 		String tokenEndpoint = getOpenIDConfiguration().extract().path("token_endpoint");
 		return given()
-			.contentType("application/x-www-form-urlencoded")
-			.formParam("username", username)
-			.formParam("password", password)
-			.formParam("grant_type", "password")
-			.formParam("client_id", KeycloakContainer.ADMIN_CLI_CLIENT)
-			.formParam("scope", "openid")
+			.contentType(MediaType.APPLICATION_FORM_URLENCODED)
+			.formParam(OAuth2Constants.USERNAME, username)
+			.formParam(OAuth2Constants.PASSWORD, password)
+			.formParam(OAuth2Constants.GRANT_TYPE, OAuth2Constants.PASSWORD)
+			.formParam(OAuth2Constants.CLIENT_ID, KeycloakContainer.ADMIN_CLI_CLIENT)
+			.formParam(OAuth2Constants.SCOPE, OAuth2Constants.SCOPE_OPENID)
 			.when().post(tokenEndpoint);
 	}
 
 	private ValidatableResponse getOpenIDConfiguration() {
-		return given().pathParam("realm", REALM)
-			.when().get(keycloak.getAuthServerUrl() + "/realms/{realm}/.well-known/openid-configuration")
+		return given().pathParam("realm-name", REALM)
+			.when().get(keycloak.getAuthServerUrl() + ServiceUrlConstants.DISCOVERY_URL)
 			.then().statusCode(200);
 	}
 
