@@ -55,8 +55,7 @@ public class MfaAuthenticator implements Authenticator {
 
 			context.challenge(context.form().setAttribute("realm", context.getRealm()).createForm(TPL_CODE));
 		} catch (IOException e) {
-			context.failure(AuthenticationFlowError.INTERNAL_ERROR,
-				context.form().createErrorPage(Response.Status.INTERNAL_SERVER_ERROR));
+			context.failure(AuthenticationFlowError.INTERNAL_ERROR);
 		}
 	}
 
@@ -69,8 +68,7 @@ public class MfaAuthenticator implements Authenticator {
 		String expiration = authSession.getAuthNote(MfaConstants.AUTH_NOTE_EXPIRATION);
 
 		if (code == null || expiration == null) {
-			context.failure(AuthenticationFlowError.INTERNAL_ERROR,
-				context.form().createErrorPage(Response.Status.INTERNAL_SERVER_ERROR));
+			context.failure(AuthenticationFlowError.INTERNAL_ERROR);
 			return;
 		}
 
@@ -78,7 +76,7 @@ public class MfaAuthenticator implements Authenticator {
 		if (isValid) {
 			if (Integer.parseInt(expiration) < Time.currentTime()) {
 				// expired
-				context.failureChallenge(AuthenticationFlowError.EXPIRED_CODE,
+				context.failure(AuthenticationFlowError.EXPIRED_CODE,
 					context.form().setError("mfaAuthCodeExpired").createErrorPage(Response.Status.BAD_REQUEST));
 			} else {
 				// valid
