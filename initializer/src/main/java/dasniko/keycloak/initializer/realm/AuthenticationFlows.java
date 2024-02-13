@@ -1,4 +1,4 @@
-package dasniko.keycloak.initializer;
+package dasniko.keycloak.initializer.realm;
 
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.authentication.authenticators.browser.CookieAuthenticatorFactory;

@@ -1,6 +1,7 @@
-package dasniko.keycloak.initializer;
+package dasniko.keycloak.initializer.realm;
 
 import com.google.auto.service.AutoService;
+import dasniko.keycloak.initializer.InitializerProviderFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.RealmModel;
