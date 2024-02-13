@@ -1,4 +1,4 @@
-package dasniko.keycloak.util;
+package de.keycloak.util;
 
 import org.keycloak.common.ClientConnection;
 import org.keycloak.common.constants.ServiceAccountConstants;

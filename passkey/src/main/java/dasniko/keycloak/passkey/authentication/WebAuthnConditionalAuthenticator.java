@@ -1,6 +1,6 @@
 package dasniko.keycloak.passkey.authentication;
 
-import dasniko.keycloak.util.AuthenticationMethodReference;
+import de.keycloak.util.AuthenticationMethodReference;
 import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.authentication.AuthenticationFlowContext;

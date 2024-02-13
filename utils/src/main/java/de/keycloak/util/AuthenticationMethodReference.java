@@ -1,4 +1,4 @@
-package dasniko.keycloak.util;
+package de.keycloak.util;
 
 /**
  * As of <a href="https://www.rfc-editor.org/rfc/rfc8176.html">Authentication Method Reference Values</a>
