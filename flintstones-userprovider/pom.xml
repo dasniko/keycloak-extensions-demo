@@ -35,6 +35,12 @@
 			<artifactId>keycloak-model-legacy</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>dasniko.keycloak</groupId>
+			<artifactId>keycloak-utils</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 		</dependency>

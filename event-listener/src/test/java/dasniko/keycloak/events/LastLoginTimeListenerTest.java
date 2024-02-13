@@ -1,9 +1,8 @@
 package dasniko.keycloak.events;
 
 import dasniko.testcontainers.keycloak.KeycloakContainer;
-import jakarta.ws.rs.core.MediaType;
+import de.keycloak.test.TestBase;
 import org.junit.jupiter.api.Test;
-import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.idm.RealmEventsConfigRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -13,12 +12,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.util.List;
 import java.util.Map;
 
-import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 @Testcontainers
-public class LastLoginTimeListenerTest {
+public class LastLoginTimeListenerTest extends TestBase {
 
 	private static final String REALM = "demo";
 
@@ -43,16 +41,7 @@ public class LastLoginTimeListenerTest {
 		admin.realm(REALM).updateRealmEventsConfig(eventsConfig);
 
 		// "login" user
-		String tokenEndpoint = given().when().get(keycloak.getAuthServerUrl() + "/realms/{realm}/.well-known/openid-configuration", REALM)
-			.then().statusCode(200).extract().path("token_endpoint");
-		given()
-			.contentType(MediaType.APPLICATION_FORM_URLENCODED)
-			.formParam(OAuth2Constants.USERNAME, "test")
-			.formParam(OAuth2Constants.PASSWORD, "test")
-			.formParam(OAuth2Constants.GRANT_TYPE, OAuth2Constants.PASSWORD)
-			.formParam(OAuth2Constants.CLIENT_ID, KeycloakContainer.ADMIN_CLI_CLIENT)
-			.formParam(OAuth2Constants.SCOPE, OAuth2Constants.SCOPE_OPENID)
-			.when().post(tokenEndpoint);
+		requestToken(keycloak, REALM, "test", "test");
 
 		// check user has last-login-time attribute
 		testUser = admin.realm(REALM).users().searchByUsername("test", true).get(0);

@@ -3,9 +3,9 @@ package dasniko.keycloak.user.flintstones;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
+import de.keycloak.test.TestBase;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
-import io.restassured.response.ValidatableResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
@@ -48,7 +48,7 @@ import static org.hamcrest.Matchers.not;
 @Slf4j
 @Testcontainers
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class FlintstonesUserStorageProviderTest {
+public class FlintstonesUserStorageProviderTest extends TestBase {
 
 	static final String REALM = "flintstones";
 
@@ -99,8 +99,8 @@ public class FlintstonesUserStorageProviderTest {
 	@ParameterizedTest
 	@ValueSource(strings = {"fred.flintstone@flintstones.com", FRED_FLINTSTONE})
 	public void testLoginAsUserAndCheckAccessToken(String userIdentifier) throws IOException {
-		String accessTokenString = requestToken(userIdentifier, "fred")
-			.then().statusCode(200).extract().path("access_token");
+		String accessTokenString = requestToken(keycloak, REALM, userIdentifier, "fred", 200)
+			.extract().path("access_token");
 
 		ObjectMapper mapper = new ObjectMapper();
 		TypeReference<HashMap<String, Object>> typeRef = new TypeReference<>() {};
@@ -117,14 +117,14 @@ public class FlintstonesUserStorageProviderTest {
 	@Test
 	@Order(3)
 	public void testLoginAsUserWithInvalidPassword() {
-		requestToken(FRED_FLINTSTONE, "invalid").then().statusCode(401);
+		requestToken(keycloak, REALM, FRED_FLINTSTONE, "invalid", 401);
 	}
 
 	@Test
 	@Order(4)
 	public void testUpdatePassword() {
 		// call update password action directly
-		String authEndpoint = getOpenIDConfiguration().extract().path("authorization_endpoint");
+		String authEndpoint = getOpenIDConfiguration(keycloak, REALM).extract().path("authorization_endpoint");
 		ExtractableResponse<Response> response = given()
 			.queryParam(OAuth2Constants.RESPONSE_TYPE, OAuth2Constants.CODE)
 			.queryParam(OAuth2Constants.CLIENT_ID, "account")
@@ -162,7 +162,7 @@ public class FlintstonesUserStorageProviderTest {
 			.extract().header("Location");
 
 		// test new password
-		requestToken(FRED_FLINTSTONE, "changed").then().statusCode(200);
+		requestToken(keycloak, REALM, FRED_FLINTSTONE, "changed", 200);
 	}
 
 	@Test
@@ -210,7 +210,7 @@ public class FlintstonesUserStorageProviderTest {
 		String userId = usersResource.searchByUsername("mr.slate", true).get(0).getId();
 		usersResource.get(userId).resetPassword(cred);
 
-		requestToken("mr.slate", "mr.").then().statusCode(200);
+		requestToken(keycloak, REALM, "mr.slate", "mr.", 200);
 	}
 
 	@Test
@@ -228,24 +228,6 @@ public class FlintstonesUserStorageProviderTest {
 
 		UserRepresentation updatedWilma = usersResource.get(wilma.getId()).toRepresentation();
 		assertThat(updatedWilma.getLastName(), is("Feuerstein"));
-	}
-
-	private Response requestToken(String username, String password) {
-		String tokenEndpoint = getOpenIDConfiguration().extract().path("token_endpoint");
-		return given()
-			.contentType(MediaType.APPLICATION_FORM_URLENCODED)
-			.formParam(OAuth2Constants.USERNAME, username)
-			.formParam(OAuth2Constants.PASSWORD, password)
-			.formParam(OAuth2Constants.GRANT_TYPE, OAuth2Constants.PASSWORD)
-			.formParam(OAuth2Constants.CLIENT_ID, KeycloakContainer.ADMIN_CLI_CLIENT)
-			.formParam(OAuth2Constants.SCOPE, OAuth2Constants.SCOPE_OPENID)
-			.when().post(tokenEndpoint);
-	}
-
-	private ValidatableResponse getOpenIDConfiguration() {
-		return given().pathParam("realm-name", REALM)
-			.when().get(keycloak.getAuthServerUrl() + ServiceUrlConstants.DISCOVERY_URL)
-			.then().statusCode(200);
 	}
 
 }
