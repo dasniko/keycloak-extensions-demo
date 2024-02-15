@@ -1,10 +1,10 @@
 package dasniko.keycloak.user.flintstones.repo;
 
 import lombok.SneakyThrows;
+import org.keycloak.common.util.SecretGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -16,12 +16,12 @@ public class FlintstonesRepository {
 
 	@SneakyThrows
 	FlintstonesRepository() {
-		users.add(new FlintstoneUser("66671638-b48a-4bab-8f37-d20efea42ce3", "fred.flintstone@flintstones.com", "Fred", "Flintstone", true, List.of("stoneage")));
-		users.add(new FlintstoneUser("ced34250-cb88-4cc0-87e8-6fca25a926e3", "wilma.flintstone@flintstones.com", "Wilma", "Flintstone", true, List.of("stoneage")));
-		users.add(new FlintstoneUser("12df5d9c-c6ac-48e8-8086-b10ab7985a65", "pebbles.flintstone@flintstones.com", "Pebbles", "Flintstone", true, List.of("stoneage")));
-		users.add(new FlintstoneUser("1b6c083b-3e14-40ef-897c-a0d3cdba22ed", "barney.rubble@flintstones.com", "Barney", "Rubble", true, List.of("stoneage")));
-		users.add(new FlintstoneUser("42c88684-c585-4d83-b748-7a49213c4690", "betty.rubble@flintstones.com", "Betty", "Rubble", true, null));
-		users.add(new FlintstoneUser("08950eb2-920b-48f5-bbe0-9694e8ad6fc4", "bambam.rubble@flintstones.com", "Bam Bam", "Rubble", false, null));
+		users.add(new FlintstoneUser("12345", "fred.flintstone@flintstones.com", "Fred", "Flintstone", true, List.of("stoneage")));
+		users.add(new FlintstoneUser("23456", "wilma.flintstone@flintstones.com", "Wilma", "Flintstone", true, List.of("stoneage")));
+		users.add(new FlintstoneUser("34567", "pebbles.flintstone@flintstones.com", "Pebbles", "Flintstone", true, List.of("stoneage")));
+		users.add(new FlintstoneUser("45678", "barney.rubble@flintstones.com", "Barney", "Rubble", true, List.of("stoneage")));
+		users.add(new FlintstoneUser("56789", "betty.rubble@flintstones.com", "Betty", "Rubble", true, null));
+		users.add(new FlintstoneUser("67890", "bambam.rubble@flintstones.com", "Bam Bam", "Rubble", false, null));
 	}
 
 	List<FlintstoneUser> getAllUsers() {
@@ -69,7 +69,7 @@ public class FlintstonesRepository {
 	}
 
 	void createUser(FlintstoneUser user) {
-		user.setId(UUID.randomUUID().toString());
+		user.setId(SecretGenerator.getInstance().randomString(5));
 		user.setCreated(System.currentTimeMillis());
 		users.add(user);
 	}
