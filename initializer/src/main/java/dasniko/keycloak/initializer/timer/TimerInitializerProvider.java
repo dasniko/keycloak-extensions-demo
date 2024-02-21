@@ -14,14 +14,20 @@ public class TimerInitializerProvider implements InitializerProviderFactory {
 
 	public static final String PROVIDER_ID = "timer";
 
+	private static boolean enabled;
 	private static Long interval;
 
 	@Override
 	public void init(Config.Scope config) {
+		enabled = config.getBoolean("enabled", false);
 		interval = config.getLong("interval", 60000L);
 	}
 	@Override
 	public void postInit(KeycloakSessionFactory factory) {
+		log.info("{} is {}.", this.getClass().getSimpleName(), enabled ? "enabled" : "disabled");
+		if (!enabled)
+			return;
+
 		KeycloakModelUtils.runJobInTransaction(factory, session -> {
 			TimerProvider timerProvider = session.getProvider(TimerProvider.class);
 			timerProvider.schedule(() -> log.info("Timer is being executed..."), interval, PROVIDER_ID);
