@@ -32,6 +32,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<aws.version>2.17.209</aws.version>
+		<bytebuddy.version>1.14.7</bytebuddy.version>
 		<keycloak.version>23.0.0</keycloak.version>
 		<maven.compiler.version>3.11.0</maven.compiler.version>
 		<maven.compiler.release>17</maven.compiler.release>
@@ -76,6 +77,17 @@
 						<artifactId>netty-nio-client</artifactId>
 					</exclusion>
 				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>net.bytebuddy</groupId>
+				<artifactId>byte-buddy</artifactId>
+				<version>${bytebuddy.version}</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>net.bytebuddy</groupId>
+				<artifactId>byte-buddy-agent</artifactId>
+				<version>${bytebuddy.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
