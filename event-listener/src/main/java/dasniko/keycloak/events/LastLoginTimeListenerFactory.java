@@ -12,6 +12,8 @@ public class LastLoginTimeListenerFactory implements EventListenerProviderFactor
 
 	public static final String PROVIDER_ID = "last-login-time";
 
+	static String attributeName;
+
 	@Override
 	public EventListenerProvider create(KeycloakSession session) {
 		return new LastLoginTimeListener(session);
@@ -19,6 +21,7 @@ public class LastLoginTimeListenerFactory implements EventListenerProviderFactor
 
 	@Override
 	public void init(Config.Scope config) {
+		attributeName = config.get("attribute-name", "lastLoginTime");
 	}
 
 	@Override

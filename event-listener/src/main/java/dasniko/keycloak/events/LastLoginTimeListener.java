@@ -21,7 +21,9 @@ public class LastLoginTimeListener implements EventListenerProvider {
 	public void onEvent(Event event) {
 		if (event.getType().equals(EventType.LOGIN)) {
 			UserModel user = session.users().getUserById(session.getContext().getRealm(), event.getUserId());
-			user.setSingleAttribute("lastLoginTime", Integer.toString(Time.currentTime()));
+			if (user != null) {
+				user.setSingleAttribute(LastLoginTimeListenerFactory.attributeName, Integer.toString(Time.currentTime()));
+			}
 		}
 	}
 

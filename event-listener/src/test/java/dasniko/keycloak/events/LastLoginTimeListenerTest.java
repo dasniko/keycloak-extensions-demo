@@ -23,6 +23,7 @@ public class LastLoginTimeListenerTest extends TestBase {
 	@Container
 	private static final KeycloakContainer keycloak = new KeycloakContainer()
 		.withRealmImportFile("demo-realm.json")
+		.withEnv("KC_SPI_EVENTS_LISTENER_LAST_LOGIN_TIME_ATTRIBUTE_NAME", "lastLogin")
 		.withProviderClassesFrom("target/classes");
 
 	@Test
@@ -45,7 +46,7 @@ public class LastLoginTimeListenerTest extends TestBase {
 
 		// check user has last-login-time attribute
 		testUser = admin.realm(REALM).users().searchByUsername("test", true).get(0);
-		String lastLoginTime = testUser.firstAttribute("lastLoginTime");
+		String lastLoginTime = testUser.firstAttribute("lastLogin");
 		assertNotNull(lastLoginTime);
 	}
 
