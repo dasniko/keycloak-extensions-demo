@@ -9,7 +9,7 @@ import org.keycloak.authentication.RequiredActionFactory;
  * No more need to maintain a custom override!
  */
 @Deprecated
-@AutoService(RequiredActionFactory.class)
+//@AutoService(RequiredActionFactory.class)
 public class UpdatePassword extends org.keycloak.authentication.requiredactions.UpdatePassword {
 
 	private boolean forceReauthentication;
