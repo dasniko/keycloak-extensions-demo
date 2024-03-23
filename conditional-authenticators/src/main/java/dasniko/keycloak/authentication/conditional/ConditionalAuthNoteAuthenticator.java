@@ -6,7 +6,7 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 
-import java.util.Map;
+import static de.keycloak.util.AuthenticatorUtil.getConfig;
 
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
@@ -17,10 +17,9 @@ public class ConditionalAuthNoteAuthenticator implements ConditionalAuthenticato
 
 	@Override
 	public boolean matchCondition(AuthenticationFlowContext context) {
-		Map<String, String> config = context.getAuthenticatorConfig().getConfig();
-		String noteName = config.get(ConditionalAuthNoteAuthenticatorFactory.CONF_AUTH_NOTE_NAME);
-		String noteValue = config.get(ConditionalAuthNoteAuthenticatorFactory.CONF_AUTH_NOTE_VALUE);
-		boolean negateOutput = Boolean.parseBoolean(config.get(ConditionalAuthNoteAuthenticatorFactory.CONF_NOT));
+		String noteName = getConfig(context, ConditionalAuthNoteAuthenticatorFactory.CONF_AUTH_NOTE_NAME, "");
+		String noteValue = getConfig(context, ConditionalAuthNoteAuthenticatorFactory.CONF_AUTH_NOTE_VALUE, "");
+		boolean negateOutput = getConfig(context, ConditionalAuthNoteAuthenticatorFactory.CONF_NOT, Boolean.FALSE);
 
 		String authNote = context.getAuthenticationSession().getAuthNote(noteName);
 

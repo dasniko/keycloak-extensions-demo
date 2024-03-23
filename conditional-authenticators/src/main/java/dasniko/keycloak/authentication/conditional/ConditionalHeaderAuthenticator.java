@@ -1,13 +1,13 @@
 package dasniko.keycloak.authentication.conditional;
 
+import jakarta.ws.rs.core.HttpHeaders;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.authenticators.conditional.ConditionalAuthenticator;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 
-import jakarta.ws.rs.core.HttpHeaders;
-import java.util.Map;
+import static de.keycloak.util.AuthenticatorUtil.getConfig;
 
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
@@ -18,10 +18,9 @@ public class ConditionalHeaderAuthenticator implements ConditionalAuthenticator 
 
 	@Override
 	public boolean matchCondition(AuthenticationFlowContext context) {
-		Map<String, String> config = context.getAuthenticatorConfig().getConfig();
-		String headerName = config.get(ConditionalHeaderAuthenticatorFactory.CONF_HEADER_NAME);
-		String headerValue = config.get(ConditionalHeaderAuthenticatorFactory.CONF_HEADER_EXPECTED_VALUE);
-		boolean negateOutput = Boolean.parseBoolean(config.get(ConditionalHeaderAuthenticatorFactory.CONF_NOT));
+		String headerName = getConfig(context, ConditionalHeaderAuthenticatorFactory.CONF_HEADER_NAME, "");
+		String headerValue = getConfig(context, ConditionalHeaderAuthenticatorFactory.CONF_HEADER_EXPECTED_VALUE, "");
+		boolean negateOutput = getConfig(context, ConditionalHeaderAuthenticatorFactory.CONF_NOT, Boolean.FALSE);
 
 		HttpHeaders httpHeaders = context.getHttpRequest().getHttpHeaders();
 		String customHeader = httpHeaders.getHeaderString(headerName);
