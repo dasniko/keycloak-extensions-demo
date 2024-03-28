@@ -1,7 +1,10 @@
 package dasniko.keycloak.requiredaction;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auto.service.AutoService;
 import jakarta.ws.rs.core.MultivaluedMap;
+import lombok.extern.slf4j.Slf4j;
 import org.keycloak.Config;
 import org.keycloak.authentication.InitiatedActionSupport;
 import org.keycloak.authentication.RequiredActionContext;
@@ -14,18 +17,21 @@ import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.credential.OTPCredentialModel;
 import org.keycloak.models.credential.WebAuthnCredentialModel;
+import org.keycloak.provider.ServerInfoAwareProviderFactory;
 import org.keycloak.sessions.AuthenticationSessionModel;
 
+import java.io.IOException;
 import java.util.Map;
 
+@Slf4j
 @AutoService(RequiredActionFactory.class)
-public class Configure1OutOfNCredentials implements RequiredActionFactory, RequiredActionProvider {
+public class Configure1OutOfNCredentials implements RequiredActionFactory, RequiredActionProvider, ServerInfoAwareProviderFactory {
 
 	public static final String PROVIDER_ID = "configure1OutOfNCreds";
 
 	// map of key-value pairs: key = credential type, value = associated required action id
 	// { "otp": "CONFIGURE_TOTP", "webauthn": "webauthn-register" }
-	private static final Map<String, String> credentialTypes = Map.of(
+	private static Map<String, String> credentialTypes = Map.of(
 		OTPCredentialModel.TYPE, UserModel.RequiredAction.CONFIGURE_TOTP.name(),
 		WebAuthnCredentialModel.TYPE_TWOFACTOR, WebAuthnRegisterFactory.PROVIDER_ID
 	);
@@ -50,10 +56,10 @@ public class Configure1OutOfNCredentials implements RequiredActionFactory, Requi
 	@Override
 	public void requiredActionChallenge(RequiredActionContext context) {
 		// initial form
-		LoginFormsProvider form = context.form();
-		form.setAttribute("realm", context.getRealm());
-		form.setAttribute("user", context.getUser());
-		form.setAttribute("credentialOptions", credentialTypes);
+		LoginFormsProvider form = context.form()
+			.setAttribute("realm", context.getRealm())
+			.setAttribute("user", context.getUser())
+			.setAttribute("credentialOptions", credentialTypes);
 		context.challenge(form.createForm("config-1-out-of-n-creds.ftl"));
 	}
 
@@ -82,6 +88,13 @@ public class Configure1OutOfNCredentials implements RequiredActionFactory, Requi
 
 	@Override
 	public void init(Config.Scope config) {
+		String typesString = config.get("typesString", " { \"otp\": \"CONFIGURE_TOTP\", \"webauthn\": \"webauthn-register\" }");
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			credentialTypes = mapper.readValue(typesString, new TypeReference<>() {});
+		} catch (IOException e) {
+			log.warn("Couldn't parse typesString: {}", typesString);
+		}
 	}
 
 	@Override
@@ -95,5 +108,10 @@ public class Configure1OutOfNCredentials implements RequiredActionFactory, Requi
 	@Override
 	public String getId() {
 		return PROVIDER_ID;
+	}
+
+	@Override
+	public Map<String, String> getOperationalInfo() {
+		return credentialTypes;
 	}
 }
