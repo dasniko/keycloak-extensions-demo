@@ -1,6 +1,6 @@
 package dasniko.keycloak.authentication.mfa;
 
-import dasniko.keycloak.requiredaction.MobileNumberRequiredAction;
+import dasniko.keycloak.requiredaction.PhoneNumberRequiredAction;
 import dasniko.keycloak.sms.SmsProvider;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
@@ -107,7 +107,7 @@ public class MfaAuthenticator implements Authenticator {
 	@Override
 	public void setRequiredActions(KeycloakSession session, RealmModel realm, UserModel user) {
 		// here I'm referencing the mobile number required action in the "requiredaction" module
-		session.getContext().getAuthenticationSession().addRequiredAction(MobileNumberRequiredAction.PROVIDER_ID);
+		session.getContext().getAuthenticationSession().addRequiredAction(PhoneNumberRequiredAction.PROVIDER_ID);
 	}
 
 	@Override

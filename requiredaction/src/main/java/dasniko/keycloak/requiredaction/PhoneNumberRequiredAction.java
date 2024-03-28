@@ -17,16 +17,16 @@ import org.keycloak.services.validation.Validation;
 
 import java.util.function.Consumer;
 
+import static org.keycloak.representations.IDToken.PHONE_NUMBER;
+
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
  */
 @AutoService(RequiredActionFactory.class)
-public class MobileNumberRequiredAction implements
+public class PhoneNumberRequiredAction implements
 	RequiredActionFactory, RequiredActionProvider {
 
-	public static final String PROVIDER_ID = "mobile-number-ra";
-
-	private static final String MOBILE_NUMBER_FIELD = "mobile_number";
+	public static final String PROVIDER_ID = "phone-number";
 
 	@Override
 	public InitiatedActionSupport initiatedActionSupport() {
@@ -36,7 +36,7 @@ public class MobileNumberRequiredAction implements
 	@Override
 	public void evaluateTriggers(RequiredActionContext context) {
 		// you would implement something like the following, if this required action should be "self registering" at the user
-		// if (context.getUser().getFirstAttribute(MOBILE_NUMBER_FIELD) == null) {
+		// if (context.getUser().getFirstAttribute(PHONE_NUMBER_FIELD) == null) {
 		// 	context.getUser().addRequiredAction(PROVIDER_ID);
 		//  context.getAuthenticationSession().addRequiredAction(PROVIDER_ID);
 		// }
@@ -52,15 +52,15 @@ public class MobileNumberRequiredAction implements
 	public void processAction(RequiredActionContext context) {
 		// submitted form
 		MultivaluedMap<String, String> formData = context.getHttpRequest().getDecodedFormParameters();
-		String mobileNumber = formData.getFirst(MOBILE_NUMBER_FIELD);
+		String phoneNumber = formData.getFirst(PHONE_NUMBER);
 
-		if (Validation.isBlank(mobileNumber) || mobileNumber.length() < 5) {
-			context.challenge(createForm(context, form -> form.addError(new FormMessage(MOBILE_NUMBER_FIELD, "mobileNumberInvalid"))));
+		if (Validation.isBlank(phoneNumber) || phoneNumber.length() < 5) {
+			context.challenge(createForm(context, form -> form.addError(new FormMessage(PHONE_NUMBER, "phoneNumberInvalid"))));
 			return;
 		}
 
 		UserModel user = context.getUser();
-		user.setSingleAttribute(MOBILE_NUMBER_FIELD, mobileNumber);
+		user.setSingleAttribute(PHONE_NUMBER, phoneNumber);
 		user.removeRequiredAction(PROVIDER_ID);
 		context.getAuthenticationSession().removeRequiredAction(PROVIDER_ID);
 		context.success();
@@ -73,7 +73,7 @@ public class MobileNumberRequiredAction implements
 
 	@Override
 	public String getDisplayText() {
-		return "Update mobile number";
+		return "Update phone number";
 	}
 
 	@Override
@@ -100,13 +100,13 @@ public class MobileNumberRequiredAction implements
 	private Response createForm(RequiredActionContext context, Consumer<LoginFormsProvider> formConsumer) {
 		LoginFormsProvider form = context.form()
 			.setAttribute("username", context.getUser().getUsername())
-			.setAttribute(MOBILE_NUMBER_FIELD, context.getUser().getFirstAttribute(MOBILE_NUMBER_FIELD));
+			.setAttribute(PHONE_NUMBER, context.getUser().getFirstAttribute(PHONE_NUMBER));
 
 		if (formConsumer != null) {
 			formConsumer.accept(form);
 		}
 
-		return form.createForm("update-mobile-number.ftl");
+		return form.createForm("update-phone-number.ftl");
 	}
 
 }
