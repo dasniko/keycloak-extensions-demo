@@ -5,7 +5,7 @@ volumes:
 services:
   keycloak:
     container_name: keycloak-extensions-demo
-    image: quay.io/keycloak/keycloak:23.0
+    image: quay.io/keycloak/keycloak:24.0
     command: start-dev
     environment:
       DEBUG: 'true'
@@ -18,8 +18,11 @@ services:
       - '8787:8787'
     volumes:
       - kc_data:/opt/keycloak/data
+      - ./actiontoken/target/dasniko.keycloak-actiontoken.jar:/opt/keycloak/providers/actiontoken.jar
+      - ./admin-ui/target/dasniko.keycloak-admin-ui.jar:/opt/keycloak/providers/admin-ui.jar
       - ./captcha/target/dasniko.keycloak-captcha.jar:/opt/keycloak/providers/captcha.jar
       - ./conditional-authenticators/target/dasniko.keycloak-conditional-authenticators.jar:/opt/keycloak/providers/conditional-authenticators.jar
+      - ./custom-sms-spi/target/dasniko.keycloak-custom-sms-spi.jar:/opt/keycloak/providers/custom-sms-spi.jar
       - ./event-listener/target/dasniko.keycloak-event-listener.jar:/opt/keycloak/providers/event-listener.jar
       - ./flintstones-userprovider/target/dasniko.keycloak-flintstones-userprovider.jar:/opt/keycloak/providers/flintstones-userprovider.jar
       - ./magiclink/target/dasniko.keycloak-magiclink.jar:/opt/keycloak/providers/magiclink.jar
