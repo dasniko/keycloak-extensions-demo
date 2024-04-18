@@ -28,6 +28,7 @@
     <module>initializer</module>
 		<module>actiontoken</module>
 		<module>admin-ui</module>
+		<module>scheduled-task</module>
 	</modules>
 
 	<properties>
