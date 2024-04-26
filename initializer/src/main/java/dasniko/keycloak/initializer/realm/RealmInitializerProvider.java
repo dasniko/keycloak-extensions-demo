@@ -5,7 +5,6 @@ import dasniko.keycloak.initializer.InitializerProviderFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.RealmModel;
-import org.keycloak.models.RoleModel;
 import org.keycloak.provider.ProviderEvent;
 
 @Slf4j
@@ -31,14 +30,14 @@ public class RealmInitializerProvider implements InitializerProviderFactory {
 
 					AuthenticationFlows.createAuthFlows(createdRealm);
 
-					final String ROLE_USER = "user";
-					RoleModel userRole = createdRealm.getRole(ROLE_USER);
-					if (userRole == null) {
-						log.info("Create role {} in realm {}, as it doesn't exist.", ROLE_USER, createdRealm.getName());
-						userRole = createdRealm.addRole(ROLE_USER);
-					}
-					log.info("Add role {} to default roles of realm {}", ROLE_USER, createdRealm.getName());
-					createdRealm.addToDefaultRoles(userRole);
+//					final String ROLE_USER = "user";
+//					RoleModel userRole = createdRealm.getRole(ROLE_USER);
+//					if (userRole == null) {
+//						log.info("Create role {} in realm {}, as it doesn't exist.", ROLE_USER, createdRealm.getName());
+//						userRole = createdRealm.addRole(ROLE_USER);
+//					}
+//					log.info("Add role {} to default roles of realm {}", ROLE_USER, createdRealm.getName());
+//					createdRealm.addToDefaultRoles(userRole);
 				}
 			});
 	}
