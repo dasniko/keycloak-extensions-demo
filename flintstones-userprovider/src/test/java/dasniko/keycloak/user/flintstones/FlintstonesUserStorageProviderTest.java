@@ -7,6 +7,7 @@ import de.keycloak.test.TestBase;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpHeaders;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -134,7 +135,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 			.when().get(authEndpoint)
 			.then().statusCode(200).extract();
 		Map<String, String> cookies = response.cookies();
-		String formUrl = response.htmlPath().getString("html.body.div.div.div.div.div.div.form.@action");
+		String formUrl = response.htmlPath().getString("**.find { it.@id == 'kc-form-login' }.@action");
 
 		// authenticate
 		String location = given().cookies(cookies)
@@ -143,13 +144,13 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 			.formParam(OAuth2Constants.PASSWORD, "fred")
 			.when().post(formUrl)
 			.then().statusCode(302)
-			.extract().header("Location");
+			.extract().header(HttpHeaders.LOCATION);
 
 		// get form for password update
 		formUrl = given().cookies(cookies)
 			.when().get(location)
 			.then().statusCode(200)
-			.extract().htmlPath().getString("html.body.div.div.div.div.form.@action");
+			.extract().htmlPath().getString("**.find { it.@id == 'kc-passwd-update-form' }.@action");
 
 		// update password
 		given().cookies(cookies)
@@ -159,7 +160,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 			.formParam("password-confirm", "changed")
 			.when().post(formUrl)
 			.then().statusCode(302)
-			.extract().header("Location");
+			.extract().header(HttpHeaders.LOCATION);
 
 		// test new password
 		requestToken(keycloak, REALM, FRED, "changed", 200);
