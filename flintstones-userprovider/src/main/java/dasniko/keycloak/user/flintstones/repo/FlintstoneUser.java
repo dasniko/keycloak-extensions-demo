@@ -26,7 +26,7 @@ public class FlintstoneUser implements Cloneable {
 
 	public FlintstoneUser(String id, String email, String firstName, String lastName, boolean enabled, List<String> roles) {
 		this.id = id;
-		this.username = email.substring(0, email.indexOf("@"));
+		this.username = email.substring(0, email.indexOf("."));
 		this.email = email;
 		this.firstName = firstName;
 		this.lastName = lastName;

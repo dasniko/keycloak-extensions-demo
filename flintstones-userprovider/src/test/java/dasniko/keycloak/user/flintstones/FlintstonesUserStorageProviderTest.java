@@ -52,7 +52,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 
 	static final String REALM = "flintstones";
 
-	static final String FRED_FLINTSTONE = "fred.flintstone";
+	static final String FRED = "fred";
 
 	@Container
 	private static final KeycloakContainer keycloak = new KeycloakContainer()
@@ -97,7 +97,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 
 	@Order(2)
 	@ParameterizedTest
-	@ValueSource(strings = {"fred.flintstone@flintstones.com", FRED_FLINTSTONE})
+	@ValueSource(strings = {"fred.flintstone@flintstones.com", FRED})
 	public void testLoginAsUserAndCheckAccessToken(String userIdentifier) throws IOException {
 		String accessTokenString = requestToken(keycloak, REALM, userIdentifier, "fred", 200)
 			.extract().path("access_token");
@@ -108,7 +108,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 		byte[] tokenPayload = Base64.getDecoder().decode(accessTokenString.split("\\.")[1]);
 		Map<String, Object> payload = mapper.readValue(tokenPayload, typeRef);
 
-		assertThat(payload.get("preferred_username"), is(FRED_FLINTSTONE));
+		assertThat(payload.get("preferred_username"), is(FRED));
 		assertThat(payload.get("email"), is("fred.flintstone@flintstones.com"));
 		assertThat(payload.get("given_name"), is("Fred"));
 		assertThat(payload.get("family_name"), is("Flintstone"));
@@ -117,7 +117,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 	@Test
 	@Order(3)
 	public void testLoginAsUserWithInvalidPassword() {
-		requestToken(keycloak, REALM, FRED_FLINTSTONE, "invalid", 401);
+		requestToken(keycloak, REALM, FRED, "invalid", 401);
 	}
 
 	@Test
@@ -139,8 +139,8 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 		// authenticate
 		String location = given().cookies(cookies)
 			.contentType(MediaType.APPLICATION_FORM_URLENCODED)
-			.formParam("username", FRED_FLINTSTONE)
-			.formParam("password", "fred")
+			.formParam(OAuth2Constants.USERNAME, FRED)
+			.formParam(OAuth2Constants.PASSWORD, "fred")
 			.when().post(formUrl)
 			.then().statusCode(302)
 			.extract().header("Location");
@@ -154,7 +154,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 		// update password
 		given().cookies(cookies)
 			.contentType(MediaType.APPLICATION_FORM_URLENCODED)
-			.formParam("username", FRED_FLINTSTONE)
+			.formParam(OAuth2Constants.USERNAME, FRED)
 			.formParam("password-new", "changed")
 			.formParam("password-confirm", "changed")
 			.when().post(formUrl)
@@ -162,7 +162,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 			.extract().header("Location");
 
 		// test new password
-		requestToken(keycloak, REALM, FRED_FLINTSTONE, "changed", 200);
+		requestToken(keycloak, REALM, FRED, "changed", 200);
 	}
 
 	@Test
@@ -170,13 +170,13 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 	public void testAccessingUsersAsAdmin() {
 		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
 		UsersResource usersResource = kcAdmin.realm(REALM).users();
-		List<UserRepresentation> users = usersResource.searchByUsername("fred.flintstone", true);
+		List<UserRepresentation> users = usersResource.searchByUsername("fred", true);
 		assertThat(users, is(not(empty())));
 		assertThat(users, hasSize(1));
 
 		String userId = users.get(0).getId();
 		UserResource userResource = usersResource.get(userId);
-		assertThat(userResource.toRepresentation().getUsername(), is(FRED_FLINTSTONE));
+		assertThat(userResource.toRepresentation().getUsername(), is(FRED));
 	}
 
 	@Test
@@ -218,7 +218,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 	public void testUpdateUserAsAdmin() {
 		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
 		UsersResource usersResource = kcAdmin.realm(REALM).users();
-		List<UserRepresentation> users = usersResource.searchByUsername("wilma.flintstone", true);
+		List<UserRepresentation> users = usersResource.searchByUsername("wilma", true);
 		assertThat(users, hasSize(1));
 
 		UserRepresentation wilma = users.get(0);
