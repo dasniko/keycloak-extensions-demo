@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.AuthenticationFlowError;
 import org.keycloak.authentication.Authenticator;
+import org.keycloak.authentication.RequiredActionFactory;
+import org.keycloak.authentication.RequiredActionProvider;
 import org.keycloak.common.util.SecretGenerator;
 import org.keycloak.common.util.Time;
 import org.keycloak.models.AuthenticationExecutionModel;
@@ -17,6 +19,7 @@ import org.keycloak.sessions.AuthenticationSessionModel;
 import org.keycloak.theme.Theme;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Locale;
 
 import static de.keycloak.util.AuthenticatorUtil.getConfig;
@@ -108,6 +111,11 @@ public class MfaAuthenticator implements Authenticator {
 	public void setRequiredActions(KeycloakSession session, RealmModel realm, UserModel user) {
 		// here I'm referencing the mobile number required action in the "requiredaction" module
 		session.getContext().getAuthenticationSession().addRequiredAction(PhoneNumberRequiredAction.PROVIDER_ID);
+	}
+
+	@Override
+	public List<RequiredActionFactory> getRequiredActions(KeycloakSession session) {
+		return List.of((PhoneNumberRequiredAction)session.getKeycloakSessionFactory().getProviderFactory(RequiredActionProvider.class, PhoneNumberRequiredAction.PROVIDER_ID));
 	}
 
 	@Override
