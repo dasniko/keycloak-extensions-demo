@@ -23,6 +23,7 @@ import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.constants.ServiceUrlConstants;
 import org.keycloak.representations.idm.ComponentRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.utils.MediaType;
@@ -52,12 +53,10 @@ import static org.hamcrest.Matchers.not;
 public class FlintstonesUserStorageProviderTest extends TestBase {
 
 	static final String REALM = "flintstones";
-
 	static final String FRED = "fred";
 
 	@Container
 	private static final KeycloakContainer keycloak = new KeycloakContainer()
-		.withRealmImportFile("/flintstones-realm.json")
 		.withEnv("KC_SPI_EVENTS_LISTENER_JBOSS_LOGGING_SUCCESS_LEVEL", "info")
 		.withEnv("KC_LOG_LEVEL", "INFO,dasniko:debug")
 		.withProviderClassesFrom("target/classes");
@@ -65,6 +64,13 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 	@BeforeAll
 	static void beforeAll() {
 		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
+
+		RealmRepresentation realm = new RealmRepresentation();
+		realm.setRealm(REALM);
+		realm.setEnabled(true);
+		realm.setLoginWithEmailAllowed(true);
+		realm.setResetPasswordAllowed(true);
+		kcAdmin.realms().create(realm);
 
 		ComponentRepresentation componentRep = new ComponentRepresentation();
 		componentRep.setProviderId(FlintstonesUserStorageProviderFactory.PROVIDER_ID);
@@ -77,7 +83,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 		config.add("enabled", "true");
 		componentRep.setConfig(config);
 
-		kcAdmin.realm("flintstones")
+		kcAdmin.realm(REALM)
 			.components()
 			.add(componentRep)
 			.close();

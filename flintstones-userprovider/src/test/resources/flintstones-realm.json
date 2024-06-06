@@ -1,7 +1,0 @@
-{
-  "id": "flintstones",
-  "realm": "flintstones",
-  "enabled": true,
-  "loginWithEmailAllowed": true,
-  "resetPasswordAllowed": true
-}
