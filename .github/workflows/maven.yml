@@ -3,7 +3,10 @@
 
 name: CI build
 
-on: [ push, pull_request ]
+on:
+  push:
+  schedule:
+    - cron: "0 3 * * 0"
 
 jobs:
   build:
