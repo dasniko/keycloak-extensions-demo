@@ -139,7 +139,7 @@ public class CustomTokenResource {
 
 		// now do the work
 		String tokenString = token.serialize(session, realm, uriInfo);
-		UriBuilder uriBuilder = Urls.actionTokenBuilder(uriInfo.getBaseUri(), tokenString, token.issuedFor, "");
+		UriBuilder uriBuilder = Urls.actionTokenBuilder(uriInfo.getBaseUri(), tokenString, token.issuedFor, "", "");
 
 		// and then reset the realm to the proper one
 		session.getContext().setRealm(sessionContextRealm);

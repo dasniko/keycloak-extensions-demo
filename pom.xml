@@ -16,7 +16,6 @@
 		<module>event-listener</module>
 		<module>tokenmapper</module>
 		<module>flintstones-userprovider</module>
-		<module>peanuts-userprovider</module>
 		<module>rest-endpoint</module>
 		<module>requiredaction</module>
 		<module>magiclink</module>
@@ -25,7 +24,7 @@
 		<module>conditional-authenticators</module>
 		<module>mfa-authenticator</module>
 		<module>passkey</module>
-    <module>initializer</module>
+  	<module>initializer</module>
 		<module>actiontoken</module>
 		<module>admin-ui</module>
 		<module>scheduled-task</module>
@@ -35,11 +34,11 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<aws.version>2.17.209</aws.version>
 		<bytebuddy.version>1.14.11</bytebuddy.version>
-		<keycloak.version>24.0.3</keycloak.version>
-		<maven.compiler.version>3.11.0</maven.compiler.version>
+		<keycloak.version>25.0.0</keycloak.version>
+		<maven.compiler.version>3.13.0</maven.compiler.version>
 		<maven.compiler.release>17</maven.compiler.release>
-		<maven-shade.version>3.2.4</maven-shade.version>
-		<maven-surefire.version>3.1.2</maven-surefire.version>
+		<maven-shade.version>3.6.0</maven-shade.version>
+		<maven-surefire.version>3.2.5</maven-surefire.version>
 	</properties>
 
 	<dependencyManagement>

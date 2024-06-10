@@ -5,10 +5,9 @@ import dasniko.keycloak.user.flintstones.repo.Credential;
 import dasniko.keycloak.user.flintstones.repo.FlintstoneUser;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.keycloak.broker.provider.util.SimpleHttp;
+import org.keycloak.broker.provider.util.SimpleHttpClient;
 import org.keycloak.component.ComponentModel;
-import org.keycloak.connections.httpclient.HttpClientProvider;
 import org.keycloak.models.KeycloakSession;
 
 import java.util.List;
@@ -16,11 +15,11 @@ import java.util.List;
 @Slf4j
 public class FlintstonesApiClient {
 
-	private final CloseableHttpClient httpClient;
+	private final KeycloakSession session;
 	private final String baseUrl;
 
 	public FlintstonesApiClient(KeycloakSession session, ComponentModel model) {
-		this.httpClient = session.getProvider(HttpClientProvider.class).getHttpClient();
+		this.session = session;
 		this.baseUrl = model.get(FlintstonesUserStorageProviderFactory.USER_API_BASE_URL);
 	}
 
@@ -50,7 +49,7 @@ public class FlintstonesApiClient {
 	@SneakyThrows
 	public boolean createUser(FlintstoneUser user) {
 		String url = String.format("%s/users", baseUrl);
-		return SimpleHttp.doPost(url, httpClient).json(user).asStatus() == 201;
+		return SimpleHttpClient.doPost(url, session).json(user).asStatus() == 201;
 	}
 
 	@SneakyThrows
@@ -84,25 +83,25 @@ public class FlintstonesApiClient {
 	@SneakyThrows
 	public boolean updateUser(FlintstoneUser user) {
 		String url = String.format("%s/users/%s", baseUrl, user.getId());
-		return SimpleHttp.doPut(url, httpClient).json(user).asStatus() == 204;
+		return SimpleHttpClient.doPut(url, session).json(user).asStatus() == 204;
 	}
 
 	@SneakyThrows
 	public boolean deleteUser(String userId) {
 		String url = String.format("%s/users/%s", baseUrl, userId);
-		return SimpleHttp.doDelete(url, httpClient).asStatus() == 204;
+		return SimpleHttpClient.doDelete(url, session).asStatus() == 204;
 	}
 
 	@SneakyThrows
 	public boolean verifyCredentials(String userId, Credential credential) {
 		String url = String.format("%s/users/%s/credentials/verify", baseUrl, userId);
-		return SimpleHttp.doPost(url, httpClient).json(credential).asStatus() == 204;
+		return SimpleHttpClient.doPost(url, session).json(credential).asStatus() == 204;
 	}
 
 	@SneakyThrows
 	public boolean updateCredentials(String userId, Credential credential) {
 		String url = String.format("%s/users/%s/credentials", baseUrl, userId);
-		return SimpleHttp.doPut(url, httpClient).json(credential).asStatus() == 204;
+		return SimpleHttpClient.doPut(url, session).json(credential).asStatus() == 204;
 	}
 
 	@SneakyThrows
@@ -122,6 +121,6 @@ public class FlintstonesApiClient {
 	}
 
 	private SimpleHttp prepareGetRequest(String url) {
-		return SimpleHttp.doGet(url, httpClient).acceptJson();
+		return SimpleHttpClient.doGet(url, session).acceptJson();
 	}
 }

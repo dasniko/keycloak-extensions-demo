@@ -33,7 +33,8 @@
 		<dependency>
 			<groupId>dasniko.keycloak</groupId>
 			<artifactId>keycloak-utils</artifactId>
-			<version>${project.parent.version}</version>
+			<version>${project.version}</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>

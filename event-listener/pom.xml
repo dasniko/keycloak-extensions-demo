@@ -29,6 +29,10 @@
 			<artifactId>keycloak-model-storage-private</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-resteasy-reactive</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 		</dependency>

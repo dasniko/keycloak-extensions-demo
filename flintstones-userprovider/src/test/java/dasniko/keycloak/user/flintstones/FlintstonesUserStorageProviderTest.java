@@ -59,7 +59,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 	private static final KeycloakContainer keycloak = new KeycloakContainer()
 		.withEnv("KC_SPI_EVENTS_LISTENER_JBOSS_LOGGING_SUCCESS_LEVEL", "info")
 		.withEnv("KC_LOG_LEVEL", "INFO,dasniko:debug")
-		.withProviderClassesFrom("target/classes");
+		.withProviderClassesFrom("target/classes", "../utils/target/classes");
 
 	@BeforeAll
 	static void beforeAll() {
