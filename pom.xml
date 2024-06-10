@@ -46,8 +46,8 @@
 			<dependency>
 				<groupId>com.github.dasniko</groupId>
 				<artifactId>keycloak-spi-bom</artifactId>
-<!--				<version>main-SNAPSHOT</version>-->
-				<version>${keycloak.version}</version>
+				<version>main-SNAPSHOT</version>
+<!--				<version>${keycloak.version}</version>-->
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -127,11 +127,18 @@
 		</pluginManagement>
 	</build>
 
-	<!--repositories>
+	<repositories>
+		<repository>
+			<id>jboss-snapshots</id>
+			<url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
 		<repository>
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
 		</repository>
-	</repositories-->
+	</repositories>
 
 </project>
