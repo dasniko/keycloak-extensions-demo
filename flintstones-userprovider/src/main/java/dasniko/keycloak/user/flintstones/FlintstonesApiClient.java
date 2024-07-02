@@ -6,7 +6,6 @@ import dasniko.keycloak.user.flintstones.repo.FlintstoneUser;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.broker.provider.util.SimpleHttp;
-import org.keycloak.broker.provider.util.SimpleHttpClient;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.models.KeycloakSession;
 
@@ -49,7 +48,7 @@ public class FlintstonesApiClient {
 	@SneakyThrows
 	public boolean createUser(FlintstoneUser user) {
 		String url = String.format("%s/users", baseUrl);
-		return SimpleHttpClient.doPost(url, session).json(user).asStatus() == 201;
+		return SimpleHttp.doPost(url, session).json(user).asStatus() == 201;
 	}
 
 	@SneakyThrows
@@ -83,25 +82,25 @@ public class FlintstonesApiClient {
 	@SneakyThrows
 	public boolean updateUser(FlintstoneUser user) {
 		String url = String.format("%s/users/%s", baseUrl, user.getId());
-		return SimpleHttpClient.doPut(url, session).json(user).asStatus() == 204;
+		return SimpleHttp.doPut(url, session).json(user).asStatus() == 204;
 	}
 
 	@SneakyThrows
 	public boolean deleteUser(String userId) {
 		String url = String.format("%s/users/%s", baseUrl, userId);
-		return SimpleHttpClient.doDelete(url, session).asStatus() == 204;
+		return SimpleHttp.doDelete(url, session).asStatus() == 204;
 	}
 
 	@SneakyThrows
 	public boolean verifyCredentials(String userId, Credential credential) {
 		String url = String.format("%s/users/%s/credentials/verify", baseUrl, userId);
-		return SimpleHttpClient.doPost(url, session).json(credential).asStatus() == 204;
+		return SimpleHttp.doPost(url, session).json(credential).asStatus() == 204;
 	}
 
 	@SneakyThrows
 	public boolean updateCredentials(String userId, Credential credential) {
 		String url = String.format("%s/users/%s/credentials", baseUrl, userId);
-		return SimpleHttpClient.doPut(url, session).json(credential).asStatus() == 204;
+		return SimpleHttp.doPut(url, session).json(credential).asStatus() == 204;
 	}
 
 	@SneakyThrows
@@ -121,6 +120,6 @@ public class FlintstonesApiClient {
 	}
 
 	private SimpleHttp prepareGetRequest(String url) {
-		return SimpleHttpClient.doGet(url, session).acceptJson();
+		return SimpleHttp.doGet(url, session).acceptJson();
 	}
 }
