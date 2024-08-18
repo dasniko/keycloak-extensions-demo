@@ -56,7 +56,7 @@ public class CustomActionTokenHandler extends AbstractActionTokenHandler<CustomA
 
         if (token.getScope() != null) {
             authSession.setClientNote(OAuth2Constants.SCOPE, token.getScope());
-            AuthenticationManager.setClientScopesInSession(authSession);
+            AuthenticationManager.setClientScopesInSession(session, authSession);
         }
 
         authSession.getAuthenticatedUser().setEmailVerified(true);
