@@ -17,10 +17,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.ClientResource;
+import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.constants.ServiceUrlConstants;
+import org.keycloak.models.Constants;
+import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.ComponentRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
@@ -83,10 +87,17 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 		config.add("enabled", "true");
 		componentRep.setConfig(config);
 
-		kcAdmin.realm(REALM)
-			.components()
-			.add(componentRep)
-			.close();
+		RealmResource realmResource = kcAdmin.realm(REALM);
+		realmResource.components().add(componentRep).close();
+
+		ClientRepresentation adminCliClient = realmResource.clients().findByClientId(KeycloakContainer.ADMIN_CLI_CLIENT).getFirst();
+		ClientResource clientResource = realmResource.clients().get(adminCliClient.getId());
+
+		// we have to disable lightweight access_token, which is default now in the admin-cli client
+		Map<String, String> attributes = adminCliClient.getAttributes();
+		attributes.put(Constants.USE_LIGHTWEIGHT_ACCESS_TOKEN_ENABLED, Boolean.FALSE.toString());
+		adminCliClient.setAttributes(attributes);
+		clientResource.update(adminCliClient);
 	}
 
 
