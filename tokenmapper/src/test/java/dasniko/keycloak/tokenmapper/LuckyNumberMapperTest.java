@@ -5,8 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.keycloak.TokenVerifier;
 import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.ClientResource;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.common.VerificationException;
+import org.keycloak.models.Constants;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.protocol.oidc.mappers.OIDCAttributeMapperHelper;
 import org.keycloak.representations.AccessToken;
@@ -34,10 +36,17 @@ public class LuckyNumberMapperTest {
 			Keycloak keycloakClient = keycloak.getKeycloakAdminClient();
 
 			RealmResource realm = keycloakClient.realm(KeycloakContainer.MASTER_REALM);
-			ClientRepresentation client = realm.clients().findByClientId(KeycloakContainer.ADMIN_CLI_CLIENT).get(0);
+			ClientRepresentation client = realm.clients().findByClientId(KeycloakContainer.ADMIN_CLI_CLIENT).getFirst();
+			ClientResource clientResource = realm.clients().get(client.getId());
+
+			// first we have to disable lightweight access_token, which is default now in the admin-cli client
+			Map<String, String> attributes = client.getAttributes();
+			attributes.put(Constants.USE_LIGHTWEIGHT_ACCESS_TOKEN_ENABLED, Boolean.FALSE.toString());
+			client.setAttributes(attributes);
+			clientResource.update(client);
 
 			ProtocolMapperRepresentation mapper = configureCustomOidcProtocolMapper();
-			realm.clients().get(client.getId()).getProtocolMappers().createMapper(mapper).close();
+			clientResource.getProtocolMappers().createMapper(mapper).close();
 
 			keycloakClient.tokenManager().refreshToken();
 			AccessTokenResponse tokenResponse = keycloakClient.tokenManager().getAccessToken();
