@@ -37,7 +37,7 @@ public class AwsSesEmailSenderProvider implements EmailSenderProvider {
 			);
 		} catch (Exception e) {
 			ServicesLogger.LOGGER.failedToSendEmail(e);
-			throw new EmailException(e);
+			throw new EmailException(e.getMessage(), e);
 		}
 	}
 

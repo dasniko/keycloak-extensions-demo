@@ -192,7 +192,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 		assertThat(users, is(not(empty())));
 		assertThat(users, hasSize(1));
 
-		String userId = users.get(0).getId();
+		String userId = users.getFirst().getId();
 		UserResource userResource = usersResource.get(userId);
 		assertThat(userResource.toRepresentation().getUsername(), is(FRED));
 	}
@@ -206,7 +206,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 		assertThat(users, is(not(empty())));
 		assertThat(users, hasSize(6));
 
-		usersResource.delete(users.get(users.size() - 1).getId()).close();
+		usersResource.delete(users.getLast().getId()).close();
 
 		users = usersResource.search("*", 0 , 10);
 		assertThat(users, hasSize(5));
@@ -225,7 +225,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 		CredentialRepresentation cred = new CredentialRepresentation();
 		cred.setType(CredentialRepresentation.PASSWORD);
 		cred.setValue("mr.");
-		String userId = usersResource.searchByUsername("mr.slate", true).get(0).getId();
+		String userId = usersResource.searchByUsername("mr.slate", true).getFirst().getId();
 		usersResource.get(userId).resetPassword(cred);
 
 		requestToken(keycloak, REALM, "mr.slate", "mr.", 200);
@@ -239,7 +239,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 		List<UserRepresentation> users = usersResource.searchByUsername("wilma", true);
 		assertThat(users, hasSize(1));
 
-		UserRepresentation wilma = users.get(0);
+		UserRepresentation wilma = users.getFirst();
 		wilma.setLastName("Feuerstein");
 
 		usersResource.get(wilma.getId()).update(wilma);
