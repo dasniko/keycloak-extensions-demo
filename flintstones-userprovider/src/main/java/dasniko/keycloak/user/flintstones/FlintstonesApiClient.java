@@ -76,7 +76,7 @@ public class FlintstonesApiClient {
 		SimpleHttp simpleHttp = prepareGetRequest(url);
 		simpleHttp.param(field, value);
 		List<FlintstoneUser> result = simpleHttp.asJson(new TypeReference<>() {});
-		return result.isEmpty() ? null : result.get(0);
+		return result.isEmpty() ? null : result.getFirst();
 	}
 
 	@SneakyThrows

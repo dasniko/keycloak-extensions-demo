@@ -32,7 +32,7 @@ public class LastLoginTimeListenerTest extends TestBase {
 
 		// check user has no attributes
 		List<UserRepresentation> users = admin.realm(REALM).users().searchByUsername("test", true);
-		UserRepresentation testUser = users.get(0);
+		UserRepresentation testUser = users.getFirst();
 		Map<String, List<String>> attributes = testUser.getAttributes();
 		assertNull(attributes);
 
@@ -45,7 +45,7 @@ public class LastLoginTimeListenerTest extends TestBase {
 		requestToken(keycloak, REALM, "test", "test");
 
 		// check user has last-login-time attribute
-		testUser = admin.realm(REALM).users().searchByUsername("test", true).get(0);
+		testUser = admin.realm(REALM).users().searchByUsername("test", true).getFirst();
 		String lastLoginTime = testUser.firstAttribute("lastLogin");
 		assertNotNull(lastLoginTime);
 	}
