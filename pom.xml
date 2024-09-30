@@ -28,6 +28,7 @@
 		<module>actiontoken</module>
 		<module>admin-ui</module>
 		<module>scheduled-task</module>
+		<module>various</module>
 	</modules>
 
 	<properties>
