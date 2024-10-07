@@ -5,6 +5,8 @@ name: CI build
 
 on:
   push:
+    paths-ignore:
+      - 'README.md'
   schedule:
     - cron: "0 3 * * 0"
 
