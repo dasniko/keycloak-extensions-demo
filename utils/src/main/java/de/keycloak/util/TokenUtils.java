@@ -42,6 +42,7 @@ public class TokenUtils {
 			throw new IllegalStateException("service account not enabled");
 		}
 
+		context.setClient(client);
 		var clientUser = session.users().getServiceAccount(client);
 		var clientUsername = clientUser.getUsername();
 
