@@ -1,6 +1,7 @@
 package dasniko.keycloak.events;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.auto.service.AutoService;
 import org.keycloak.Config;
 import org.keycloak.events.EventListenerProvider;
 import org.keycloak.events.EventListenerProviderFactory;
@@ -14,7 +15,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-//@AutoService(EventListenerProviderFactory.class)
+@AutoService(EventListenerProviderFactory.class)
 public class JsonEventListenerProviderFactory implements EventListenerProviderFactory {
 
 	public static final String PROVIDER_ID = "json-logging";

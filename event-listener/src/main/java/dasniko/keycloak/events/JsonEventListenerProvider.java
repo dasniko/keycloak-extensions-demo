@@ -87,7 +87,7 @@ public class JsonEventListenerProvider implements EventListenerProvider {
 				});
 
 				if (log.isTraceEnabled()) {
-				setKeycloakContext(map);
+					setKeycloakContext(map);
 				}
 
 				s = mapper.writeValueAsString(map);
