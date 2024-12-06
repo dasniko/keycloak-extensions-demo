@@ -42,14 +42,15 @@ public class TokenUtils {
 			throw new IllegalStateException("service account not enabled");
 		}
 
-		context.setClient(client);
 		var clientUser = session.users().getServiceAccount(client);
 		var clientUsername = clientUser.getUsername();
 
 		// we need to remember the current authSession since createAuthenticationSession changes the current authSession in the context
 		var currentAuthSession = context.getAuthenticationSession();
+		var currentClient = context.getClient();
 
 		try {
+			context.setClient(client);
 			var rootAuthSession = new AuthenticationSessionManager(session).createAuthenticationSession(realm, false);
 			var authSession = rootAuthSession.createAuthenticationSession(client);
 
@@ -86,6 +87,7 @@ public class TokenUtils {
 		} finally {
 			// reset current authentication session
 			context.setAuthenticationSession(currentAuthSession);
+			context.setClient(currentClient);
 		}
 	}
 
