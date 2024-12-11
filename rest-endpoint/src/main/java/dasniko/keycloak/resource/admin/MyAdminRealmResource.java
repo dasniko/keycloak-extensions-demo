@@ -47,7 +47,7 @@ public class MyAdminRealmResource {
 	@PUT
 	@Path("users/required-action")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response buldAddRequiredAction(Map<String, String> payload) {
+	public Response bulkAddRequiredAction(Map<String, String> payload) {
 		// do the authorization with the existing admin permissions
 		final UserPermissionEvaluator userPermissionEvaluator = auth.users();
 		userPermissionEvaluator.requireManage();
