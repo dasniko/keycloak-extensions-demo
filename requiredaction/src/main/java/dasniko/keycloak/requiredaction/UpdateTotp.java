@@ -1,15 +1,13 @@
 package dasniko.keycloak.requiredaction;
 
-import com.google.auto.service.AutoService;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.Config;
-import org.keycloak.authentication.RequiredActionFactory;
 import org.keycloak.authentication.RequiredActionProvider;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.policy.MaxAuthAgePasswordPolicyProviderFactory;
 
 @RequiredArgsConstructor
-@AutoService(RequiredActionFactory.class)
+//@AutoService(RequiredActionFactory.class)
 public class UpdateTotp extends org.keycloak.authentication.requiredactions.UpdateTotp {
 
 	private final KeycloakSession session;
