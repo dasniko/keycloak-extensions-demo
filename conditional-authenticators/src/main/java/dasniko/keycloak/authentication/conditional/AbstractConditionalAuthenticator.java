@@ -30,6 +30,21 @@ public abstract class AbstractConditionalAuthenticator implements ConditionalAut
 	}
 
 	@Override
+	public boolean requiresUser() {
+		return false;
+	}
+
+	@Override
+	public boolean isConfigurable() {
+		return true;
+	}
+
+	@Override
+	public boolean isUserSetupAllowed() {
+		return false;
+	}
+
+	@Override
 	public void init(Config.Scope config) {
 	}
 

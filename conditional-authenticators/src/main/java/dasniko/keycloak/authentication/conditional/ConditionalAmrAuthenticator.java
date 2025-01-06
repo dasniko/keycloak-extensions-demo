@@ -31,23 +31,8 @@ public class ConditionalAmrAuthenticator extends AbstractConditionalAuthenticato
 	}
 
 	@Override
-	public boolean requiresUser() {
-		return false;
-	}
-
-	@Override
 	public String getDisplayType() {
 		return "Condition - Authentication Method Reference";
-	}
-
-	@Override
-	public boolean isConfigurable() {
-		return true;
-	}
-
-	@Override
-	public boolean isUserSetupAllowed() {
-		return false;
 	}
 
 	@Override
