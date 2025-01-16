@@ -55,13 +55,8 @@ public class FlintstoneUserRoleModel implements RoleModel {
 	}
 
 	@Override
-	public Stream<RoleModel> getCompositesStream() {
-		return null;
-	}
-
-	@Override
-	public Stream<RoleModel> getCompositesStream(String s, Integer integer, Integer integer1) {
-		return null;
+	public Stream<RoleModel> getCompositesStream(String search, Integer first, Integer max) {
+		return Stream.empty();
 	}
 
 	@Override

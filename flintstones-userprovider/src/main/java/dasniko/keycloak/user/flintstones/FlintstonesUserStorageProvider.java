@@ -105,12 +105,7 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 		UserModel adapter = tx.findUser(id);
 		if (adapter == null) {
 			String externalId = StorageId.externalId(id);
-			FlintstoneUser user = apiClient.getUserById(externalId);
-			log.debug("Received user data for externalId <{}> from repository: {}", externalId, user);
-			if (user != null) {
-				adapter = new FlintstoneUserAdapter(session, realm, model, user);
-				tx.addUser(id, adapter);
-			}
+			adapter = findUser(realm, externalId, apiClient::getUserById);
 		} else {
 			log.debug("Found user data for {} in loadedUsers.", id);
 		}

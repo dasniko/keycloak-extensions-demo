@@ -3,8 +3,11 @@ package dasniko.keycloak.user.flintstones;
 import com.google.auto.service.AutoService;
 import dasniko.keycloak.user.flintstones.repo.FlintstonesApiServer;
 import org.keycloak.component.ComponentModel;
+import org.keycloak.component.ComponentValidationException;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
+import org.keycloak.models.RealmModel;
+import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.provider.ProviderConfigurationBuilder;
 import org.keycloak.storage.UserStorageProviderFactory;
@@ -45,9 +48,16 @@ public class FlintstonesUserStorageProviderFactory implements UserStorageProvide
 	public List<ProviderConfigProperty> getConfigProperties() {
 		return ProviderConfigurationBuilder.create()
 			.property(USER_API_BASE_URL, "API Base URL", "", ProviderConfigProperty.STRING_TYPE, "http://localhost:8000", null)
-			.property(USER_CREATION_ENABLED, "Sync Registrations", "Should newly created users be created within this store?", ProviderConfigProperty.BOOLEAN_TYPE, "false", null)
-			.property(USE_PASSWORD_POLICY, "Validate password policy", "Determines if Keycloak should validate the password with the realm password policy before updating it.", ProviderConfigProperty.BOOLEAN_TYPE, "false", null)
+			.property(USER_CREATION_ENABLED, "syncRegistrations", "syncRegistrationsHelp", ProviderConfigProperty.BOOLEAN_TYPE, "false", null)
+			.property(USE_PASSWORD_POLICY, "validatePasswordPolicy", "validatePasswordPolicyHelp", ProviderConfigProperty.BOOLEAN_TYPE, "false", null)
 			.build();
+	}
+
+	@Override
+	public void validateConfiguration(KeycloakSession session, RealmModel realm, ComponentModel config) throws ComponentValidationException {
+		if (config.getId() == null) {
+			config.setId(KeycloakModelUtils.generateShortId());
+		}
 	}
 
 	@Override
