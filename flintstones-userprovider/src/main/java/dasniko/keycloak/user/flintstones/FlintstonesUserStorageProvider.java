@@ -10,12 +10,11 @@ import org.keycloak.credential.CredentialInputValidator;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ModelException;
-import org.keycloak.models.PasswordPolicy;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.credential.PasswordCredentialModel;
-import org.keycloak.policy.PasswordPolicyProvider;
+import org.keycloak.policy.PasswordPolicyManagerProvider;
 import org.keycloak.policy.PolicyError;
 import org.keycloak.storage.StorageId;
 import org.keycloak.storage.UserStorageProvider;
@@ -73,18 +72,25 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 		}
 
 		if (usePasswordPolicy()) {
-			PasswordPolicy passwordPolicy = realm.getPasswordPolicy();
-			if (passwordPolicy != null) {
-				for (String policy : passwordPolicy.getPolicies()) {
-					PasswordPolicyProvider provider = session.getProvider(PasswordPolicyProvider.class, policy);
-					if (provider != null) {
-						PolicyError policyError = provider.validate(user.getUsername(), cred.getChallengeResponse());
-						if (policyError != null) {
-							throw new ModelException(policyError.getMessage(), policyError.getParameters());
-						}
-					}
-				}
+			PolicyError policyError = session.getProvider(PasswordPolicyManagerProvider.class)
+				.validate(realm, user, cred.getChallengeResponse());
+			if (policyError != null) {
+				throw new ModelException(policyError.getMessage(), policyError.getParameters());
 			}
+
+//			alternatively to above code:
+//			PasswordPolicy passwordPolicy = realm.getPasswordPolicy();
+//			if (passwordPolicy != null) {
+//				for (String policy : passwordPolicy.getPolicies()) {
+//					PasswordPolicyProvider provider = session.getProvider(PasswordPolicyProvider.class, policy);
+//					if (provider != null) {
+//						PolicyError policyError = provider.validate(user.getUsername(), cred.getChallengeResponse());
+//						if (policyError != null) {
+//							throw new ModelException(policyError.getMessage(), policyError.getParameters());
+//						}
+//					}
+//				}
+//			}
 		}
 
 		Credential credential = new Credential("password", cred.getChallengeResponse());
