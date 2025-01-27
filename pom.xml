@@ -35,6 +35,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<aws.version>2.17.209</aws.version>
 		<bytebuddy.version>1.14.11</bytebuddy.version>
+		<git-commit-id.version>9.0.1</git-commit-id.version>
 		<keycloak.version>26.0.0</keycloak.version>
 		<maven.compiler.version>3.13.0</maven.compiler.version>
 		<maven.compiler.release>21</maven.compiler.release>
@@ -123,6 +124,31 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>${maven-surefire.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>io.github.git-commit-id</groupId>
+					<artifactId>git-commit-id-maven-plugin</artifactId>
+					<version>${git-commit-id.version}</version>
+					<executions>
+						<execution>
+							<id>get-the-git-infos</id>
+							<goals>
+								<goal>revision</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>validate-the-git-infos</id>
+							<goals>
+								<goal>validateRevision</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<abbrevLength>8</abbrevLength>
+						<generateGitPropertiesFile>true</generateGitPropertiesFile>
+						<failOnNoGitDirectory>false</failOnNoGitDirectory>
+						<offline>true</offline>
+					</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>

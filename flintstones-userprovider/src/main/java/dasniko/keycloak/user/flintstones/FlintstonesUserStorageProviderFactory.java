@@ -2,6 +2,7 @@ package dasniko.keycloak.user.flintstones;
 
 import com.google.auto.service.AutoService;
 import dasniko.keycloak.user.flintstones.repo.FlintstonesApiServer;
+import de.keycloak.util.BuildDetails;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.component.ComponentValidationException;
 import org.keycloak.models.KeycloakSession;
@@ -10,15 +11,17 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.provider.ProviderConfigurationBuilder;
+import org.keycloak.provider.ServerInfoAwareProviderFactory;
 import org.keycloak.storage.UserStorageProviderFactory;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Niko Köbler, http://www.n-k.de, @dasniko
  */
 @AutoService(UserStorageProviderFactory.class)
-public class FlintstonesUserStorageProviderFactory implements UserStorageProviderFactory<FlintstonesUserStorageProvider> {
+public class FlintstonesUserStorageProviderFactory implements UserStorageProviderFactory<FlintstonesUserStorageProvider>, ServerInfoAwareProviderFactory {
 
 	public static final String PROVIDER_ID = "the-flintstones";
 
@@ -65,5 +68,10 @@ public class FlintstonesUserStorageProviderFactory implements UserStorageProvide
 		if (apiServer != null) {
 			apiServer.stop();
 		}
+	}
+
+	@Override
+	public Map<String, String> getOperationalInfo() {
+		return BuildDetails.get();
 	}
 }
