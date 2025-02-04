@@ -2,6 +2,7 @@ package dasniko.keycloak.tokenmapper;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.auto.service.AutoService;
+import de.keycloak.util.TokenUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.broker.provider.util.SimpleHttp;
@@ -30,9 +31,11 @@ public class EchoMapper extends AbstractOIDCProtocolMapper implements UserInfoTo
 
 	static final String URL = "url";
 	static final String URL_DEFAULT = "https://postman-echo.com/get";
+	static final String CLIENT_ID = "clientId";
 
 	static {
 		configProperties.add(new ProviderConfigProperty(URL, "Echo URL", "URL of external echo service", ProviderConfigProperty.STRING_TYPE, URL_DEFAULT));
+		configProperties.add(new ProviderConfigProperty(CLIENT_ID, "API Auth client_id", "As which client the API-client should authenticate itself.", ProviderConfigProperty.CLIENT_LIST_TYPE, ""));
 		OIDCAttributeMapperHelper.addTokenClaimNameConfig(configProperties);
 		OIDCAttributeMapperHelper.addIncludeInTokensConfig(configProperties, EchoMapper.class);
 	}
@@ -66,9 +69,12 @@ public class EchoMapper extends AbstractOIDCProtocolMapper implements UserInfoTo
 	@SneakyThrows
 	protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession, KeycloakSession keycloakSession, ClientSessionContext clientSessionCtx) {
 		String url = mappingModel.getConfig().getOrDefault(URL, URL_DEFAULT);
+		String clientId = mappingModel.getConfig().getOrDefault(CLIENT_ID, "");
+		String accessToken = clientId.isEmpty() ? "" : TokenUtils.generateServiceAccountAccessToken(keycloakSession, clientId, null, null);
 		String username = userSession.getUser().getUsername();
 		log.debug("Requesting URL: {}?username={}", url, username);
-		Map<String, Object> echo = SimpleHttp.doGet(url, keycloakSession).param("username", username).acceptJson().asJson(new TypeReference<>() {});
+		Map<String, Object> echo = SimpleHttp.doGet(url, keycloakSession).param("username", username)
+			.auth(accessToken).acceptJson().asJson(new TypeReference<>() {});
 		OIDCAttributeMapperHelper.mapClaim(token, mappingModel, echo);
 	}
 }
