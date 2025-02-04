@@ -171,8 +171,10 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 		if (syncUsers()) {
 			FlintstoneUser flintstoneUser = new FlintstoneUser();
 			flintstoneUser.setUsername(username);
-			apiClient.createUser(flintstoneUser);
-			flintstoneUser = apiClient.getUserByUsername(username);
+			flintstoneUser = apiClient.createUser(flintstoneUser);
+			if (flintstoneUser == null) {
+				return null;
+			}
 			FlintstoneUserAdapter newUser = new FlintstoneUserAdapter(session, realm, model, flintstoneUser);
 			tx.addUser(username, newUser);
 			return newUser;

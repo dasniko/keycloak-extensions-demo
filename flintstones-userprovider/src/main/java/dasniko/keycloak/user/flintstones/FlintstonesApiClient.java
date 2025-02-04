@@ -50,9 +50,16 @@ public class FlintstonesApiClient {
 	}
 
 	@SneakyThrows
-	public boolean createUser(FlintstoneUser user) {
+	public FlintstoneUser createUser(FlintstoneUser user) {
 		String url = String.format("%s/users", baseUrl);
-		return SimpleHttp.doPost(url, session).auth(token).json(user).asStatus() == 201;
+		try (SimpleHttp.Response response = SimpleHttp.doPost(url, session).auth(token).json(user).asResponse()) {
+			if (response.getStatus() == 201) {
+				return response.asJson(FlintstoneUser.class);
+			} else {
+				log.warn("User could not be created. Reason: {}", response.asString());
+				return null;
+			}
+		}
 	}
 
 	@SneakyThrows

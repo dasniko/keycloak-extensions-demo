@@ -111,6 +111,7 @@ public class FlintstonesApiServer {
 				} else if ("POST".equalsIgnoreCase(method)) {
 					FlintstoneUser flintstoneUser = mapper.readValue(requestBody, FlintstoneUser.class);
 					repository.createUser(flintstoneUser);
+					entity = repository.findUserByUsernameOrEmail(flintstoneUser.getUsername());
 					status = 201;
 				}
 			} else if (credentials == null) {

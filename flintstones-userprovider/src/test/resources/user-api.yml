@@ -83,7 +83,11 @@ paths:
               $ref: '#/components/schemas/User'
       responses:
         201:
-          description: User successfully created
+          description: User successfully created, returns newly created user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
         400:
           description: Invalid id supplied
         401:
@@ -157,7 +161,7 @@ paths:
             schema:
               $ref: '#/components/schemas/User'
       responses:
-        201:
+        204:
           description: User successfully updated
         400:
           description: Invalid id supplied
