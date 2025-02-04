@@ -3,6 +3,7 @@ package dasniko.keycloak.user.flintstones;
 import com.fasterxml.jackson.core.type.TypeReference;
 import dasniko.keycloak.user.flintstones.repo.Credential;
 import dasniko.keycloak.user.flintstones.repo.FlintstoneUser;
+import de.keycloak.util.TokenUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.broker.provider.util.SimpleHttp;
@@ -16,10 +17,13 @@ public class FlintstonesApiClient {
 
 	private final KeycloakSession session;
 	private final String baseUrl;
+	private final String token;
 
 	public FlintstonesApiClient(KeycloakSession session, ComponentModel model) {
 		this.session = session;
 		this.baseUrl = model.get(FlintstonesUserStorageProviderFactory.USER_API_BASE_URL);
+		String clientId = model.get(FlintstonesUserStorageProviderFactory.CLIENT_ID);
+		this.token = clientId != null ? TokenUtils.generateServiceAccountAccessToken(session, clientId, null, null) : "";
 	}
 
 	@SneakyThrows
@@ -48,7 +52,7 @@ public class FlintstonesApiClient {
 	@SneakyThrows
 	public boolean createUser(FlintstoneUser user) {
 		String url = String.format("%s/users", baseUrl);
-		return SimpleHttp.doPost(url, session).json(user).asStatus() == 201;
+		return SimpleHttp.doPost(url, session).auth(token).json(user).asStatus() == 201;
 	}
 
 	@SneakyThrows
@@ -82,25 +86,25 @@ public class FlintstonesApiClient {
 	@SneakyThrows
 	public boolean updateUser(FlintstoneUser user) {
 		String url = String.format("%s/users/%s", baseUrl, user.getId());
-		return SimpleHttp.doPut(url, session).json(user).asStatus() == 204;
+		return SimpleHttp.doPut(url, session).auth(token).json(user).asStatus() == 204;
 	}
 
 	@SneakyThrows
 	public boolean deleteUser(String userId) {
 		String url = String.format("%s/users/%s", baseUrl, userId);
-		return SimpleHttp.doDelete(url, session).asStatus() == 204;
+		return SimpleHttp.doDelete(url, session).auth(token).asStatus() == 204;
 	}
 
 	@SneakyThrows
 	public boolean verifyCredentials(String userId, Credential credential) {
 		String url = String.format("%s/users/%s/credentials/verify", baseUrl, userId);
-		return SimpleHttp.doPost(url, session).json(credential).asStatus() == 204;
+		return SimpleHttp.doPost(url, session).auth(token).json(credential).asStatus() == 204;
 	}
 
 	@SneakyThrows
 	public boolean updateCredentials(String userId, Credential credential) {
 		String url = String.format("%s/users/%s/credentials", baseUrl, userId);
-		return SimpleHttp.doPut(url, session).json(credential).asStatus() == 204;
+		return SimpleHttp.doPut(url, session).auth(token).json(credential).asStatus() == 204;
 	}
 
 	@SneakyThrows
@@ -120,6 +124,6 @@ public class FlintstonesApiClient {
 	}
 
 	private SimpleHttp prepareGetRequest(String url) {
-		return SimpleHttp.doGet(url, session).acceptJson();
+		return SimpleHttp.doGet(url, session).auth(token).acceptJson();
 	}
 }

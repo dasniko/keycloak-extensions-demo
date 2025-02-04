@@ -26,6 +26,7 @@ public class FlintstonesUserStorageProviderFactory implements UserStorageProvide
 	public static final String PROVIDER_ID = "the-flintstones";
 
 	static final String USER_API_BASE_URL = "apiBaseUrl";
+	static final String CLIENT_ID = "clientId";
 	static final String USER_CREATION_ENABLED = "userCreation";
 	static final String USE_PASSWORD_POLICY = "usePasswordPolicy";
 
@@ -51,6 +52,7 @@ public class FlintstonesUserStorageProviderFactory implements UserStorageProvide
 	public List<ProviderConfigProperty> getConfigProperties() {
 		return ProviderConfigurationBuilder.create()
 			.property(USER_API_BASE_URL, "API Base URL", "", ProviderConfigProperty.STRING_TYPE, "http://localhost:8000", null)
+			.property(CLIENT_ID, "API Auth client_id", "As which client the API-client should authenticate itself.", ProviderConfigProperty.CLIENT_LIST_TYPE, "", null)
 			.property(USER_CREATION_ENABLED, "syncRegistrations", "syncRegistrationsHelp", ProviderConfigProperty.BOOLEAN_TYPE, "false", null)
 			.property(USE_PASSWORD_POLICY, "validatePasswordPolicy", "validatePasswordPolicyHelp", ProviderConfigProperty.BOOLEAN_TYPE, "false", null)
 			.build();
