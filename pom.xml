@@ -22,7 +22,7 @@
 		<module>captcha</module>
 		<module>email</module>
 		<module>conditional-authenticators</module>
-		<module>mfa-authenticator</module>
+		<module>authenticators</module>
 		<module>passkey</module>
   	<module>initializer</module>
 		<module>actiontoken</module>

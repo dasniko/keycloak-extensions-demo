@@ -1,5 +1,6 @@
 package dasniko.keycloak.authentication.mfa;
 
+import com.google.auto.service.AutoService;
 import org.keycloak.Config;
 import org.keycloak.authentication.Authenticator;
 import org.keycloak.authentication.AuthenticatorFactory;
@@ -13,6 +14,7 @@ import java.util.List;
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
  */
+@AutoService(AuthenticatorFactory.class)
 public class MfaAuthenticatorFactory implements AuthenticatorFactory {
 
 	public static final String PROVIDER_ID = "custom-mfa";
