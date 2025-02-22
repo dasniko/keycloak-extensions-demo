@@ -45,8 +45,7 @@ public class FlintstonesApiClient {
 	@SneakyThrows
 	public Integer usersCount() {
 		String url = String.format("%s/users/count", baseUrl);
-		String count = prepareGetRequest(url).asString();
-		return Integer.valueOf(count);
+		return prepareGetRequest(url).asJson().get("count").asInt();
 	}
 
 	@SneakyThrows
