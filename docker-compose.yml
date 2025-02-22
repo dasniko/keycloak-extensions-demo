@@ -31,5 +31,6 @@ services:
       - ./requiredaction/target/dasniko.keycloak-requiredaction.jar:/opt/keycloak/providers/requiredaction.jar
       - ./rest-endpoint/target/dasniko.keycloak-rest-endpoint.jar:/opt/keycloak/providers/rest-endpoint.jar
       - ./tokenmapper/target/dasniko.keycloak-tokenmapper.jar:/opt/keycloak/providers/tokenmapper.jar
+      - ./utils/target/dasniko.keycloak-keycloak-utils.jar:/opt/keycloak/providers/dasniko.keycloak-utils.jar
     extra_hosts:
       - "host.docker.internal:host-gateway"
