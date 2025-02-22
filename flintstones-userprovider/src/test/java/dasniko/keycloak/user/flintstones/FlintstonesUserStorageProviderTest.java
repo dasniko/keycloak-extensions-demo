@@ -236,4 +236,15 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 		assertThat(updatedWilma.getLastName(), is("Feuerstein"));
 	}
 
+	@Test
+	@Order(8)
+	void testUsersCount() {
+		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
+		UsersResource usersResource = kcAdmin.realm(REALM).users();
+
+		int actualCount = usersResource.count();
+
+		assertThat(actualCount, is(6));
+	}
+
 }
