@@ -6,6 +6,7 @@ import org.keycloak.authentication.RequiredActionProvider;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.policy.MaxAuthAgePasswordPolicyProviderFactory;
 
+@Deprecated
 @RequiredArgsConstructor
 //@AutoService(RequiredActionFactory.class)
 public class UpdateTotp extends org.keycloak.authentication.requiredactions.UpdateTotp {
