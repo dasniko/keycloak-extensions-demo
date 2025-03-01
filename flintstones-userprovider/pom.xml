@@ -12,6 +12,9 @@
 
 	<artifactId>flintstones-userprovider</artifactId>
 	<version>1.0-SNAPSHOT</version>
+	<properties>
+		<htmlunit.version>4.10.0</htmlunit.version>
+	</properties>
 
 	<dependencies>
 		<dependency>
@@ -76,6 +79,12 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-reload4j</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.htmlunit</groupId>
+			<artifactId>htmlunit</artifactId>
+			<version>${htmlunit.version}</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
