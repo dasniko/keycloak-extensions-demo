@@ -8,7 +8,8 @@ on:
     paths-ignore:
       - 'README.md'
   schedule:
-    - cron: "0 3 * * 0"
+    - cron: "30 3 * * 0"
+  workflow_dispatch: {}
 
 jobs:
   build:
