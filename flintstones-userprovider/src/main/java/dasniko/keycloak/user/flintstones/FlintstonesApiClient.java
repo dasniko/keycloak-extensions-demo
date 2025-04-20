@@ -27,13 +27,13 @@ public class FlintstonesApiClient {
 	}
 
 	@SneakyThrows
-	public List<FlintstoneUser> searchUsers(String search, int first, int max) {
+	public List<FlintstoneUser> searchUsers(String search, Integer first, Integer max) {
 		String url = String.format("%s/users", baseUrl);
 		SimpleHttp simpleHttp = prepareGetRequest(url);
-		if (first >= 0) {
+		if (first != null && first >= 0) {
 			simpleHttp.param("first", String.valueOf(first));
 		}
-		if (max >= 0) {
+		if (max != null && max >= 0) {
 			simpleHttp.param("max", String.valueOf(max));
 		}
 		if (search != null) {
@@ -91,9 +91,9 @@ public class FlintstonesApiClient {
 	}
 
 	@SneakyThrows
-	public boolean updateUser(FlintstoneUser user) {
+	public void updateUser(FlintstoneUser user) {
 		String url = String.format("%s/users/%s", baseUrl, user.getId());
-		return SimpleHttp.doPut(url, session).auth(token).json(user).asStatus() == 204;
+		SimpleHttp.doPut(url, session).auth(token).json(user).asStatus();
 	}
 
 	@SneakyThrows
