@@ -7,6 +7,7 @@ import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.CredentialInput;
 import org.keycloak.credential.CredentialInputUpdater;
 import org.keycloak.credential.CredentialInputValidator;
+import org.keycloak.credential.CredentialModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ModelException;
@@ -25,6 +26,7 @@ import org.keycloak.tracing.TracingProvider;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -110,6 +112,19 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 		boolean success = apiClient.updateCredentials(StorageId.externalId(user.getId()), credential);
 		tracing.endSpan();
 		return success;
+	}
+
+	@Override
+	public Stream<CredentialModel> getCredentials(RealmModel realm, UserModel user) {
+		CredentialModel cm = new CredentialModel();
+		cm.setId(UUID.randomUUID().toString());
+		cm.setType(PasswordCredentialModel.TYPE);
+		cm.setUserLabel("Flintstones Password");
+		cm.setCreatedDate(System.currentTimeMillis());
+		cm.setFederationLink(StorageId.providerId(user.getId()));
+		cm.setCredentialData("credentialData");
+		cm.setSecretData("secretData");
+		return Stream.of(cm);
 	}
 
 	@Override
