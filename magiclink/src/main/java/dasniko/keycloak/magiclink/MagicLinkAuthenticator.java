@@ -5,12 +5,12 @@ import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.AuthenticationFlowError;
 import org.keycloak.authentication.Authenticator;
 import org.keycloak.common.util.KeycloakUriBuilder;
+import org.keycloak.common.util.SecretGenerator;
 import org.keycloak.email.EmailException;
 import org.keycloak.email.EmailTemplateProvider;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
-import org.keycloak.models.utils.KeycloakModelUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -58,7 +58,7 @@ public class MagicLinkAuthenticator implements Authenticator {
 			return;
 		}
 
-		String key = KeycloakModelUtils.generateId();
+		String key = SecretGenerator.getInstance().randomString();
 		context.getAuthenticationSession().setAuthNote(SESSION_KEY, key);
 
 		EmailTemplateProvider emailTemplateProvider = context.getSession().getProvider(EmailTemplateProvider.class);
