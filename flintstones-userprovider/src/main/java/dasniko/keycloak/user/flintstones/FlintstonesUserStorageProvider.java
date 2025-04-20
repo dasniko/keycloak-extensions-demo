@@ -21,6 +21,7 @@ import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.storage.user.UserLookupProvider;
 import org.keycloak.storage.user.UserQueryProvider;
 import org.keycloak.storage.user.UserRegistrationProvider;
+import org.keycloak.tracing.TracingProvider;
 
 import java.util.List;
 import java.util.Map;
@@ -61,8 +62,14 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 		if (!supportsCredentialType(input.getType()) || !(input instanceof UserCredentialModel cred)) {
 			return false;
 		}
+
+		TracingProvider tracing = session.getProvider(TracingProvider.class);
+		tracing.startSpan(FlintstonesUserStorageProvider.class, "isValid");
+
 		Credential credential = new Credential("password", cred.getChallengeResponse());
-		return apiClient.verifyCredentials(StorageId.externalId(user.getId()), credential);
+		boolean isValid = apiClient.verifyCredentials(StorageId.externalId(user.getId()), credential);
+		tracing.endSpan();
+		return isValid;
 	}
 
 	@Override
@@ -71,11 +78,17 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 			return false;
 		}
 
+		TracingProvider tracing = session.getProvider(TracingProvider.class);
+		tracing.startSpan(FlintstonesUserStorageProvider.class, "updateCredential");
+
 		if (usePasswordPolicy()) {
 			PolicyError policyError = session.getProvider(PasswordPolicyManagerProvider.class)
 				.validate(realm, user, cred.getChallengeResponse());
 			if (policyError != null) {
-				throw new ModelException(policyError.getMessage(), policyError.getParameters());
+				ModelException exception = new ModelException(policyError.getMessage(), policyError.getParameters());
+				tracing.error(exception);
+				tracing.endSpan();
+				throw exception;
 			}
 
 //			alternatively to above code:
@@ -94,7 +107,9 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 		}
 
 		Credential credential = new Credential("password", cred.getChallengeResponse());
-		return apiClient.updateCredentials(StorageId.externalId(user.getId()), credential);
+		boolean success = apiClient.updateCredentials(StorageId.externalId(user.getId()), credential);
+		tracing.endSpan();
+		return success;
 	}
 
 	@Override
@@ -108,6 +123,9 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public UserModel getUserById(RealmModel realm, String id) {
+		TracingProvider tracing = session.getProvider(TracingProvider.class);
+		tracing.startSpan(FlintstonesUserStorageProvider.class, "getUserById");
+
 		UserModel adapter = tx.findUser(id);
 		if (adapter == null) {
 			String externalId = StorageId.externalId(id);
@@ -115,6 +133,9 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 		} else {
 			log.debug("Found user data for {} in loadedUsers.", id);
 		}
+
+		tracing.endSpan();
+
 		return adapter;
 	}
 
@@ -129,6 +150,9 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	}
 
 	private UserModel findUser(RealmModel realm, String identifier, Function<String, FlintstoneUser> fnFindUser) {
+		TracingProvider tracing = session.getProvider(TracingProvider.class);
+		tracing.startSpan(FlintstonesUserStorageProvider.class, "findUser");
+
 		UserModel adapter = null;
 		FlintstoneUser user = fnFindUser.apply(identifier);
 		log.debug("Received user data for identifier <{}> from repository: {}", identifier, user);
@@ -136,6 +160,9 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 			adapter = new FlintstoneUserAdapter(session, realm, model, user);
 			tx.addUser(adapter.getId(), adapter);
 		}
+
+		tracing.endSpan();
+
 		return adapter;
 	}
 
@@ -146,13 +173,19 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public Stream<UserModel> searchForUserStream(RealmModel realm, Map<String, String> params, Integer firstResult, Integer maxResults) {
+		TracingProvider tracing = session.getProvider(TracingProvider.class);
+		tracing.startSpan(FlintstonesUserStorageProvider.class, "searchForUserStream");
+
 		List<FlintstoneUser> result;
 		if (params.containsKey(UserModel.USERNAME)) {
 			result = List.of(apiClient.getUserByUsername(params.get(UserModel.USERNAME)));
 		} else {
 			result = apiClient.searchUsers(params.getOrDefault(UserModel.SEARCH, null), firstResult, maxResults);
 		}
-		return result.stream().map(user -> new FlintstoneUserAdapter(session, realm, model, user));
+
+		Stream<UserModel> stream = result.stream().map(user -> new FlintstoneUserAdapter(session, realm, model, user));
+		tracing.endSpan();
+		return stream;
 	}
 
 	@Override
