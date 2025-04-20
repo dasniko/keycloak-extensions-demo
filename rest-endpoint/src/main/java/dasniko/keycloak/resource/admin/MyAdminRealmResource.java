@@ -1,9 +1,11 @@
 package dasniko.keycloak.resource.admin;
 
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -11,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
+import org.keycloak.models.cache.UserCache;
 import org.keycloak.services.resources.admin.permissions.AdminPermissionEvaluator;
 import org.keycloak.services.resources.admin.permissions.UserPermissionEvaluator;
 
@@ -58,6 +61,28 @@ public class MyAdminRealmResource {
 				.searchForUserStream(realm, Map.of(UserModel.SEARCH, payload.getOrDefault("search", "*")))
 				.filter(userModel -> userModel.getServiceAccountClientLink() == null)
 				.forEach(user -> user.addRequiredAction(payload.get("action")));
+		}
+
+		return Response.noContent().build();
+	}
+
+	@DELETE
+	@Path("users/{userId}/invalidate")
+	public Response invalidateUser(@PathParam("userId") String userId) {
+		// do the authorization with the existing admin permissions
+		final UserPermissionEvaluator userPermissionEvaluator = auth.users();
+		userPermissionEvaluator.requireManage();
+
+		// search user with a given userId
+		UserModel user = session.users().getUserById(realm, userId);
+		if (user == null) {
+			return Response.status(Response.Status.NOT_FOUND).build();
+		}
+
+		// evict user in current realm from cache
+		UserCache userCache = session.getProvider(UserCache.class);
+		if (userCache != null) {
+			userCache.evict(realm, user);
 		}
 
 		return Response.noContent().build();
