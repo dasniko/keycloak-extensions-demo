@@ -1,8 +1,7 @@
 package dasniko.keycloak.requiredaction;
 
-import com.google.auto.service.AutoService;
 import org.keycloak.Config;
-import org.keycloak.authentication.RequiredActionFactory;
+import org.keycloak.authentication.requiredactions.UpdatePassword;
 
 /**
  * @deprecated Since Keycloak v23 this is possible with native password policies.
@@ -10,7 +9,7 @@ import org.keycloak.authentication.RequiredActionFactory;
  */
 @Deprecated
 //@AutoService(RequiredActionFactory.class)
-public class UpdatePassword extends org.keycloak.authentication.requiredactions.UpdatePassword {
+public class LegacyUpdatePassword extends UpdatePassword {
 
 	private boolean forceReauthentication;
 
