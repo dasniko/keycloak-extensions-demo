@@ -100,6 +100,12 @@ paths:
       operationId: usersCount
       tags:
         - users
+      parameters:
+        - name: search
+          in: query
+          description: case insensitive list of strings separated by whitespaces, contained (possibly partly) in username, email, first name or last name
+          schema:
+            type: string
       responses:
         200:
           description: success

@@ -28,7 +28,12 @@ public class FlintstonesRepository {
 		return users;
 	}
 
-	int getUsersCount() {
+	int getUsersCount(String query) {
+		if (query != null && !query.isEmpty()) {
+			return (int) users.stream()
+				.filter(user -> query.equalsIgnoreCase("*") || user.getUsername().contains(query) || user.getEmail().contains(query))
+				.count();
+		}
 		return users.size();
 	}
 

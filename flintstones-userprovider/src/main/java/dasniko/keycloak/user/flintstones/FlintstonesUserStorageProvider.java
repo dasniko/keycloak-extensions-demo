@@ -183,7 +183,12 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public int getUsersCount(RealmModel realm) {
-		return apiClient.usersCount();
+		return getUsersCount(realm, Map.of());
+	}
+
+	@Override
+	public int getUsersCount(RealmModel realm, Map<String, String> params) {
+		return apiClient.usersCount(params.getOrDefault(UserModel.SEARCH, null));
 	}
 
 	@Override

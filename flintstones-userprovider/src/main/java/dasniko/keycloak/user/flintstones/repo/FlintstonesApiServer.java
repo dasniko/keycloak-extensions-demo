@@ -117,7 +117,14 @@ public class FlintstonesApiServer {
 			} else if (credentials == null) {
 				if ("GET".equalsIgnoreCase(method)) {
 					if ("count".equalsIgnoreCase(userId)) {
-						entity = Map.of("count", repository.getUsersCount());
+						String search = null;
+						String query = exchange.getRequestURI().getQuery();
+						if (query != null) {
+							Map<String, String> queryParams = Arrays.stream(query.split("&"))
+								.map(s -> s.split("=")).collect(Collectors.toMap(k -> k[0], v -> v[1]));
+							search = queryParams.getOrDefault("search", null);
+						}
+						entity = Map.of("count", repository.getUsersCount(search));
 					} else {
 						entity = repository.findUserById(userId);
 						if (entity == null) {

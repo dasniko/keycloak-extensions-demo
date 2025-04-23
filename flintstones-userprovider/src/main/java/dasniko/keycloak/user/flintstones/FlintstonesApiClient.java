@@ -11,6 +11,7 @@ import org.keycloak.component.ComponentModel;
 import org.keycloak.models.KeycloakSession;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class FlintstonesApiClient {
@@ -43,10 +44,14 @@ public class FlintstonesApiClient {
 	}
 
 	@SneakyThrows
-	public Integer usersCount() {
+	public Integer usersCount(String search) {
 		String url = String.format("%s/users/count", baseUrl);
-		String count = prepareGetRequest(url).asString();
-		return Integer.valueOf(count);
+		SimpleHttp simpleHttp = prepareGetRequest(url);
+		if (search != null) {
+			simpleHttp.param("search", search);
+		}
+		Map<String, Integer> count = simpleHttp.asJson(new TypeReference<>() {});
+		return count.getOrDefault("count", 0) ;
 	}
 
 	@SneakyThrows
