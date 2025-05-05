@@ -6,6 +6,10 @@ import org.keycloak.events.EventListenerProviderFactory;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 
+/**
+ * @deprecated Keycloak can do this ootb.
+ */
+@Deprecated
 //@AutoService(EventListenerProviderFactory.class)
 public class HighlanderSessionEventListenerProviderFactory implements EventListenerProviderFactory {
 

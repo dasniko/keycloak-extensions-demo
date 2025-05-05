@@ -9,8 +9,9 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.storage.adapter.InMemoryUserAdapter;
 
 /**
- * @author Niko Köbler, https://www.n-k.de, @dasniko
+ * @deprecated Keycloak can do this ootb.
  */
+@Deprecated
 public class HighlanderSessionEventListenerProvider implements EventListenerProvider {
 
 	private final KeycloakSession keycloakSession;

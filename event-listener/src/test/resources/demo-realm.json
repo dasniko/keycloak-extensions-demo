@@ -13,11 +13,8 @@
     "lastName" : "Tester",
     "email" : "test@keycloak.de",
     "credentials" : [ {
-      "id" : "b9fbc30d-4269-49cc-a0ea-9170dc44a30c",
       "type" : "password",
-      "createdDate" : 1673444664000,
-      "secretData" : "{\"value\":\"yxEZKVTeZlKufE5q4v0Hvxlggg2EaRta5zBtIMxialgwOHrQ3h4Hmre//uk9SlrEv2eqo4aH4bFgPDoktOTyHQ==\",\"salt\":\"d3mk1F43bvQrbV1D+jC1NQ==\",\"additionalParameters\":{}}",
-      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+			"value": "test"
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
