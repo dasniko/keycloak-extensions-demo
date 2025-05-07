@@ -1,4 +1,4 @@
-package dasniko.keycloak.captcha;
+package dasniko.keycloak.authentication.captcha;
 
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
@@ -15,9 +15,6 @@ import org.keycloak.sessions.AuthenticationSessionModel;
 
 import java.util.Map;
 
-/**
- * @author Niko Köbler, https://www.n-k.de, @dasniko
- */
 public class CaptchaAuthenticator implements Authenticator {
 
 	private static final String RESULT_FIELD = "captcha.result";

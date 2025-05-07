@@ -6,7 +6,8 @@ Demos, examples and playground for [Keycloak](https://www.keycloak.org) extensio
 ![](https://img.shields.io/github/license/dasniko/keycloak-extensions-demo?label=License)
 ![](https://img.shields.io/badge/Keycloak-999.0.0&dash;SNAPSHOT-blue)
 
->Provided _AS-IS_ - no warranties, no guarantees. Just for demonstration purposes only!
+>Provided _AS-IS_ - no warranties, no guarantees.  
+>Just for demonstration purposes only!
 
 This repository contains the following extensions, and probably (most likely ðŸ˜‰) more...
 
@@ -18,13 +19,12 @@ This repository contains the following extensions, and probably (most likely ðŸ˜
 
 [MagicLink Authenticator](./magiclink) - demo authenticator which sends a magic link to the user with which the user can login without needing to provide a password.
 
-[Captcha Authenticator](./captcha) - demo authenticator in which the user needs to solve a math task and submit the result, before successful authentication.
+[Various Authenticators](./authenticators) - various demo authenticators.
 
-[MFA Authenticator](./mfa-authenticator) - very simple(!!!) demo authenticator which prints a generated OTP to stdout.
-
-[Conditional Authenticator]s(./conditional-authenticators) - conditions for authenticators which will decide upon
+[Conditional Authenticators](./conditional-authenticators) - conditions for authenticators which will decide upon
 * a header and given value (or negated value) if `true`/`false`
 * an authentication session note and given value (or negated value) if `true`/`false`
+* and others
 
 ## Keycloak Event Listeners
 

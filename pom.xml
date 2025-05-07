@@ -19,7 +19,6 @@
 		<module>rest-endpoint</module>
 		<module>requiredaction</module>
 		<module>magiclink</module>
-		<module>captcha</module>
 		<module>email</module>
 		<module>conditional-authenticators</module>
 		<module>authenticators</module>
