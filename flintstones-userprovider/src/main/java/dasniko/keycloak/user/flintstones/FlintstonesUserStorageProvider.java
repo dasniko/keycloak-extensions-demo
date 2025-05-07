@@ -156,12 +156,24 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public UserModel getUserByUsername(RealmModel realm, String username) {
-		return findUser(realm, username, apiClient::getUserByUsername);
+		UserModel user = tx.findUser(username);
+		if (user == null) {
+			user = findUser(realm, username, apiClient::getUserByUsername);
+		} else {
+			log.debug("Found user data for {} in loadedUsers.", username);
+		}
+		return user;
 	}
 
 	@Override
 	public UserModel getUserByEmail(RealmModel realm, String email) {
-		return findUser(realm, email, apiClient::getUserByEmail);
+		UserModel user = tx.findUser(email);
+		if (user == null) {
+			user = findUser(realm, email, apiClient::getUserByEmail);
+		} else {
+			log.debug("Found user data for {} in loadedUsers.", email);
+		}
+		return user;
 	}
 
 	private UserModel findUser(RealmModel realm, String identifier, Function<String, FlintstoneUser> fnFindUser) {
@@ -173,7 +185,7 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 		log.debug("Received user data for identifier <{}> from repository: {}", identifier, user);
 		if (user != null) {
 			adapter = new FlintstoneUserAdapter(session, realm, model, user);
-			tx.addUser(adapter.getId(), adapter);
+			tx.addUser(adapter);
 		}
 
 		tracing.endSpan();
@@ -229,7 +241,7 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 				return null;
 			}
 			FlintstoneUserAdapter newUser = new FlintstoneUserAdapter(session, realm, model, flintstoneUser);
-			tx.addUser(username, newUser);
+			tx.addUser(newUser);
 			return newUser;
 		}
 		return null;

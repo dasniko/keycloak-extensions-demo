@@ -3,30 +3,32 @@ package dasniko.keycloak.user.flintstones;
 import org.keycloak.models.AbstractKeycloakTransaction;
 import org.keycloak.models.UserModel;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class UserModelTransaction extends AbstractKeycloakTransaction {
 
 	private final Consumer<UserModel> userConsumer;
-	private final Map<String, UserModel> loadedUsers = new HashMap<>();
+	private final List<UserModel> loadedUsers = new ArrayList<>();
 
 	public UserModelTransaction(Consumer<UserModel> userConsumer) {
 		this.userConsumer = userConsumer;
 	}
 
-	public void addUser(String identifier, UserModel userModel) {
-		loadedUsers.put(identifier, userModel);
+	public void addUser(UserModel userModel) {
+		loadedUsers.add(userModel);
 	}
 
 	public UserModel findUser(String identifier) {
-		return loadedUsers.get(identifier);
+		return loadedUsers.stream()
+			.filter(user -> user.getId().equals(identifier) || user.getUsername().equalsIgnoreCase(identifier) || user.getEmail().equalsIgnoreCase(identifier))
+			.findFirst().orElse(null);
 	}
 
 	@Override
 	protected void commitImpl() {
-		loadedUsers.values().forEach(userConsumer);
+		loadedUsers.forEach(userConsumer);
 	}
 
 	@Override
