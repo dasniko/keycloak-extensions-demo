@@ -80,6 +80,11 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 			return false;
 		}
 
+		if (!isWritable()) {
+			log.warn("Edit mode is read-only. Skipping credential update for user.");
+			return false;
+		}
+
 		TracingProvider tracing = session.getProvider(TracingProvider.class);
 		tracing.startSpan(FlintstonesUserStorageProvider.class, "updateCredential");
 
@@ -92,20 +97,6 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 				tracing.endSpan();
 				throw exception;
 			}
-
-//			alternatively to above code:
-//			PasswordPolicy passwordPolicy = realm.getPasswordPolicy();
-//			if (passwordPolicy != null) {
-//				for (String policy : passwordPolicy.getPolicies()) {
-//					PasswordPolicyProvider provider = session.getProvider(PasswordPolicyProvider.class, policy);
-//					if (provider != null) {
-//						PolicyError policyError = provider.validate(user.getUsername(), cred.getChallengeResponse());
-//						if (policyError != null) {
-//							throw new ModelException(policyError.getMessage(), policyError.getParameters());
-//						}
-//					}
-//				}
-//			}
 		}
 
 		Credential credential = new Credential("password", cred.getChallengeResponse());
@@ -257,6 +248,14 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	public void close() {
 	}
 
+	private boolean isWritable() {
+		return model.get(FlintstonesUserStorageProviderFactory.EDIT_MODE, EditMode.READ_ONLY.name()).equals(EditMode.WRITABLE.name());
+	}
+
+	private boolean importUsers() {
+		return model.get(FlintstonesUserStorageProviderFactory.USER_IMPORT, false);
+	}
+
 	private boolean syncUsers() {
 		return model.get(FlintstonesUserStorageProviderFactory.USER_CREATION_ENABLED, false);
 	}
@@ -266,9 +265,13 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	}
 
 	private void updateUser(UserModel user) {
-		FlintstoneUserAdapter userAdapter = (FlintstoneUserAdapter) user;
-		if (userAdapter.isDirty()) {
-			apiClient.updateUser(userAdapter.getUser());
+		if (isWritable()) {
+			FlintstoneUserAdapter userAdapter = (FlintstoneUserAdapter) user;
+			if (userAdapter.isDirty()) {
+				apiClient.updateUser(userAdapter.getUser());
+			}
+		} else {
+			log.warn("Edit mode is read-only. Skipping update for user.");
 		}
 	}
 

@@ -1,5 +1,6 @@
 package dasniko.keycloak.user.flintstones;
 
+import lombok.NonNull;
 import org.keycloak.models.AbstractKeycloakTransaction;
 import org.keycloak.models.UserModel;
 
@@ -20,7 +21,7 @@ public class UserModelTransaction extends AbstractKeycloakTransaction {
 		loadedUsers.add(userModel);
 	}
 
-	public UserModel findUser(String identifier) {
+	public UserModel findUser(@NonNull String identifier) {
 		return loadedUsers.stream()
 			.filter(user -> user.getId().equals(identifier) || user.getUsername().equalsIgnoreCase(identifier) || user.getEmail().equalsIgnoreCase(identifier))
 			.findFirst().orElse(null);
