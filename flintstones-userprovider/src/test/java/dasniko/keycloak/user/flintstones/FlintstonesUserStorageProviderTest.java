@@ -4,10 +4,14 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
 import de.keycloak.test.TestBase;
-import io.restassured.response.ExtractableResponse;
-import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpHeaders;
+import org.apache.http.client.utils.URIBuilder;
+import org.htmlunit.WebClient;
+import org.htmlunit.html.HtmlButton;
+import org.htmlunit.html.HtmlElement;
+import org.htmlunit.html.HtmlForm;
+import org.htmlunit.html.HtmlPage;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -26,15 +30,16 @@ import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.storage.UserStorageProvider;
-import org.keycloak.utils.MediaType;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -128,47 +133,45 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 
 	@Test
 	@Order(4)
-	public void testUpdatePassword() {
+	public void testUpdatePassword() throws URISyntaxException, IOException {
 		// call update password action directly
 		String authEndpoint = getOpenIDConfiguration(keycloak, REALM).extract().path("authorization_endpoint");
-		ExtractableResponse<Response> response = given()
-			.queryParam(OAuth2Constants.RESPONSE_TYPE, OAuth2Constants.CODE)
-			.queryParam(OAuth2Constants.CLIENT_ID, "account")
-			.queryParam(OAuth2Constants.REDIRECT_URI, keycloak.getAuthServerUrl() + "/realms/" + REALM + "/account")
-			.queryParam(OAuth2Constants.SCOPE, OAuth2Constants.SCOPE_OPENID)
-			.queryParam("kc_action", "UPDATE_PASSWORD")
-			.when().get(authEndpoint)
-			.then().statusCode(200).extract();
-		Map<String, String> cookies = response.cookies();
-		String formUrl = response.htmlPath().getString("**.find { it.@id == 'kc-form-login' }.@action");
 
-		// authenticate
-		String location = given().cookies(cookies)
-			.contentType(MediaType.APPLICATION_FORM_URLENCODED)
-			.formParam(OAuth2Constants.USERNAME, FRED)
-			.formParam(OAuth2Constants.PASSWORD, "fred")
-			.when().post(formUrl)
-			.then().statusCode(302)
-			.extract().header(HttpHeaders.LOCATION);
+		try (final WebClient webClient = new WebClient()) {
+			URIBuilder startUri = new URIBuilder(authEndpoint)
+				.addParameter(OAuth2Constants.RESPONSE_TYPE, OAuth2Constants.CODE)
+				.addParameter(OAuth2Constants.CLIENT_ID, "account")
+				.addParameter(OAuth2Constants.REDIRECT_URI, keycloak.getAuthServerUrl() + "/realms/" + REALM + "/account")
+				.addParameter(OAuth2Constants.SCOPE, OAuth2Constants.SCOPE_OPENID)
+				.addParameter("kc_action", "UPDATE_PASSWORD");
 
-		// get form for password update
-		formUrl = given().cookies(cookies)
-			.when().get(location)
-			.then().statusCode(200)
-			.extract().htmlPath().getString("**.find { it.@id == 'kc-passwd-update-form' }.@action");
+			HtmlPage page1 = webClient.getPage(startUri.build().toURL());
+			checkHttpStatusOk(page1);
+			HtmlForm form1 = page1.getForms().getFirst();
+			form1.getInputByName("username").type(FRED);
+			form1.getInputByName("password").type("fred");
+			HtmlPage page2 = getButton(form1, "Sign In").click();
+			checkHttpStatusOk(page2);
 
-		// update password
-		given().cookies(cookies)
-			.contentType(MediaType.APPLICATION_FORM_URLENCODED)
-			.formParam(OAuth2Constants.USERNAME, FRED)
-			.formParam("password-new", "changed")
-			.formParam("password-confirm", "changed")
-			.when().post(formUrl)
-			.then().statusCode(302)
-			.extract().header(HttpHeaders.LOCATION);
+			HtmlForm form2 = page2.getForms().getFirst();
+			form2.getInputByName("password-new").type("changed");
+			form2.getInputByName("password-confirm").type("changed");
+			HtmlPage page3 = getButton(form2, "Submit").click();
+			checkHttpStatusOk(page3);
+		}
 
 		// test new password
 		requestToken(keycloak, REALM, FRED, "changed", 200);
+	}
+
+	private static @NotNull HtmlButton getButton(HtmlForm form, String label) {
+		Optional<HtmlElement> submit = form.getFormElements().stream().filter(element -> element instanceof HtmlButton && element.getTextContent().equals(label)).findFirst();
+		assertThat(submit.isPresent(), is(true));
+		return (HtmlButton) submit.get();
+	}
+
+	private static void checkHttpStatusOk(HtmlPage page2) {
+		assertThat(page2.getWebResponse().getStatusCode(), is(200));
 	}
 
 	@Test
