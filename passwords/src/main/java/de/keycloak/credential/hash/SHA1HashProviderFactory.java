@@ -14,7 +14,7 @@ public class SHA1HashProviderFactory implements PasswordHashProviderFactory {
 
 	@Override
 	public PasswordHashProvider create(KeycloakSession session) {
-		return new SHA1HashProvider(getId());
+		return new SHA1HashProvider();
 	}
 
 	@Override

@@ -13,7 +13,7 @@ public class SHA1HashProviderTest {
 		"mySuperStrongP4ssw0rd,1901d2be3b254e3f11f196c6093de30f340c6123"
 	})
 	public void testHash(String password, String hash) {
-		SHA1HashProvider cut = new SHA1HashProvider(SHA1HashProviderFactory.PROVIDER_ID);
+		SHA1HashProvider cut = new SHA1HashProvider();
 		String encoded = cut.encodePassword(password);
 		Assertions.assertEquals(hash, encoded);
 	}
