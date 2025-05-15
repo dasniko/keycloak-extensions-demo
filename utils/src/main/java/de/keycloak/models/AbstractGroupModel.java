@@ -31,6 +31,16 @@ public abstract class AbstractGroupModel implements GroupModel {
 	}
 
 	@Override
+	public String getDescription() {
+		return null;
+	}
+
+	@Override
+	public void setDescription(String description) {
+		throw new ReadOnlyException("group is read only");
+	}
+
+	@Override
 	public void setSingleAttribute(String s, String s1) {
 		throw new ReadOnlyException("group is read only");
 	}
