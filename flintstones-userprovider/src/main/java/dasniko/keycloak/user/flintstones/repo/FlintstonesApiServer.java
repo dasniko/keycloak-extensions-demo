@@ -89,13 +89,14 @@ public class FlintstonesApiServer {
 					if (query != null) {
 						Map<String, String> queryParams = Arrays.stream(query.split("&"))
 							.map(s -> s.split("=")).collect(Collectors.toMap(k -> k[0], v -> v[1]));
+						boolean exactMatch = Boolean.parseBoolean(queryParams.getOrDefault("exactMatch", "false"));
 						if (queryParams.containsKey("username")) {
-							FlintstoneUser user = repository.findUserByUsernameOrEmail(queryParams.get("username"));
+							FlintstoneUser user = repository.findUserByUsernameOrEmail(queryParams.get("username"), exactMatch);
 							if (user != null) {
 								users = List.of(user);
 							}
 						} else if (queryParams.containsKey("email")) {
-							FlintstoneUser user = repository.findUserByUsernameOrEmail(queryParams.get("email"));
+							FlintstoneUser user = repository.findUserByUsernameOrEmail(queryParams.get("email"), exactMatch);
 							if (user != null) {
 								users = List.of(user);
 							}
@@ -111,7 +112,7 @@ public class FlintstonesApiServer {
 				} else if ("POST".equalsIgnoreCase(method)) {
 					FlintstoneUser flintstoneUser = mapper.readValue(requestBody, FlintstoneUser.class);
 					repository.createUser(flintstoneUser);
-					entity = repository.findUserByUsernameOrEmail(flintstoneUser.getUsername());
+					entity = repository.findUserByUsernameOrEmail(flintstoneUser.getUsername(), true);
 					status = 201;
 				}
 			} else if (credentials == null) {

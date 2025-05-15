@@ -79,18 +79,27 @@ public class FlintstonesApiClient {
 	}
 
 	public FlintstoneUser getUserByUsername(String username) {
-		return getUserByUsernameOrEmail("username", username);
+		return getUserByUsername(username, true);
+	}
+
+	public FlintstoneUser getUserByUsername(String username, boolean exactMatch) {
+		return getUserByUsernameOrEmail("username", username, exactMatch);
 	}
 
 	public FlintstoneUser getUserByEmail(String email) {
-		return getUserByUsernameOrEmail("email", email);
+		return getUserByEmail(email, true);
+	}
+
+	public FlintstoneUser getUserByEmail(String email, boolean exactMatch) {
+		return getUserByUsernameOrEmail("email", email, exactMatch);
 	}
 
 	@SneakyThrows
-	private FlintstoneUser getUserByUsernameOrEmail(String field, String value) {
+	private FlintstoneUser getUserByUsernameOrEmail(String field, String value, boolean exactMatch) {
 		String url = String.format("%s/users", baseUrl);
 		SimpleHttp simpleHttp = prepareGetRequest(url);
 		simpleHttp.param(field, value);
+		simpleHttp.param("exactMatch", String.valueOf(exactMatch));
 		List<FlintstoneUser> result = simpleHttp.asJson(new TypeReference<>() {});
 		return result.isEmpty() ? null : result.getFirst();
 	}

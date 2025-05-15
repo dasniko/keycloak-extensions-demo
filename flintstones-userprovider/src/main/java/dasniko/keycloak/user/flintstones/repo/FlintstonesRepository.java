@@ -43,14 +43,19 @@ public class FlintstonesRepository {
 			.findFirst().orElse(null);
 	}
 
-	private FlintstoneUser findUserByUsernameOrEmailInternal(String username) {
+	private FlintstoneUser findUserByUsernameOrEmailInternal(String username, boolean exactMatch) {
+		if (!exactMatch) {
+			return users.stream()
+				.filter(user -> user.getUsername().contains(username) || user.getEmail().contains(username))
+				.findFirst().orElse(null);
+		}
 		return users.stream()
 			.filter(user -> user.getUsername().equalsIgnoreCase(username) || user.getEmail().equalsIgnoreCase(username))
 			.findFirst().orElse(null);
 	}
 
-	FlintstoneUser findUserByUsernameOrEmail(String username) {
-		FlintstoneUser user = findUserByUsernameOrEmailInternal(username);
+	FlintstoneUser findUserByUsernameOrEmail(String username, boolean exactMatch) {
+		FlintstoneUser user = findUserByUsernameOrEmailInternal(username, exactMatch);
 		return user != null ? user.clone() : null;
 	}
 
@@ -80,7 +85,7 @@ public class FlintstonesRepository {
 	}
 
 	void updateUser(FlintstoneUser user) {
-		FlintstoneUser existing = findUserByUsernameOrEmailInternal(user.getUsername());
+		FlintstoneUser existing = findUserByUsernameOrEmailInternal(user.getUsername(), true);
 		existing.setEmail(user.getEmail());
 		existing.setFirstName(user.getFirstName());
 		existing.setLastName(user.getLastName());

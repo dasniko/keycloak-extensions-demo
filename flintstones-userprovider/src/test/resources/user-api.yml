@@ -55,6 +55,12 @@ paths:
           schema:
             type: string
             example: fred.flintstone@flintstones.com
+        - name: exactMatch
+          in: query
+          description: if username or email search should find exact or partly matches
+          schema:
+            type: boolean
+            example: true
         - name: search
           in: query
           description: case insensitive list of strings separated by whitespaces, contained (possibly partly) in username, email, first name or last name
