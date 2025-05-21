@@ -82,6 +82,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 		MultivaluedHashMap<String, String> config = new MultivaluedHashMap<>();
 		config.add(FlintstonesUserStorageProviderFactory.USER_API_BASE_URL, "http://localhost:8000");
 		config.add(FlintstonesUserStorageProviderFactory.USER_CREATION_ENABLED, "true");
+		config.add(FlintstonesUserStorageProviderFactory.EDIT_MODE, UserStorageProvider.EditMode.WRITABLE.toString());
 		config.add("enabled", "true");
 		componentRep.setConfig(config);
 
