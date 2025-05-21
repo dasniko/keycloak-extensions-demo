@@ -26,7 +26,6 @@ import org.keycloak.tracing.TracingProvider;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -108,13 +107,9 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	@Override
 	public Stream<CredentialModel> getCredentials(RealmModel realm, UserModel user) {
 		CredentialModel cm = new CredentialModel();
-		cm.setId(UUID.randomUUID().toString());
 		cm.setType(PasswordCredentialModel.TYPE);
-		cm.setUserLabel("Flintstones Password");
-		cm.setCreatedDate(System.currentTimeMillis());
-		cm.setFederationLink(StorageId.providerId(user.getId()));
-		cm.setCredentialData("credentialData");
-		cm.setSecretData("secretData");
+		cm.setCreatedDate(0L);
+		cm.setFederationLink(user.getFederationLink());
 		return Stream.of(cm);
 	}
 
