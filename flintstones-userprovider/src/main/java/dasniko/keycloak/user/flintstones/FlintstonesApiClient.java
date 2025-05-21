@@ -79,29 +79,36 @@ public class FlintstonesApiClient {
 	}
 
 	public FlintstoneUser getUserByUsername(String username) {
-		return getUserByUsername(username, true);
+		List<FlintstoneUser> users = getUserByUsernameOrEmail("username", username, true, 0, 1);
+		return users.isEmpty() ? null : users.getFirst();
 	}
 
-	public FlintstoneUser getUserByUsername(String username, boolean exactMatch) {
-		return getUserByUsernameOrEmail("username", username, exactMatch);
+	public List<FlintstoneUser> searchUsersByUsername(String username, Integer firstResult, Integer maxResults) {
+		return getUserByUsernameOrEmail("username", username, false, firstResult, maxResults);
 	}
 
 	public FlintstoneUser getUserByEmail(String email) {
-		return getUserByEmail(email, true);
+		List<FlintstoneUser> users = getUserByUsernameOrEmail("email", email, true, 0, 1);
+		return users.isEmpty() ? null : users.getFirst();
 	}
 
-	public FlintstoneUser getUserByEmail(String email, boolean exactMatch) {
-		return getUserByUsernameOrEmail("email", email, exactMatch);
+	public List<FlintstoneUser> searchUsersByEmail(String email, Integer firstResult, Integer maxResults) {
+		return getUserByUsernameOrEmail("email", email, false, firstResult, maxResults);
 	}
 
 	@SneakyThrows
-	private FlintstoneUser getUserByUsernameOrEmail(String field, String value, boolean exactMatch) {
+	private List<FlintstoneUser> getUserByUsernameOrEmail(String field, String value, boolean exactMatch, Integer first, Integer max) {
 		String url = String.format("%s/users", baseUrl);
 		SimpleHttp simpleHttp = prepareGetRequest(url);
 		simpleHttp.param(field, value);
 		simpleHttp.param("exactMatch", String.valueOf(exactMatch));
-		List<FlintstoneUser> result = simpleHttp.asJson(new TypeReference<>() {});
-		return result.isEmpty() ? null : result.getFirst();
+		if (first != null && first >= 0) {
+			simpleHttp.param("first", String.valueOf(first));
+		}
+		if (max != null && max >= 0) {
+			simpleHttp.param("max", String.valueOf(max));
+		}
+		return simpleHttp.asJson(new TypeReference<>() {});
 	}
 
 	@SneakyThrows

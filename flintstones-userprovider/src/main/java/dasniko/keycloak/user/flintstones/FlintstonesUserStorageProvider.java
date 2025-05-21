@@ -201,8 +201,9 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 		List<FlintstoneUser> result;
 		if (params.containsKey(UserModel.USERNAME)) {
-			FlintstoneUser flintstoneUser = apiClient.getUserByUsername(params.get(UserModel.USERNAME), false);
-			result = flintstoneUser == null ? List.of() : List.of(flintstoneUser);
+			result = apiClient.searchUsersByUsername(params.get(UserModel.USERNAME), firstResult, maxResults);
+		} else if (params.containsKey(UserModel.EMAIL)) {
+			result = apiClient.searchUsersByEmail(params.get(UserModel.EMAIL), firstResult, maxResults);
 		} else {
 			result = apiClient.searchUsers(params.getOrDefault(UserModel.SEARCH, null), firstResult, maxResults);
 		}
