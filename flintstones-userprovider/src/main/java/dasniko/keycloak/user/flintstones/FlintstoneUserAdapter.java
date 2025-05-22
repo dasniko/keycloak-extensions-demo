@@ -12,10 +12,10 @@ import org.keycloak.models.UserModel;
 import org.keycloak.storage.StorageId;
 import org.keycloak.storage.adapter.AbstractUserAdapterFederatedStorage;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -158,19 +158,32 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 
 	@Override
 	protected Set<GroupModel> getGroupsInternal() {
+		Set<GroupModel> groups = new HashSet<>();
 		if (user.getGroups() != null) {
-			return user.getGroups().stream().map(FlintstoneUserGroupModel::new).collect(Collectors.toSet());
+			for (String groupName : user.getGroups()) {
+				GroupModel group = session.groups().getGroupByName(realm, null, groupName);
+				if (group == null) {
+					group = session.groups().createGroup(realm, groupName);
+				}
+				groups.add(group);
+			}
 		}
-		return Set.of();
+		return groups;
 	}
 
 	@Override
 	protected Set<RoleModel> getRoleMappingsInternal() {
+		Set<RoleModel> roles = new HashSet<>();
 		if (user.getRoles() != null) {
-			return user.getRoles().stream()
-				.map(roleName -> new FlintstoneUserRoleModel(roleName, realm)).collect(Collectors.toSet());
+			for (String roleName : user.getRoles()) {
+				RoleModel role = session.roles().getRealmRole(realm, roleName);
+				if (role == null) {
+					role = session.roles().addRealmRole(realm, roleName);
+				}
+				roles.add(role);
+			}
 		}
-		return Set.of();
+		return roles;
 	}
 
 	@Override
