@@ -2,12 +2,14 @@ package dasniko.keycloak.user.flintstones;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dasniko.keycloak.user.flintstones.pages.AccountManagementPage;
+import dasniko.keycloak.user.flintstones.pages.LoginWithUsernameAndPasswordPage;
+import dasniko.keycloak.user.flintstones.pages.UpdatePasswordPage;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
 import de.keycloak.test.TestBase;
-import io.restassured.response.ExtractableResponse;
-import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpHeaders;
+import org.apache.http.client.utils.URIBuilder;
+import org.htmlunit.WebClient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -26,11 +28,11 @@ import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.storage.UserStorageProvider;
-import org.keycloak.utils.MediaType;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -129,44 +131,22 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 
 	@Test
 	@Order(4)
-	public void testUpdatePassword() {
+	public void testUpdatePassword() throws URISyntaxException, IOException {
 		// call update password action directly
 		String authEndpoint = getOpenIDConfiguration(keycloak, REALM).extract().path("authorization_endpoint");
-		ExtractableResponse<Response> response = given()
-			.queryParam(OAuth2Constants.RESPONSE_TYPE, OAuth2Constants.CODE)
-			.queryParam(OAuth2Constants.CLIENT_ID, "account")
-			.queryParam(OAuth2Constants.REDIRECT_URI, keycloak.getAuthServerUrl() + "/realms/" + REALM + "/account")
-			.queryParam(OAuth2Constants.SCOPE, OAuth2Constants.SCOPE_OPENID)
-			.queryParam("kc_action", "UPDATE_PASSWORD")
-			.when().get(authEndpoint)
-			.then().statusCode(200).extract();
-		Map<String, String> cookies = response.cookies();
-		String formUrl = response.htmlPath().getString("**.find { it.@id == 'kc-form-login' }.@action");
 
-		// authenticate
-		String location = given().cookies(cookies)
-			.contentType(MediaType.APPLICATION_FORM_URLENCODED)
-			.formParam(OAuth2Constants.USERNAME, FRED)
-			.formParam(OAuth2Constants.PASSWORD, "fred")
-			.when().post(formUrl)
-			.then().statusCode(302)
-			.extract().header(HttpHeaders.LOCATION);
+		try (final WebClient webClient = new WebClient()) {
+			URIBuilder startUri = new URIBuilder(authEndpoint)
+				.addParameter(OAuth2Constants.RESPONSE_TYPE, OAuth2Constants.CODE)
+				.addParameter(OAuth2Constants.CLIENT_ID, "account")
+				.addParameter(OAuth2Constants.REDIRECT_URI, keycloak.getAuthServerUrl() + "/realms/" + REALM + "/account")
+				.addParameter(OAuth2Constants.SCOPE, OAuth2Constants.SCOPE_OPENID)
+				.addParameter("kc_action", "UPDATE_PASSWORD");
 
-		// get form for password update
-		formUrl = given().cookies(cookies)
-			.when().get(location)
-			.then().statusCode(200)
-			.extract().htmlPath().getString("**.find { it.@id == 'kc-passwd-update-form' }.@action");
-
-		// update password
-		given().cookies(cookies)
-			.contentType(MediaType.APPLICATION_FORM_URLENCODED)
-			.formParam(OAuth2Constants.USERNAME, FRED)
-			.formParam("password-new", "changed")
-			.formParam("password-confirm", "changed")
-			.when().post(formUrl)
-			.then().statusCode(302)
-			.extract().header(HttpHeaders.LOCATION);
+			LoginWithUsernameAndPasswordPage loginPage = LoginWithUsernameAndPasswordPage.build(webClient, startUri.build().toURL());
+			UpdatePasswordPage updatePasswordPage = loginPage.signInWithUsernameAndPassword(FRED, "fred", UpdatePasswordPage.class);
+			updatePasswordPage.setPasswordTo("changed", AccountManagementPage.class);
+		}
 
 		// test new password
 		requestToken(keycloak, REALM, FRED, "changed", 200);

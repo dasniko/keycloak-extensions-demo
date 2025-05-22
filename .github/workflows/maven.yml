@@ -10,6 +10,9 @@ on:
   schedule:
     - cron: "30 3 * * 0"
   workflow_dispatch: {}
+  pull_request:
+    paths-ignore:
+      - 'README.md'
 
 jobs:
   build:
@@ -22,4 +25,4 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Maven build
-        run: mvn -B clean install
+        run: ./mvnw -B clean install
