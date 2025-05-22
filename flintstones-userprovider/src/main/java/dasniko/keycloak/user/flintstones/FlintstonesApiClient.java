@@ -3,15 +3,20 @@ package dasniko.keycloak.user.flintstones;
 import com.fasterxml.jackson.core.type.TypeReference;
 import dasniko.keycloak.user.flintstones.repo.Credential;
 import dasniko.keycloak.user.flintstones.repo.FlintstoneUser;
+import de.keycloak.util.ThrowingConsumer;
 import de.keycloak.util.TokenUtils;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.broker.provider.util.SimpleHttp;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.tracing.TracingProvider;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 public class FlintstonesApiClient {
@@ -19,15 +24,16 @@ public class FlintstonesApiClient {
 	private final KeycloakSession session;
 	private final String baseUrl;
 	private final String token;
+	private final TracingProvider tracing;
 
 	public FlintstonesApiClient(KeycloakSession session, ComponentModel model) {
 		this.session = session;
 		this.baseUrl = model.get(FlintstonesUserStorageProviderFactory.USER_API_BASE_URL);
 		String clientId = model.get(FlintstonesUserStorageProviderFactory.CLIENT_ID);
 		this.token = clientId != null ? TokenUtils.generateServiceAccountAccessToken(session, clientId, null, null) : "";
+		this.tracing = session.getProvider(TracingProvider.class);
 	}
 
-	@SneakyThrows
 	public List<FlintstoneUser> searchUsers(String search, Integer first, Integer max) {
 		String url = String.format("%s/users", baseUrl);
 		SimpleHttp simpleHttp = prepareGetRequest(url);
@@ -40,42 +46,47 @@ public class FlintstonesApiClient {
 		if (search != null) {
 			simpleHttp.param("search", search);
 		}
-		return simpleHttp.asJson(new TypeReference<>() {});
+
+		AtomicReference<List<FlintstoneUser>> users = new AtomicReference<>(List.of());
+		handleRequest(simpleHttp, "searchUsers", response -> users.set(response.asJson(new TypeReference<>() {})));
+
+		return users.get();
 	}
 
-	@SneakyThrows
 	public Integer usersCount(String search) {
 		String url = String.format("%s/users/count", baseUrl);
 		SimpleHttp simpleHttp = prepareGetRequest(url);
 		if (search != null) {
 			simpleHttp.param("search", search);
 		}
-		Map<String, Integer> count = simpleHttp.asJson(new TypeReference<>() {});
-		return count.getOrDefault("count", 0) ;
+
+		AtomicInteger count = new AtomicInteger(0);
+		handleRequest(simpleHttp, "usersCount", response -> {
+			Map<String, Integer> payload = simpleHttp.asJson(new TypeReference<>() {});
+			count.set(payload.getOrDefault("count", 0));
+		});
+
+		return count.get();
 	}
 
-	@SneakyThrows
 	public FlintstoneUser createUser(FlintstoneUser user) {
 		String url = String.format("%s/users", baseUrl);
-		try (SimpleHttp.Response response = SimpleHttp.doPost(url, session).auth(token).json(user).asResponse()) {
-			if (response.getStatus() == 201) {
-				return response.asJson(FlintstoneUser.class);
-			} else {
-				log.warn("User could not be created. Reason: {}", response.asString());
-				return null;
-			}
-		}
+		SimpleHttp simpleHttp = SimpleHttp.doPost(url, session).auth(token).json(user);
+
+		AtomicReference<FlintstoneUser> createdUser = new AtomicReference<>();
+		handleRequest(simpleHttp, "createUser", response -> createdUser.set(response.asJson(FlintstoneUser.class)));
+
+		return createdUser.get();
 	}
 
-	@SneakyThrows
 	public FlintstoneUser getUserById(String userId) {
 		String url = String.format("%s/users/%s", baseUrl, userId);
-		try (SimpleHttp.Response response = prepareGetRequest(url).asResponse()) {
-			if (response.getStatus() >= 400) {
-				return null;
-			}
-			return response.asJson(FlintstoneUser.class);
-		}
+		SimpleHttp simpleHttp = prepareGetRequest(url);
+
+		AtomicReference<FlintstoneUser> user = new AtomicReference<>();
+		handleRequest(simpleHttp, "getUserById", response -> user.set(response.asJson(FlintstoneUser.class)));
+
+		return user.get();
 	}
 
 	public FlintstoneUser getUserByUsername(String username) {
@@ -96,7 +107,6 @@ public class FlintstonesApiClient {
 		return getUserByUsernameOrEmail("email", email, false, firstResult, maxResults);
 	}
 
-	@SneakyThrows
 	private List<FlintstoneUser> getUserByUsernameOrEmail(String field, String value, boolean exactMatch, Integer first, Integer max) {
 		String url = String.format("%s/users", baseUrl);
 		SimpleHttp simpleHttp = prepareGetRequest(url);
@@ -108,34 +118,36 @@ public class FlintstonesApiClient {
 		if (max != null && max >= 0) {
 			simpleHttp.param("max", String.valueOf(max));
 		}
-		return simpleHttp.asJson(new TypeReference<>() {});
+
+		AtomicReference<List<FlintstoneUser>> users = new AtomicReference<>(List.of());
+		handleRequest(simpleHttp, "getUserByUsernameOrEmail:" + field, response -> users.set(response.asJson(new TypeReference<>() {})));
+		return users.get();
 	}
 
-	@SneakyThrows
-	public void updateUser(FlintstoneUser user) {
+	public boolean updateUser(FlintstoneUser user) {
 		String url = String.format("%s/users/%s", baseUrl, user.getId());
-		SimpleHttp.doPut(url, session).auth(token).json(user).asStatus();
+		SimpleHttp simpleHttp = SimpleHttp.doPut(url, session).auth(token).json(user);
+		return handleRequestWithNoContentResponse(simpleHttp, "updateUser");
 	}
 
-	@SneakyThrows
 	public boolean deleteUser(String userId) {
 		String url = String.format("%s/users/%s", baseUrl, userId);
-		return SimpleHttp.doDelete(url, session).auth(token).asStatus() == 204;
+		SimpleHttp simpleHttp = SimpleHttp.doDelete(url, session).auth(token);
+		return handleRequestWithNoContentResponse(simpleHttp, "deleteUser");
 	}
 
-	@SneakyThrows
 	public boolean verifyCredentials(String userId, Credential credential) {
 		String url = String.format("%s/users/%s/credentials/verify", baseUrl, userId);
-		return SimpleHttp.doPost(url, session).auth(token).json(credential).asStatus() == 204;
+		SimpleHttp simpleHttp = SimpleHttp.doPost(url, session).auth(token).json(credential);
+		return handleRequestWithNoContentResponse(simpleHttp, "verifyCredentials");
 	}
 
-	@SneakyThrows
 	public boolean updateCredentials(String userId, Credential credential) {
 		String url = String.format("%s/users/%s/credentials", baseUrl, userId);
-		return SimpleHttp.doPut(url, session).auth(token).json(credential).asStatus() == 204;
+		SimpleHttp simpleHttp = SimpleHttp.doPut(url, session).auth(token).json(credential);
+		return handleRequestWithNoContentResponse(simpleHttp, "updateCredentials");
 	}
 
-	@SneakyThrows
 	public List<FlintstoneUser> searchGroupMembers(String name, int first, int max) {
 		String url = String.format("%s/groups/members", baseUrl);
 		SimpleHttp simpleHttp = prepareGetRequest(url);
@@ -148,10 +160,36 @@ public class FlintstonesApiClient {
 		if (max >= 0) {
 			simpleHttp.param("max", String.valueOf(max));
 		}
-		return simpleHttp.asJson(new TypeReference<>() {});
+
+		AtomicReference<List<FlintstoneUser>> users = new AtomicReference<>(List.of());
+		handleRequest(simpleHttp, "searchGroupMembers", response -> users.set(response.asJson(new TypeReference<>() {})));
+		return users.get();
 	}
 
 	private SimpleHttp prepareGetRequest(String url) {
 		return SimpleHttp.doGet(url, session).auth(token).acceptJson();
 	}
+
+	private void handleRequest(SimpleHttp simpleHttp, String spanSuffix, ThrowingConsumer<SimpleHttp.Response, IOException> responseConsumer) {
+		tracing.trace(FlintstonesApiClient.class, spanSuffix, span -> {
+			try (SimpleHttp.Response response = simpleHttp.asResponse()) {
+				if (response.getStatus() >= 300) {
+					log.error("Error response from server: {}, error: {}, url: {}", response.getStatus(), response.asString(), simpleHttp.getUrl());
+				} else {
+					responseConsumer.accept(response);
+				}
+			} catch (IOException e) {
+				String message = "Exception during calling url %s: %s".formatted(simpleHttp.getUrl(), e.getMessage());
+				log.error(message, e);
+				span.recordException(e);
+			}
+		});
+	}
+
+	private boolean handleRequestWithNoContentResponse(SimpleHttp simpleHttp, String spanSuffix) {
+		AtomicBoolean success = new AtomicBoolean(false);
+		handleRequest(simpleHttp, spanSuffix, response -> success.set(response.getStatus() == 204));
+		return success.get();
+	}
+
 }

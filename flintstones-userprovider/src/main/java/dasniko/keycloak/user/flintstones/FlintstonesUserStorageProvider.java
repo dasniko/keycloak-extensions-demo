@@ -262,13 +262,15 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	}
 
 	private void updateUser(UserModel user) {
-		if (isWritable()) {
-			FlintstoneUserAdapter userAdapter = (FlintstoneUserAdapter) user;
-			if (userAdapter.isDirty()) {
-				apiClient.updateUser(userAdapter.getUser());
+		FlintstoneUserAdapter userAdapter = (FlintstoneUserAdapter) user;
+		if (userAdapter.isDirty()) {
+			if (isWritable()) {
+				if (!apiClient.updateUser(userAdapter.getUser())) {
+					throw new RuntimeException("Failed to update user " + userAdapter.getUser().getUsername());
+				}
+			} else {
+				log.warn("Edit mode is read-only. Skipping update for user {}.", userAdapter.getUser().getId());
 			}
-		} else {
-			log.warn("Edit mode is read-only. Skipping update for user.");
 		}
 	}
 
