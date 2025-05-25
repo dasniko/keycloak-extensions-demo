@@ -4,7 +4,7 @@ Demos, examples and playground for [Keycloak](https://www.keycloak.org) extensio
 
 [![CI build](https://github.com/dasniko/keycloak-extensions-demo/actions/workflows/maven.yml/badge.svg)](https://github.com/dasniko/keycloak-extensions-demo/actions/workflows/maven.yml)
 ![](https://img.shields.io/github/license/dasniko/keycloak-extensions-demo?label=License)
-![](https://img.shields.io/badge/Keycloak-999.0.0&dash;SNAPSHOT-blue)
+![](https://img.shields.io/badge/Keycloak-26.2-blue)
 
 >Provided _AS-IS_ - no warranties, no guarantees.  
 >Just for demonstration purposes only!

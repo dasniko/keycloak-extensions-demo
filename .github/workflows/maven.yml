@@ -25,4 +25,4 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Maven build
-        run: ./mvnw -B clean install
+        run: ./mvnw -B -U clean install

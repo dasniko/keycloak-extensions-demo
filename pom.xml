@@ -48,8 +48,8 @@
 			<dependency>
 				<groupId>com.github.dasniko</groupId>
 				<artifactId>keycloak-spi-bom</artifactId>
-				<version>main-SNAPSHOT</version>
-<!--				<version>${keycloak.version}</version>-->
+				<version>${keycloak.version}</version>
+<!--				<version>main-SNAPSHOT</version>-->
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -169,6 +169,10 @@
 		<repository>
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
+			<snapshots>
+				<enabled>true</enabled>
+<!--				<updatePolicy>always</updatePolicy>-->
+			</snapshots>
 		</repository>
 	</repositories>
 
