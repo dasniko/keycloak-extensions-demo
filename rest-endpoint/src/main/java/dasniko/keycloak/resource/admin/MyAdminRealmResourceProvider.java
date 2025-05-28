@@ -14,7 +14,7 @@ import org.keycloak.services.resources.admin.permissions.AdminPermissionEvaluato
 public class MyAdminRealmResourceProvider
 	implements AdminRealmResourceProviderFactory, AdminRealmResourceProvider {
 
-	public static final String PROVIDER_ID = "my-admin-rest-resource";
+	public static final String PROVIDER_ID = "my-ext";
 
 	@Override
 	public AdminRealmResourceProvider create(KeycloakSession session) {
