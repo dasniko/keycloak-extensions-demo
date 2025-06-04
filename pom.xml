@@ -36,7 +36,8 @@
 		<aws.version>2.17.209</aws.version>
 		<bytebuddy.version>1.14.11</bytebuddy.version>
 		<git-commit-id.version>9.0.1</git-commit-id.version>
-		<keycloak.version>26.2.1</keycloak.version>
+<!--		<keycloak.version>26.2.1</keycloak.version>-->
+		<keycloak.version>999.0.0-SNAPSHOT</keycloak.version>
 		<maven.compiler.version>3.13.0</maven.compiler.version>
 		<maven.compiler.release>21</maven.compiler.release>
 		<maven-shade.version>3.6.0</maven-shade.version>
@@ -49,7 +50,6 @@
 				<groupId>com.github.dasniko</groupId>
 				<artifactId>keycloak-spi-bom</artifactId>
 				<version>${keycloak.version}</version>
-<!--				<version>main-SNAPSHOT</version>-->
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -160,18 +160,15 @@
 
 	<repositories>
 		<repository>
-			<id>jboss-snapshots</id>
-			<url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+			<id>central-portal-snapshots</id>
+			<name>Central Portal Snapshots</name>
+			<url>https://central.sonatype.com/repository/maven-snapshots/</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
 			<snapshots>
 				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>jitpack.io</id>
-			<url>https://jitpack.io</url>
-			<snapshots>
-				<enabled>true</enabled>
-<!--				<updatePolicy>always</updatePolicy>-->
+				<updatePolicy>daily</updatePolicy>
 			</snapshots>
 		</repository>
 	</repositories>
