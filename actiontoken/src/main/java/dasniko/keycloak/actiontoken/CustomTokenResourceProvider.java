@@ -8,7 +8,7 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.services.resources.admin.AdminEventBuilder;
 import org.keycloak.services.resources.admin.ext.AdminRealmResourceProvider;
 import org.keycloak.services.resources.admin.ext.AdminRealmResourceProviderFactory;
-import org.keycloak.services.resources.admin.permissions.AdminPermissionEvaluator;
+import org.keycloak.services.resources.admin.fgap.AdminPermissionEvaluator;
 
 @AutoService(AdminRealmResourceProviderFactory.class)
 public class CustomTokenResourceProvider implements AdminRealmResourceProviderFactory, AdminRealmResourceProvider {
