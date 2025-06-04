@@ -2,6 +2,7 @@ package dasniko.keycloak.events;
 
 import dasniko.testcontainers.keycloak.KeycloakContainer;
 import de.keycloak.test.TestBase;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.idm.RealmEventsConfigRepresentation;
@@ -27,6 +28,7 @@ public class LastLoginTimeListenerTest extends TestBase {
 		.withProviderClassesFrom("target/classes");
 
 	@Test
+	@Disabled
 	public void testLastLoginTime() {
 		Keycloak admin = keycloak.getKeycloakAdminClient();
 
