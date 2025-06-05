@@ -1,6 +1,7 @@
 package dasniko.keycloak.events;
 
 import dasniko.testcontainers.keycloak.KeycloakContainer;
+import de.keycloak.test.AuthorizationCodeGrant;
 import de.keycloak.test.TestBase;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -46,7 +47,10 @@ public class LastLoginTimeListenerTest extends TestBase {
 			admin.realm(REALM).updateRealmEventsConfig(eventsConfig);
 
 			// "login" user
-			requestToken(keycloak, REALM, "test", "test");
+//			requestToken(keycloak, REALM, "test", "test");
+			String baseUrl = keycloak.getAuthServerUrl();
+			String redirectUri = "%s/realms/%s/account".formatted(baseUrl, REALM);
+			AuthorizationCodeGrant.getTokenResponse(baseUrl, REALM, "account-console", null, redirectUri, "test", "test");
 
 			// check user has last-login-time attribute
 			testUser = admin.realm(REALM).users().searchByUsername("test", true).getFirst();
