@@ -50,9 +50,9 @@ public class LastLoginTimeListenerTest extends TestBase {
 
 			// check user has last-login-time attribute
 			testUser = admin.realm(REALM).users().searchByUsername("test", true).getFirst();
-			assertNotNull(testUser.getAttributes());
+			assertNotNull(testUser.getAttributes(), "No user attributes");
 			String lastLoginTime = testUser.firstAttribute("lastLoginTime");
-			assertNotNull(lastLoginTime);
+			assertNotNull(lastLoginTime, "No last login time");
 		} finally {
 			keycloak.stop();
 		}

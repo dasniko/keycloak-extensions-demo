@@ -31,6 +31,12 @@
 		<dependency>
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-rest</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>io.quarkus</groupId>
+					<artifactId>quarkus-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
