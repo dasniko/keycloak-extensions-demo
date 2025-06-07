@@ -3,8 +3,12 @@
 Demos, examples and playground for [Keycloak](https://www.keycloak.org) extensions, providers, SPI implementations, etc.
 
 [![CI build](https://github.com/dasniko/keycloak-extensions-demo/actions/workflows/maven.yml/badge.svg)](https://github.com/dasniko/keycloak-extensions-demo/actions/workflows/maven.yml)
-![](https://img.shields.io/github/license/dasniko/keycloak-extensions-demo?label=License)
-![](https://img.shields.io/badge/Keycloak-26.2-blue)
+![GitHub Last Commit](https://img.shields.io/github/last-commit/dasniko/keycloak-extensions-demo)
+![License](https://img.shields.io/github/license/dasniko/keycloak-extensions-demo?label=License)  
+[![Keycloak Version](https://img.shields.io/badge/Keycloak-999.0.0&dash;SNAPSHOT-blue)](https://www.keycloak.org)
+![Java Version](https://img.shields.io/badge/Java-21-f89820)
+[![GitHub Stars](https://img.shields.io/github/stars/dasniko/keycloak-extensions-demo)](https://github.com/dasniko/keycloak-extensions-demo/stargazers)
+[![GitHub Stars](https://img.shields.io/github/forks/dasniko/keycloak-extensions-demo)](https://github.com/dasniko/keycloak-extensions-demo/forks)
 
 >Provided _AS-IS_ - no warranties, no guarantees.  
 >Just for demonstration purposes only!
