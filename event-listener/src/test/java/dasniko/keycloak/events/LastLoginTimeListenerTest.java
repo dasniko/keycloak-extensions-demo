@@ -2,7 +2,6 @@ package dasniko.keycloak.events;
 
 import dasniko.testcontainers.keycloak.KeycloakContainer;
 import de.keycloak.test.TestBase;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.idm.RealmEventsConfigRepresentation;
@@ -25,9 +24,8 @@ public class LastLoginTimeListenerTest extends TestBase {
 	@Container
 	private static final KeycloakContainer keycloak = new KeycloakContainer()
 		.withRealmImportFile("demo-realm.json")
-		.withNightly()
 		.withEnv("KC_SPI_EVENTS_LISTENER_LAST_LOGIN_TIME_ATTRIBUTE_NAME", "lastLogin")
-		.withProviderClassesFrom("target/classes");
+		.withDefaultProviderClasses();
 
 	@Test
 	public void testLastLoginTime() {
