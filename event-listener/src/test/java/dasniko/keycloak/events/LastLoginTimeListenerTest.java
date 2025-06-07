@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.idm.RealmEventsConfigRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.keycloak.representations.userprofile.config.UPConfig;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -24,13 +25,18 @@ public class LastLoginTimeListenerTest extends TestBase {
 	@Container
 	private static final KeycloakContainer keycloak = new KeycloakContainer()
 		.withRealmImportFile("demo-realm.json")
+		.withNightly()
 		.withEnv("KC_SPI_EVENTS_LISTENER_LAST_LOGIN_TIME_ATTRIBUTE_NAME", "lastLogin")
 		.withProviderClassesFrom("target/classes");
 
 	@Test
-	@Disabled
 	public void testLastLoginTime() {
 		Keycloak admin = keycloak.getKeycloakAdminClient();
+
+		// enable unmanaged attributes to be able to fetch the custom user attribute
+		UPConfig upConfig = admin.realm(REALM).users().userProfile().getConfiguration();
+		upConfig.setUnmanagedAttributePolicy(UPConfig.UnmanagedAttributePolicy.ENABLED);
+		admin.realm(REALM).users().userProfile().update(upConfig);
 
 		// check user has no attributes
 		List<UserRepresentation> users = admin.realm(REALM).users().searchByUsername("test", true);
