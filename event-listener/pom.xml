@@ -76,6 +76,20 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-reload4j</artifactId>
 		</dependency>
+
+		<!-- Keycloak JUnit 5-->
+		<dependency>
+			<groupId>org.keycloak</groupId>
+			<artifactId>keycloak-junit5</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- Workaround for configuration validation errors when running the embedded server -->
+		<dependency>
+			<groupId>io.smallrye.common</groupId>
+			<artifactId>smallrye-common-net</artifactId>
+			<version>2.12.0</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
