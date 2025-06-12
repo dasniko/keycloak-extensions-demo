@@ -20,8 +20,12 @@ updates:
   # Maintain dependencies for maven
   - package-ecosystem: "maven"
     directory: "/"
+    open-pull-requests-limit: 10
     schedule:
-      interval: "weekly"
+      interval: "daily"
+    ignore:
+      - dependency-name: "io.micrometer:*"
+      - dependency-name: "net.bytebuddy:*"
     assignees:
       - "dasniko"
     commit-message:
