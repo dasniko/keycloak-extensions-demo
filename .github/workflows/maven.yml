@@ -8,12 +8,12 @@ on:
     paths-ignore:
       - 'README.md'
       - 'pom.xml'
-      - '.github/workflows/maven.yml'
+      - '.github/**'
   pull_request:
     paths-ignore:
       - 'README.md'
       - 'pom.xml'
-      - '.github/workflows/maven.yml'
+      - '.github/**'
   schedule:
     - cron: "30 3 * * 0"
   workflow_dispatch: {}
@@ -30,5 +30,22 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.m2/wrapper
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml', '.mvn/wrapper/maven-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
       - name: Maven build
-        run: ./mvnw -B -U clean install
+        run: ./mvnw -B -U -T 1C clean install
+      - name: Upload build artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maven-logs
+          path: |
+            target/surefire-reports/
+            target/*.log
