@@ -36,21 +36,7 @@ public class FlintstonesApiClient {
 
 	public List<FlintstoneUser> searchUsers(String search, Integer first, Integer max) {
 		String url = String.format("%s/users", baseUrl);
-		SimpleHttp simpleHttp = prepareGetRequest(url);
-		if (first != null && first >= 0) {
-			simpleHttp.param("first", String.valueOf(first));
-		}
-		if (max != null && max >= 0) {
-			simpleHttp.param("max", String.valueOf(max));
-		}
-		if (search != null) {
-			simpleHttp.param("search", search);
-		}
-
-		AtomicReference<List<FlintstoneUser>> users = new AtomicReference<>(List.of());
-		handleRequest(simpleHttp, "searchUsers", response -> users.set(response.asJson(new TypeReference<>() {})));
-
-		return users.get();
+		return searchUsersRequest(url, search, null, first, max, "searchUsers");
 	}
 
 	public Integer usersCount(String search) {
@@ -148,21 +134,33 @@ public class FlintstonesApiClient {
 		return handleRequestWithNoContentResponse(simpleHttp, "updateCredentials");
 	}
 
-	public List<FlintstoneUser> searchGroupMembers(String name, int first, int max) {
+	public List<FlintstoneUser> searchGroupMembers(String name, Integer first, Integer max) {
 		String url = String.format("%s/groups/members", baseUrl);
+		return searchUsersRequest(url, null, name, first, max, "searchGroupMembers");
+	}
+
+	public List<FlintstoneUser> searchRoleMembers(String name, Integer first, Integer max) {
+		String url = String.format("%s/roles/members", baseUrl);
+		return searchUsersRequest(url, null, name, first, max, "searchRoleMembers");
+	}
+
+	private List<FlintstoneUser> searchUsersRequest(String url, String search, String name, Integer first, Integer max, String spanSuffix) {
 		SimpleHttp simpleHttp = prepareGetRequest(url);
 		if (name != null) {
 			simpleHttp.param("name", name);
 		}
-		if (first >= 0) {
+		if (first != null && first >= 0) {
 			simpleHttp.param("first", String.valueOf(first));
 		}
-		if (max >= 0) {
+		if (max != null && max >= 0) {
 			simpleHttp.param("max", String.valueOf(max));
+		}
+		if (search != null) {
+			simpleHttp.param("search", search);
 		}
 
 		AtomicReference<List<FlintstoneUser>> users = new AtomicReference<>(List.of());
-		handleRequest(simpleHttp, "searchGroupMembers", response -> users.set(response.asJson(new TypeReference<>() {})));
+		handleRequest(simpleHttp, spanSuffix, response -> users.set(response.asJson(new TypeReference<>() {})));
 		return users.get();
 	}
 

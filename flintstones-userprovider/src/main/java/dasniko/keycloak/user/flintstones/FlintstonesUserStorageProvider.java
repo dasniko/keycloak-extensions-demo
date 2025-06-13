@@ -12,6 +12,7 @@ import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ModelException;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.credential.PasswordCredentialModel;
@@ -211,6 +212,12 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	@Override
 	public Stream<UserModel> getGroupMembersStream(RealmModel realm, GroupModel group, Integer firstResult, Integer maxResults) {
 		return apiClient.searchGroupMembers(group.getName(), firstResult, maxResults)
+			.stream().map(user -> new FlintstoneUserAdapter(session, realm, model, user));
+	}
+
+	@Override
+	public Stream<UserModel> getRoleMembersStream(RealmModel realm, RoleModel role, Integer firstResult, Integer maxResults) {
+		return apiClient.searchRoleMembers(role.getName(), firstResult, maxResults)
 			.stream().map(user -> new FlintstoneUserAdapter(session, realm, model, user));
 	}
 

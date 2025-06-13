@@ -18,9 +18,9 @@ public class FlintstonesRepository {
 	FlintstonesRepository() {
 		users.add(new FlintstoneUser("12345", "fred.flintstone@flintstones.com", "Fred", "Flintstone", true, List.of("stoneage")));
 		users.add(new FlintstoneUser("23456", "wilma.flintstone@flintstones.com", "Wilma", "Flintstone", true, List.of("stoneage")));
-		users.add(new FlintstoneUser("34567", "pebbles.flintstone@flintstones.com", "Pebbles", "Flintstone", true, List.of("stoneage")));
+		users.add(new FlintstoneUser("34567", "pebbles.flintstone@flintstones.com", "Pebbles", "Flintstone", true, null));
 		users.add(new FlintstoneUser("45678", "barney.rubble@flintstones.com", "Barney", "Rubble", true, List.of("stoneage")));
-		users.add(new FlintstoneUser("56789", "betty.rubble@flintstones.com", "Betty", "Rubble", true, null));
+		users.add(new FlintstoneUser("56789", "betty.rubble@flintstones.com", "Betty", "Rubble", true, List.of("stoneage")));
 		users.add(new FlintstoneUser("67890", "bambam.rubble@flintstones.com", "Bam Bam", "Rubble", false, null));
 	}
 
@@ -67,6 +67,10 @@ public class FlintstonesRepository {
 
 	List<FlintstoneUser> findUsersByGroupname(String groupName) {
 		return users.stream().filter(user -> user.getGroups().contains(groupName)).toList();
+	}
+
+	List<FlintstoneUser> findUsersByRolename(String roleName) {
+		return users.stream().filter(user -> user.getRoles() != null && user.getRoles().contains(roleName)).toList();
 	}
 
 	boolean validateCredentials(String id, String password) {
