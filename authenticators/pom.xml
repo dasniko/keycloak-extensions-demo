@@ -40,11 +40,13 @@
 			<groupId>dasniko.keycloak</groupId>
 			<artifactId>custom-sms-spi</artifactId>
 			<version>${project.parent.version}</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>dasniko.keycloak</groupId>
 			<artifactId>requiredaction</artifactId>
 			<version>${project.parent.version}</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
