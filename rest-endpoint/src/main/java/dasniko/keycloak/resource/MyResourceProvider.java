@@ -1,8 +1,6 @@
 package dasniko.keycloak.resource;
 
-import jakarta.ws.rs.ForbiddenException;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.NotAuthorizedException;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
@@ -14,8 +12,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.keycloak.models.KeycloakSession;
-import org.keycloak.services.managers.AppAuthManager;
-import org.keycloak.services.managers.AuthenticationManager.AuthResult;
+import org.keycloak.services.managers.Auth;
 import org.keycloak.services.resource.RealmResourceProvider;
 
 import java.util.Map;
@@ -63,17 +60,8 @@ public class MyResourceProvider implements RealmResourceProvider {
 	@Path("hello-auth")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response helloAuthenticated() {
-		AuthResult auth = checkAuth();
+		Auth auth = AuthHelper.getAuth(session, authResult -> authResult.getToken().getIssuedFor().equals("admin-cli"));
 		return Response.ok(Map.of("hello", auth.getUser().getUsername())).build();
 	}
 
-	private AuthResult checkAuth() {
-		AuthResult auth = new AppAuthManager.BearerTokenAuthenticator(session).authenticate();
-		if (auth == null) {
-			throw new NotAuthorizedException("Bearer");
-		} else if (auth.getToken().getIssuedFor() == null || !auth.getToken().getIssuedFor().equals("admin-cli")) {
-			throw new ForbiddenException("Token is not properly issued for admin-cli");
-		}
-		return auth;
-	}
 }
