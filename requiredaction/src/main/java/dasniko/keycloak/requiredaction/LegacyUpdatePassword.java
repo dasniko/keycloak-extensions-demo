@@ -7,7 +7,7 @@ import org.keycloak.authentication.requiredactions.UpdatePassword;
  * @deprecated Since Keycloak v23 this is possible with native password policies.
  * No more need to maintain a custom override!
  */
-@Deprecated
+@Deprecated(forRemoval = true)
 //@AutoService(RequiredActionFactory.class)
 public class LegacyUpdatePassword extends UpdatePassword {
 
