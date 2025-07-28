@@ -33,7 +33,7 @@
 		<dependency>
 			<groupId>dasniko.keycloak</groupId>
 			<artifactId>utils</artifactId>
-			<version>${project.version}</version>
+			<version>${project.parent.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
