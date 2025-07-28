@@ -1,40 +1,36 @@
 package dasniko.keycloak.requiredaction;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auto.service.AutoService;
 import jakarta.ws.rs.core.MultivaluedMap;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.Config;
+import org.keycloak.authentication.CredentialRegistrator;
 import org.keycloak.authentication.InitiatedActionSupport;
 import org.keycloak.authentication.RequiredActionContext;
 import org.keycloak.authentication.RequiredActionFactory;
 import org.keycloak.authentication.RequiredActionProvider;
 import org.keycloak.authentication.requiredactions.WebAuthnRegisterFactory;
 import org.keycloak.forms.login.LoginFormsProvider;
+import org.keycloak.models.Constants;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
+import org.keycloak.models.RequiredActionConfigModel;
 import org.keycloak.models.UserModel;
-import org.keycloak.models.credential.OTPCredentialModel;
-import org.keycloak.models.credential.WebAuthnCredentialModel;
-import org.keycloak.provider.ServerInfoAwareProviderFactory;
+import org.keycloak.provider.ProviderConfigProperty;
+import org.keycloak.provider.ProviderConfigurationBuilder;
 import org.keycloak.sessions.AuthenticationSessionModel;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @AutoService(RequiredActionFactory.class)
-public class Configure1OutOfNCredentials implements RequiredActionFactory, RequiredActionProvider, ServerInfoAwareProviderFactory {
+public class Configure1OutOfNCredentials implements RequiredActionFactory, RequiredActionProvider {
 
 	public static final String PROVIDER_ID = "configure1OutOfNCreds";
-
-	// map of key-value pairs: key = credential type, value = associated required action id
-	// { "otp": "CONFIGURE_TOTP", "webauthn": "webauthn-register" }
-	private static Map<String, String> credentialTypes = Map.of(
-		OTPCredentialModel.TYPE, UserModel.RequiredAction.CONFIGURE_TOTP.name(),
-		WebAuthnCredentialModel.TYPE_TWOFACTOR, WebAuthnRegisterFactory.PROVIDER_ID
-	);
 
 	@Override
 	public InitiatedActionSupport initiatedActionSupport() {
@@ -46,6 +42,8 @@ public class Configure1OutOfNCredentials implements RequiredActionFactory, Requi
 		// self registering if user doesn't have already one out of the configured credential types
 		UserModel user = context.getUser();
 		AuthenticationSessionModel authSession = context.getAuthenticationSession();
+
+		Map<String, String> credentialTypes = getCredentialTypes(context);
 		if (credentialTypes.keySet().stream().noneMatch(type -> user.credentialManager().isConfiguredFor(type))
 			&& user.getRequiredActionsStream().noneMatch(credentialTypes::containsValue)
 			&& authSession.getRequiredActions().stream().noneMatch(credentialTypes::containsValue)) {
@@ -56,6 +54,7 @@ public class Configure1OutOfNCredentials implements RequiredActionFactory, Requi
 	@Override
 	public void requiredActionChallenge(RequiredActionContext context) {
 		// initial form
+		Map<String, String> credentialTypes = getCredentialTypes(context);
 		LoginFormsProvider form = context.form()
 			.setAttribute("realm", context.getRealm())
 			.setAttribute("user", context.getUser())
@@ -86,15 +85,33 @@ public class Configure1OutOfNCredentials implements RequiredActionFactory, Requi
 		return this;
 	}
 
+	private static final List<ProviderConfigProperty> configProperties;
+	static {
+		configProperties = ProviderConfigurationBuilder.create()
+			.property()
+			.name("requiredActions")
+			.label("configureCredentialsActionsLabel")
+			.helpText("configureCredentialsActionsHelp")
+			.type(ProviderConfigProperty.MULTIVALUED_LIST_TYPE)
+			.options(
+				UserModel.RequiredAction.CONFIGURE_TOTP.name(),
+				UserModel.RequiredAction.CONFIGURE_RECOVERY_AUTHN_CODES.name(),
+				WebAuthnRegisterFactory.PROVIDER_ID
+			)
+			.defaultValue(String.join(Constants.CFG_DELIMITER, UserModel.RequiredAction.CONFIGURE_TOTP.name(), WebAuthnRegisterFactory.PROVIDER_ID))
+			.add()
+			.build();
+	}
+
+	@Override
+	public List<ProviderConfigProperty> getConfigMetadata() {
+		List<ProviderConfigProperty> properties = new ArrayList<>(List.copyOf(MAX_AUTH_AGE_CONFIG_PROPERTIES));
+		properties.addAll(configProperties);
+		return List.copyOf(properties);
+	}
+
 	@Override
 	public void init(Config.Scope config) {
-		String typesString = config.get("typesString", " { \"otp\": \"CONFIGURE_TOTP\", \"webauthn\": \"webauthn-register\" }");
-		ObjectMapper mapper = new ObjectMapper();
-		try {
-			credentialTypes = mapper.readValue(typesString, new TypeReference<>() {});
-		} catch (IOException e) {
-			log.warn("Couldn't parse typesString: {}", typesString);
-		}
 	}
 
 	@Override
@@ -110,8 +127,27 @@ public class Configure1OutOfNCredentials implements RequiredActionFactory, Requi
 		return PROVIDER_ID;
 	}
 
-	@Override
-	public Map<String, String> getOperationalInfo() {
+	private Map<String, String> getCredentialTypes(RequiredActionContext context) {
+		KeycloakSession session = context.getSession();
+		RequiredActionConfigModel config = context.getConfig();
+		AuthenticationSessionModel authSession = context.getAuthenticationSession();
+
+		String requiredActionsString = config.getConfigValue("requiredActions");
+		List<String> requiredActions = Arrays.asList(Constants.CFG_DELIMITER_PATTERN.split(requiredActionsString));
+
+		Map<String, String> credentialTypes = new LinkedHashMap<>();
+		session.getKeycloakSessionFactory()
+			.getProviderFactoriesStream(RequiredActionProvider.class)
+			.forEach(providerFactory -> {
+				String providerId = providerFactory.getId();
+				if (requiredActions.contains(providerId)) {
+					RequiredActionProvider action = (RequiredActionProvider) providerFactory.create(session);
+					if (action instanceof CredentialRegistrator) {
+						String credentialType = ((CredentialRegistrator) action).getCredentialType(session, authSession);
+						credentialTypes.put(credentialType, providerId);
+					}
+				}
+			});
 		return credentialTypes;
 	}
 }
