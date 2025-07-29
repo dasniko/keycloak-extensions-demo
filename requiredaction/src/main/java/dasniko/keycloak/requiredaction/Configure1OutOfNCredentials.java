@@ -32,6 +32,8 @@ public class Configure1OutOfNCredentials implements RequiredActionFactory, Requi
 
 	public static final String PROVIDER_ID = "configure1OutOfNCreds";
 
+	private static final String CFG_REQUIRED_ACTIONS = "requiredActions";
+
 	@Override
 	public InitiatedActionSupport initiatedActionSupport() {
 		return InitiatedActionSupport.SUPPORTED;
@@ -39,7 +41,7 @@ public class Configure1OutOfNCredentials implements RequiredActionFactory, Requi
 
 	@Override
 	public void evaluateTriggers(RequiredActionContext context) {
-		// self registering if user doesn't have already one out of the configured credential types
+		// self registering if the user doesn't already have one out of the configured credential types configured
 		UserModel user = context.getUser();
 		AuthenticationSessionModel authSession = context.getAuthenticationSession();
 
@@ -89,7 +91,7 @@ public class Configure1OutOfNCredentials implements RequiredActionFactory, Requi
 	static {
 		configProperties = ProviderConfigurationBuilder.create()
 			.property()
-			.name("requiredActions")
+			.name(CFG_REQUIRED_ACTIONS)
 			.label("configureCredentialsActionsLabel")
 			.helpText("configureCredentialsActionsHelp")
 			.type(ProviderConfigProperty.MULTIVALUED_LIST_TYPE)
@@ -129,10 +131,17 @@ public class Configure1OutOfNCredentials implements RequiredActionFactory, Requi
 
 	private Map<String, String> getCredentialTypes(RequiredActionContext context) {
 		KeycloakSession session = context.getSession();
+		String cacheKey = getId() + "_credentialTypes";
+		//noinspection unchecked
+		Map<String, String> cachedCredentialTypes = session.getAttribute(cacheKey, Map.class);
+		if (cachedCredentialTypes != null) {
+			return cachedCredentialTypes;
+		}
+
 		RequiredActionConfigModel config = context.getConfig();
 		AuthenticationSessionModel authSession = context.getAuthenticationSession();
 
-		String requiredActionsString = config.getConfigValue("requiredActions");
+		String requiredActionsString = config.getConfigValue(CFG_REQUIRED_ACTIONS);
 		List<String> requiredActions = Arrays.asList(Constants.CFG_DELIMITER_PATTERN.split(requiredActionsString));
 
 		Map<String, String> credentialTypes = new LinkedHashMap<>();
@@ -148,6 +157,7 @@ public class Configure1OutOfNCredentials implements RequiredActionFactory, Requi
 					}
 				}
 			});
+		session.setAttribute(cacheKey, credentialTypes);
 		return credentialTypes;
 	}
 }
