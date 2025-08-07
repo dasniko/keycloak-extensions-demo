@@ -16,6 +16,7 @@ import org.keycloak.validate.ValidationError;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 @JBossLog
@@ -52,7 +53,9 @@ public class SkippableConfigureTOTP extends UpdateTotp {
 
 	@Override
 	public List<ProviderConfigProperty> getConfigMetadata() {
-		return List.copyOf(CONFIG_PROPERTIES);
+		List<ProviderConfigProperty> properties = new ArrayList<>(List.copyOf(MAX_AUTH_AGE_CONFIG_PROPERTIES));
+		properties.addAll(CONFIG_PROPERTIES);
+		return List.copyOf(properties);
 	}
 
 	@Override
