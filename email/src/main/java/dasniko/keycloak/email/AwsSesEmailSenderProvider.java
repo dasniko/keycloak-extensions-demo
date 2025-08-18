@@ -42,6 +42,10 @@ public class AwsSesEmailSenderProvider implements EmailSenderProvider {
 	}
 
 	@Override
+	public void validate(Map<String, String> map) throws EmailException {
+	}
+
+	@Override
 	public void close() {
 	}
 
