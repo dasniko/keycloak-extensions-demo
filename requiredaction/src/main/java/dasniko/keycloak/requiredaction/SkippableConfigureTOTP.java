@@ -53,7 +53,7 @@ public class SkippableConfigureTOTP extends UpdateTotp {
 
 	@Override
 	public List<ProviderConfigProperty> getConfigMetadata() {
-		List<ProviderConfigProperty> properties = new ArrayList<>(List.copyOf(MAX_AUTH_AGE_CONFIG_PROPERTIES));
+		List<ProviderConfigProperty> properties = new ArrayList<>(super.getConfigMetadata());
 		properties.addAll(CONFIG_PROPERTIES);
 		return List.copyOf(properties);
 	}
