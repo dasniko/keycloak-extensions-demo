@@ -16,10 +16,8 @@
  */
 package dasniko.keycloak.passkey.registration;
 
-import com.google.auto.service.AutoService;
 import jakarta.ws.rs.core.MultivaluedMap;
 import org.keycloak.authentication.ConfigurableAuthenticatorFactory;
-import org.keycloak.authentication.FormActionFactory;
 import org.keycloak.authentication.FormContext;
 import org.keycloak.authentication.ValidationContext;
 import org.keycloak.authentication.forms.RegistrationUserCreation;
@@ -37,7 +35,7 @@ import org.keycloak.userprofile.ValidationException;
 
 import java.util.List;
 
-@AutoService(FormActionFactory.class)
+//@AutoService(FormActionFactory.class)
 public class RegistrationUserCreationNoAccount extends RegistrationUserCreation {
 
 	public static final String PROVIDER_ID = "user-creation-no-account";

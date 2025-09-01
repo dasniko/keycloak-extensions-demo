@@ -22,7 +22,6 @@
 		<module>email</module>
 		<module>conditional-authenticators</module>
 		<module>authenticators</module>
-		<module>passkey</module>
   	<module>initializer</module>
 		<module>actiontoken</module>
 		<module>admin-ui</module>
