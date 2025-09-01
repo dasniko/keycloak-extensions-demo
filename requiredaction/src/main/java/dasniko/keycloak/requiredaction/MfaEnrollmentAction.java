@@ -26,14 +26,14 @@ import java.util.List;
 import java.util.Map;
 
 @AutoService(RequiredActionFactory.class)
-public class MfaEnrollment implements RequiredActionFactory, RequiredActionProvider {
+public class MfaEnrollmentAction implements RequiredActionFactory, RequiredActionProvider {
 
   public static final String PROVIDER_ID = "mfaEnrollment";
 
   private static final String CFG_REQUIRED_ACTIONS = "requiredActions";
   private static final String CFG_CONDITIONAL_ROLE = "conditionalRole";
   private static final String CFG_CONDITIONAL_ROLE_NEGATE = "conditionalRoleNegate";
-  private static final String MFA_ENROLLMENT_TPL = "mfa-enrollment.ftl";
+  private static final String MFA_ENROLLMENT_TPL = "mfa-enrollment-action.ftl";
 
   private static final List<ProviderConfigProperty> CONFIG_PROPERTIES;
 
