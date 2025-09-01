@@ -33,7 +33,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<aws.version>2.32.24</aws.version>
+		<aws.version>2.33.0</aws.version>
 		<bytebuddy.version>1.14.11</bytebuddy.version>
 		<git-commit-id.version>9.0.2</git-commit-id.version>
 <!--		<keycloak.version>26.2.1</keycloak.version>-->
