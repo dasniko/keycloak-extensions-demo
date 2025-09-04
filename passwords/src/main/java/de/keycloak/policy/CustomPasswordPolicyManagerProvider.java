@@ -24,6 +24,22 @@ public class CustomPasswordPolicyManagerProvider implements PasswordPolicyManage
 
 	@Override
 	public PolicyError validate(RealmModel realm, UserModel user, String password) {
+		PasswordPolicy policy = getPasswordPolicy(session, realm, user);
+
+		try {
+			RealmModel fakeRealm = new FakeRealm(realm, policy);
+			session.getContext().setRealm(fakeRealm);
+
+			for (PasswordPolicyProvider p : getProviders(session, fakeRealm)) {
+				PolicyError policyError = p.validate(realm, user, password);
+				if (policyError != null) {
+					return policyError;
+				}
+			}
+		} finally {
+			session.getContext().setRealm(realm);
+		}
+
 		return null;
 	}
 
@@ -56,6 +72,14 @@ public class CustomPasswordPolicyManagerProvider implements PasswordPolicyManage
 			}
 		}
 		return list;
+	}
+
+	private PasswordPolicy getPasswordPolicy(KeycloakSession session, RealmModel realm, UserModel user) {
+		PasswordPolicy policy = realm.getPasswordPolicy();
+		if (user != null && user.getFirstAttribute("passwordPolicy") != null) {
+			policy = PasswordPolicy.parse(session,user.getFirstAttribute("passwordPolicy"));
+		}
+		return policy;
 	}
 
 }
