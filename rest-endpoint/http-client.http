@@ -1,0 +1,20 @@
+### get a token explicitly with password grant (deprecated)
+POST http://localhost:8080/realms/demo/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+username=dasniko
+  &password=test
+  &grant_type=password
+  &client_id=admin-cli
+  &scope=openid
+
+// set the token from the response to a global variable
+> {% client.global.set("access_token", response.body.access_token); %}
+
+###
+POST http://localhost:8080/realms/demo/user-credentials/674e176c-c022-4c83-87f2-a5bfa4d8e7d9/setAsDefault
+Content-Type: application/json
+Authorization: Bearer {{$auth.token("keycloak")}}
+#Authorization: Bearer {{ access_token }}
+
+{}
