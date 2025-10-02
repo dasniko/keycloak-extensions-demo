@@ -1,6 +1,5 @@
 package dasniko.keycloak.events;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.keycloak.Config;
 import org.keycloak.events.EventListenerProvider;
 import org.keycloak.events.EventListenerProviderFactory;
@@ -12,7 +11,6 @@ import software.amazon.awssdk.services.sns.SnsClient;
 public class AwsSnsEventListenerProviderFactory implements EventListenerProviderFactory {
 
 	public static final String PROVIDER_ID = "aws-sns-publisher";
-	private static final ObjectMapper mapper = new ObjectMapper();
 
 	private SnsClient sns;
 
@@ -21,7 +19,7 @@ public class AwsSnsEventListenerProviderFactory implements EventListenerProvider
 		if (null == sns) {
 			sns = SnsClient.create();
 		}
-		return new AwsSnsEventListenerProvider(keycloakSession, sns, mapper);
+		return new AwsSnsEventListenerProvider(keycloakSession, sns);
 	}
 
 	@Override

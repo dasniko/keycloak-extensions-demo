@@ -1,6 +1,5 @@
 package dasniko.keycloak.email;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.keycloak.Config;
 import org.keycloak.email.EmailTemplateProvider;
 import org.keycloak.email.EmailTemplateProviderFactory;
@@ -14,11 +13,9 @@ public class JsonEmailTemplateProviderFactory implements EmailTemplateProviderFa
 
 	public static final String PROVIDER_ID = "json";
 
-	private final ObjectMapper mapper = new ObjectMapper();
-
 	@Override
 	public EmailTemplateProvider create(KeycloakSession session) {
-		return new JsonEmailTemplateProvider(session, mapper);
+		return new JsonEmailTemplateProvider(session);
 	}
 
 	@Override

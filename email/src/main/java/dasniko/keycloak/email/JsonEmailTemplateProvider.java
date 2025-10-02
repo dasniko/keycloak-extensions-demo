@@ -1,11 +1,11 @@
 package dasniko.keycloak.email;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.keycloak.email.EmailException;
 import org.keycloak.email.freemarker.FreeMarkerEmailTemplateProvider;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.util.JsonSerialization;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -14,11 +14,8 @@ import java.util.Map;
  */
 public class JsonEmailTemplateProvider extends FreeMarkerEmailTemplateProvider {
 
-	private final ObjectMapper mapper;
-
-	public JsonEmailTemplateProvider(KeycloakSession session, ObjectMapper mapper) {
+	public JsonEmailTemplateProvider(KeycloakSession session) {
 		super(session);
-		this.mapper = mapper;
 	}
 
 	@Override
@@ -27,9 +24,9 @@ public class JsonEmailTemplateProvider extends FreeMarkerEmailTemplateProvider {
 			attributes.put("subjectAttributes", subjectAttributes);
 			attributes.put("templateName", template.replace(".ftl", ""));
 			attributes.put("realm", realm.getName());
-			String jsonString = mapper.writeValueAsString(attributes);
+			String jsonString = JsonSerialization.writeValueAsString(attributes);
 			return new EmailTemplate(subjectKey, jsonString, null);
-		} catch (JsonProcessingException e) {
+		} catch (IOException e) {
 			throw new EmailException("Failed to create JSON output for email", e);
 		}
 	}

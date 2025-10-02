@@ -1,6 +1,5 @@
 package dasniko.keycloak.events;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auto.service.AutoService;
 import org.keycloak.Config;
 import org.keycloak.events.EventListenerProvider;
@@ -20,14 +19,12 @@ public class JsonEventListenerProviderFactory implements EventListenerProviderFa
 
 	public static final String PROVIDER_ID = "json-logging";
 
-	private static final ObjectMapper mapper = new ObjectMapper();
-
 	private Level successLevel;
 	private Level errorLevel;
 
 	@Override
 	public EventListenerProvider create(KeycloakSession keycloakSession) {
-		return new JsonEventListenerProvider(keycloakSession, mapper, successLevel, errorLevel);
+		return new JsonEventListenerProvider(keycloakSession, successLevel, errorLevel);
 	}
 
 	@Override

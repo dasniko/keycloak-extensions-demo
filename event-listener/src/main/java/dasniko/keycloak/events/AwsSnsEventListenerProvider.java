@@ -1,14 +1,16 @@
 package dasniko.keycloak.events;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.events.Event;
 import org.keycloak.events.EventListenerProvider;
 import org.keycloak.events.EventListenerTransaction;
 import org.keycloak.events.admin.AdminEvent;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.util.JsonSerialization;
 import software.amazon.awssdk.services.sns.SnsClient;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
@@ -19,13 +21,10 @@ public class AwsSnsEventListenerProvider implements EventListenerProvider {
     private static final String ENVVAR_TOPICARN = "AWS_EVENTS_SNS_TOPICARN";
 
     private final SnsClient sns;
-    private final ObjectMapper mapper;
     private final EventListenerTransaction tx = new EventListenerTransaction(this::sendAdminEvent, this::sendEvent);
 
-    public AwsSnsEventListenerProvider(KeycloakSession session, SnsClient sns, ObjectMapper mapper) {
+    public AwsSnsEventListenerProvider(KeycloakSession session, SnsClient sns) {
         this.sns = sns;
-        this.mapper = mapper;
-
         session.getTransactionManager().enlistAfterCompletion(tx);
     }
 
@@ -61,14 +60,13 @@ public class AwsSnsEventListenerProvider implements EventListenerProvider {
             return;
         }
 
-        String payload = null;
+        String payload;
         try {
-            payload = mapper.writeValueAsString(event);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            payload = JsonSerialization.writeValueAsString(event);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
 
-        String message = payload;
-        sns.publish(builder -> builder.topicArn(getTopicArn()).message(message));
+        sns.publish(builder -> builder.topicArn(getTopicArn()).message(payload));
     }
 }

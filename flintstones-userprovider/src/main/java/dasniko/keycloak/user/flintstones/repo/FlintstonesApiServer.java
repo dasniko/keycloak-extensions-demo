@@ -1,11 +1,11 @@
 package dasniko.keycloak.user.flintstones.repo;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.keycloak.util.JsonSerialization;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 public class FlintstonesApiServer {
 
 	private static final int PORT = 8000;
-	private final ObjectMapper mapper = new ObjectMapper();
 	private HttpServer server;
 
 	public FlintstonesApiServer() {
@@ -39,7 +38,7 @@ public class FlintstonesApiServer {
 
 		FlintstonesRepository repository = new FlintstonesRepository();
 		server = HttpServer.create(new InetSocketAddress(PORT), 0);
-		server.createContext("/users", new FlintstonesHandler(repository, mapper, this::writeResponse));
+		server.createContext("/users", new FlintstonesHandler(repository, this::writeResponse));
 		server.createContext("/groups", new GroupsHandler(repository, this::writeResponse));
 		server.createContext("/roles", new RolesHandler(repository, this::writeResponse));
 		server.setExecutor(null);
@@ -54,7 +53,7 @@ public class FlintstonesApiServer {
 		}
 	}
 
-	private record FlintstonesHandler(FlintstonesRepository repository, ObjectMapper mapper,
+	private record FlintstonesHandler(FlintstonesRepository repository,
 																		TriConsumer<HttpExchange, Object, Integer> responseWriter) implements HttpHandler {
 
 		@Override
@@ -107,7 +106,7 @@ public class FlintstonesApiServer {
 						}
 						entity = users;
 					} else if ("POST".equalsIgnoreCase(method)) {
-						FlintstoneUser flintstoneUser = mapper.readValue(requestBody, FlintstoneUser.class);
+						FlintstoneUser flintstoneUser = JsonSerialization.readValue(requestBody, FlintstoneUser.class);
 						repository.createUser(flintstoneUser);
 						entity = repository.findUserByUsernameOrEmail(flintstoneUser.getUsername(), true);
 						status = 201;
@@ -130,7 +129,7 @@ public class FlintstonesApiServer {
 							}
 						}
 					} else if ("PUT".equalsIgnoreCase(method)) {
-						FlintstoneUser flintstoneUser = mapper.readValue(requestBody, FlintstoneUser.class);
+						FlintstoneUser flintstoneUser = JsonSerialization.readValue(requestBody, FlintstoneUser.class);
 						repository.updateUser(flintstoneUser);
 						status = 204;
 					} else if ("DELETE".equalsIgnoreCase(method)) {
@@ -138,7 +137,7 @@ public class FlintstonesApiServer {
 						status = result ? 204 : 400;
 					}
 				} else {
-					Credential credential = mapper.readValue(requestBody, Credential.class);
+					Credential credential = JsonSerialization.readValue(requestBody, Credential.class);
 					status = 400;
 					boolean result;
 					if ("PUT".equalsIgnoreCase(method)) {
@@ -225,7 +224,7 @@ public class FlintstonesApiServer {
 
 	@SneakyThrows
 	private void writeResponse(HttpExchange exchange, Object entity, int status) {
-		byte[] bytes = mapper.writeValueAsBytes(entity);
+		byte[] bytes = JsonSerialization.writeValueAsBytes(entity);
 		exchange.getResponseHeaders().add("Content-Type", "application/json");
 		exchange.sendResponseHeaders(status, bytes.length);
 		OutputStream os = exchange.getResponseBody();

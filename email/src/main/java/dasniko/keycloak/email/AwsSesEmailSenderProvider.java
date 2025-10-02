@@ -1,11 +1,11 @@
 package dasniko.keycloak.email;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.email.EmailException;
 import org.keycloak.email.EmailSenderProvider;
 import org.keycloak.services.ServicesLogger;
+import org.keycloak.util.JsonSerialization;
 import software.amazon.awssdk.services.ses.SesClient;
 
 import java.util.Map;
@@ -17,16 +17,15 @@ import java.util.Map;
 public class AwsSesEmailSenderProvider implements EmailSenderProvider {
 
 	private final SesClient ses;
-	private final ObjectMapper mapper;
 
 	@Override
 	public void send(Map<String, String> config, String address, String subject, String textBody, String htmlBody) throws EmailException {
 		try {
 			// textBody contains the serialized JSON document
-			Map<String, Object> attributes = mapper.readValue(textBody, new TypeReference<>() {});
+			Map<String, Object> attributes = JsonSerialization.readValue(textBody, new TypeReference<>() {});
 			attributes.put("subject", subject);
 			String templateName = (String) attributes.get("templateName");
-			String templateData = mapper.writeValueAsString(attributes);
+			String templateData = JsonSerialization.writeValueAsString(attributes);
 
 			ses.sendTemplatedEmail(builder -> builder
 				.source(config.get("from"))
@@ -42,7 +41,7 @@ public class AwsSesEmailSenderProvider implements EmailSenderProvider {
 	}
 
 	@Override
-	public void validate(Map<String, String> map) throws EmailException {
+	public void validate(Map<String, String> map) {
 	}
 
 	@Override

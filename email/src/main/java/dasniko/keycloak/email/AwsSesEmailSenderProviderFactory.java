@@ -1,6 +1,5 @@
 package dasniko.keycloak.email;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.keycloak.Config;
 import org.keycloak.email.EmailSenderProvider;
 import org.keycloak.email.EmailSenderProviderFactory;
@@ -16,11 +15,10 @@ public class AwsSesEmailSenderProviderFactory implements EmailSenderProviderFact
 	public static final String PROVIDER_ID = "aws-ses";
 
 	private final SesClient ses = SesClient.create();
-	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@Override
 	public EmailSenderProvider create(KeycloakSession session) {
-		return new AwsSesEmailSenderProvider(ses, objectMapper);
+		return new AwsSesEmailSenderProvider(ses);
 	}
 
 	@Override

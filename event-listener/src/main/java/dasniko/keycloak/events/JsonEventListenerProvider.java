@@ -1,8 +1,6 @@
 package dasniko.keycloak.events;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.UriInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -14,22 +12,22 @@ import org.keycloak.events.admin.AdminEvent;
 import org.keycloak.models.KeycloakContext;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.sessions.AuthenticationSessionModel;
+import org.keycloak.util.JsonSerialization;
 import org.slf4j.event.Level;
 
+import java.io.IOException;
 import java.util.Map;
 
 @Slf4j(topic = "org.keycloak.events")
 public class JsonEventListenerProvider implements EventListenerProvider {
 
 	private final KeycloakSession session;
-	private final ObjectMapper mapper;
 	private final Level successLevel;
 	private final Level errorLevel;
 	private final EventListenerTransaction tx = new EventListenerTransaction(this::sendAdminEvent, this::logEvent);
 
-	public JsonEventListenerProvider(KeycloakSession session, ObjectMapper mapper, Level successLevel, Level errorLevel) {
+	public JsonEventListenerProvider(KeycloakSession session, Level successLevel, Level errorLevel) {
 		this.session = session;
-		this.mapper = mapper;
 		this.successLevel = successLevel;
 		this.errorLevel = errorLevel;
 
@@ -56,7 +54,7 @@ public class JsonEventListenerProvider implements EventListenerProvider {
 		if (log.isEnabledForLevel(level)) {
 			String s = null;
 			try {
-				Map<String, Object> map = mapper.convertValue(event, new TypeReference<>() {});
+				Map<String, Object> map = JsonSerialization.mapper.convertValue(event, new TypeReference<>() {});
 
 				AuthenticationSessionModel authSession = session.getContext().getAuthenticationSession();
 				if(authSession!=null) {
@@ -68,8 +66,8 @@ public class JsonEventListenerProvider implements EventListenerProvider {
 					setKeycloakContext(map);
 				}
 
-				s = mapper.writeValueAsString(map);
-			} catch (JsonProcessingException e) {
+				s = JsonSerialization.writeValueAsString(map);
+			} catch (IOException e) {
 				log.error("Error while trying to JSONify event %s".formatted(ToStringBuilder.reflectionToString(event)), e);
 			}
 
@@ -83,15 +81,15 @@ public class JsonEventListenerProvider implements EventListenerProvider {
 		if (log.isEnabledForLevel(level)) {
 			String s = null;
 			try {
-				Map<String, Object> map = mapper.convertValue(event, new TypeReference<>() {
+				Map<String, Object> map = JsonSerialization.mapper.convertValue(event, new TypeReference<>() {
 				});
 
 				if (log.isTraceEnabled()) {
 					setKeycloakContext(map);
 				}
 
-				s = mapper.writeValueAsString(map);
-			} catch (JsonProcessingException e) {
+				s = JsonSerialization.writeValueAsString(map);
+			} catch (IOException e) {
 				log.error("Error while trying to JSONify admin event %s".formatted(ToStringBuilder.reflectionToString(event)), e);
 			}
 

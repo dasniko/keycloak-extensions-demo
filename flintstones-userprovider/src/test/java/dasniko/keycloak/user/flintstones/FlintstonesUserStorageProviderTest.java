@@ -1,7 +1,6 @@
 package dasniko.keycloak.user.flintstones;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dasniko.keycloak.user.flintstones.pages.AccountManagementPage;
 import dasniko.keycloak.user.flintstones.pages.LoginWithUsernameAndPasswordPage;
 import dasniko.keycloak.user.flintstones.pages.UpdatePasswordPage;
@@ -34,7 +33,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -111,11 +109,8 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 		String accessTokenString = requestToken(keycloak, REALM, userIdentifier, "fred", 200)
 			.extract().path("access_token");
 
-		ObjectMapper mapper = new ObjectMapper();
-		TypeReference<HashMap<String, Object>> typeRef = new TypeReference<>() {};
-
 		byte[] tokenPayload = Base64.getDecoder().decode(accessTokenString.split("\\.")[1]);
-		Map<String, Object> payload = mapper.readValue(tokenPayload, typeRef);
+		Map<String, Object> payload = mapper.readValue(tokenPayload, new TypeReference<>() {});
 
 		assertThat(payload.get("preferred_username"), is(FRED));
 		assertThat(payload.get("email"), is("fred.flintstone@flintstones.com"));
