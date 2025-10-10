@@ -3,7 +3,8 @@ package de.keycloak.policy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.keycloak.broker.provider.util.SimpleHttp;
+import org.keycloak.http.simple.SimpleHttp;
+import org.keycloak.http.simple.SimpleHttpResponse;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
@@ -51,7 +52,7 @@ public class HibpPasswordPolicyProvider implements PasswordPolicyProvider {
 		String prefix = sha1.substring(0, 5);
 		String suffix = sha1.substring(5).toUpperCase();
 
-		try (SimpleHttp.Response response = SimpleHttp.doGet(HIBP_URL + prefix, session).asResponse()) {
+		try (SimpleHttpResponse response = SimpleHttp.create(session).doGet(HIBP_URL + prefix).asResponse()) {
 			if (response.getStatus() == 200) {
 				String body = response.asString();
 				String[] lines = body.split("\r\n");

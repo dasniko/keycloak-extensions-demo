@@ -5,7 +5,7 @@ import com.google.auto.service.AutoService;
 import de.keycloak.util.TokenUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.keycloak.broker.provider.util.SimpleHttp;
+import org.keycloak.http.simple.SimpleHttp;
 import org.keycloak.models.ClientSessionContext;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ProtocolMapperModel;
@@ -73,7 +73,7 @@ public class EchoMapper extends AbstractOIDCProtocolMapper implements UserInfoTo
 		String accessToken = clientId.isEmpty() ? "" : TokenUtils.generateServiceAccountAccessToken(keycloakSession, clientId, null, null);
 		String username = userSession.getUser().getUsername();
 		log.debug("Requesting URL: {}?username={}", url, username);
-		Map<String, Object> echo = SimpleHttp.doGet(url, keycloakSession).param("username", username)
+		Map<String, Object> echo = SimpleHttp.create(keycloakSession).doGet(url).param("username", username)
 			.auth(accessToken).acceptJson().asJson(new TypeReference<>() {});
 		OIDCAttributeMapperHelper.mapClaim(token, mappingModel, echo);
 	}
