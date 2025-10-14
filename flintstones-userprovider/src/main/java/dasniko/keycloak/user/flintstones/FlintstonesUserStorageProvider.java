@@ -228,7 +228,7 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public UserModel addUser(RealmModel realm, String username) {
-		if (syncUsers()) {
+		if (isWritable() && syncUsers()) {
 			FlintstoneUser flintstoneUser = new FlintstoneUser();
 			flintstoneUser.setUsername(username);
 			flintstoneUser = apiClient.createUser(flintstoneUser);
@@ -238,14 +238,20 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 			FlintstoneUserAdapter newUser = new FlintstoneUserAdapter(session, realm, model, flintstoneUser);
 			tx.addUser(newUser);
 			return newUser;
+		} else {
+			log.debug("Edit mode is read-only or syncUsers is disabled. Skipping creation for user {}.", username);
 		}
 		return null;
 	}
 
 	@Override
 	public boolean removeUser(RealmModel realm, UserModel user) {
-		String externalId = StorageId.externalId(user.getId());
-		return apiClient.deleteUser(externalId);
+		if (isWritable()) {
+			String externalId = StorageId.externalId(user.getId());
+			return apiClient.deleteUser(externalId);
+		}
+		log.warn("Edit mode is read-only. Skipping removal for user {}.", user.getId());
+		return false;
 	}
 
 	@Override
@@ -256,6 +262,7 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 		return model.get(FlintstonesUserStorageProviderFactory.EDIT_MODE, EditMode.READ_ONLY.name()).equals(EditMode.WRITABLE.name());
 	}
 
+	@SuppressWarnings("unused")
 	private boolean importUsers() {
 		return model.get(FlintstonesUserStorageProviderFactory.USER_IMPORT, false);
 	}
