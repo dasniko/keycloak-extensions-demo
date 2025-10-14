@@ -2,6 +2,7 @@ package dasniko.keycloak.user.flintstones;
 
 import dasniko.keycloak.user.flintstones.repo.FlintstoneUser;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.models.GroupModel;
@@ -15,12 +16,14 @@ import org.keycloak.storage.adapter.AbstractUserAdapterFederatedStorage;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
 /**
  * @author Niko Köbler, http://www.n-k.de, @dasniko
  */
+@Slf4j
 @Getter
 public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 
@@ -41,8 +44,8 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 
 	@Override
 	public void setUsername(String username) {
+		dirty = dirty || !Objects.equals(username, user.getUsername());
 		user.setUsername(username);
-		dirty = true;
 	}
 
 	@Override
@@ -52,8 +55,8 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 
 	@Override
 	public void setFirstName(String firstName) {
+		dirty = dirty || !Objects.equals(firstName, user.getFirstName());
 		user.setFirstName(firstName);
-		dirty = true;
 	}
 
 	@Override
@@ -63,8 +66,8 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 
 	@Override
 	public void setLastName(String lastName) {
+		dirty = dirty || !Objects.equals(lastName, user.getLastName());
 		user.setLastName(lastName);
-		dirty = true;
 	}
 
 	@Override
@@ -74,8 +77,8 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 
 	@Override
 	public void setEmail(String email) {
+		dirty = dirty || !Objects.equals(email, user.getEmail());
 		user.setEmail(email);
-		dirty = true;
 	}
 
 	@Override
@@ -95,8 +98,8 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 
 	@Override
 	public void setEnabled(boolean enabled) {
+		dirty = dirty || enabled != user.isEnabled();
 		user.setEnabled(enabled);
-		dirty = true;
 	}
 
 	@Override
