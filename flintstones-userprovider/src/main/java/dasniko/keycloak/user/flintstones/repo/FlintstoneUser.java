@@ -16,6 +16,7 @@ public class FlintstoneUser implements Cloneable {
 	private String id;
 	private String username;
 	private String email;
+	private boolean emailVerified;
 	private String firstName;
 	private String lastName;
 	private String password;

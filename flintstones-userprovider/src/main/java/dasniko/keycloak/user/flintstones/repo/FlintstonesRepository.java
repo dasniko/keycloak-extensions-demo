@@ -91,6 +91,7 @@ public class FlintstonesRepository {
 	void updateUser(FlintstoneUser user) {
 		FlintstoneUser existing = findUserByUsernameOrEmailInternal(user.getUsername(), true);
 		existing.setEmail(user.getEmail());
+		existing.setEmailVerified(user.isEmailVerified());
 		existing.setFirstName(user.getFirstName());
 		existing.setLastName(user.getLastName());
 		existing.setEnabled(user.isEnabled());

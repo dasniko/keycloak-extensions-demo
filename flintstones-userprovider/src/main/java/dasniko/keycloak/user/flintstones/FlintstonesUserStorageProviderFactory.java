@@ -32,6 +32,7 @@ public class FlintstonesUserStorageProviderFactory implements UserStorageProvide
 	static final String USER_IMPORT = "importUsers";
 	static final String USER_CREATION_ENABLED = "userCreation";
 	static final String USE_PASSWORD_POLICY = "usePasswordPolicy";
+	static final String TRUST_EMAIL = "trustEmail";
 
 	private FlintstonesApiServer apiServer;
 
@@ -60,6 +61,7 @@ public class FlintstonesUserStorageProviderFactory implements UserStorageProvide
 			.property(USER_IMPORT, "importUsers", "importUsersHelp", ProviderConfigProperty.BOOLEAN_TYPE, "false", null)
 			.property(USER_CREATION_ENABLED, "syncRegistrations", "syncRegistrationsHelp", ProviderConfigProperty.BOOLEAN_TYPE, "false", null)
 			.property(USE_PASSWORD_POLICY, "validatePasswordPolicy", "validatePasswordPolicyHelp", ProviderConfigProperty.BOOLEAN_TYPE, "false", null)
+			.property(TRUST_EMAIL, "trustEmail", "trustEmailHelp", ProviderConfigProperty.BOOLEAN_TYPE, "false", null)
 			.build();
 	}
 

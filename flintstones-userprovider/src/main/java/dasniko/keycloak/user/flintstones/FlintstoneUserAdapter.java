@@ -83,12 +83,14 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 
 	@Override
 	public boolean isEmailVerified() {
-		return true;
+		boolean trustEmail = storageProviderModel.get(FlintstonesUserStorageProviderFactory.TRUST_EMAIL, false);
+		return trustEmail || user.isEmailVerified();
 	}
 
 	@Override
 	public void setEmailVerified(boolean verified) {
-		// intended, email is always verified in this example
+		dirty = dirty || verified != user.isEmailVerified();
+		user.setEmailVerified(verified);
 	}
 
 	@Override
