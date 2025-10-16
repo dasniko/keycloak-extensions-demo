@@ -104,7 +104,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 
 	@Order(2)
 	@ParameterizedTest
-	@ValueSource(strings = {"fred.flintstone@flintstones.com", FRED})
+	@ValueSource(strings = {"fred.flintstone@bedrock.com", FRED})
 	public void testLoginAsUserAndCheckAccessToken(String userIdentifier) throws IOException {
 		String accessTokenString = requestToken(keycloak, REALM, userIdentifier, "fred", 200)
 			.extract().path("access_token");
@@ -113,7 +113,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 		Map<String, Object> payload = mapper.readValue(tokenPayload, new TypeReference<>() {});
 
 		assertThat(payload.get("preferred_username"), is(FRED));
-		assertThat(payload.get("email"), is("fred.flintstone@flintstones.com"));
+		assertThat(payload.get("email"), is("fred.flintstone@bedrock.com"));
 		assertThat(payload.get("given_name"), is("Fred"));
 		assertThat(payload.get("family_name"), is("Flintstone"));
 	}

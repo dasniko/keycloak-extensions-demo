@@ -16,12 +16,12 @@ public class FlintstonesRepository {
 
 	@SneakyThrows
 	FlintstonesRepository() {
-		users.add(new FlintstoneUser("12345", "fred.flintstone@flintstones.com", "Fred", "Flintstone", true, List.of("stoneage")));
-		users.add(new FlintstoneUser("23456", "wilma.flintstone@flintstones.com", "Wilma", "Flintstone", true, List.of("stoneage")));
-		users.add(new FlintstoneUser("34567", "pebbles.flintstone@flintstones.com", "Pebbles", "Flintstone", true, null));
-		users.add(new FlintstoneUser("45678", "barney.rubble@flintstones.com", "Barney", "Rubble", true, List.of("stoneage")));
-		users.add(new FlintstoneUser("56789", "betty.rubble@flintstones.com", "Betty", "Rubble", true, List.of("stoneage")));
-		users.add(new FlintstoneUser("67890", "bambam.rubble@flintstones.com", "Bam Bam", "Rubble", false, null));
+		users.add(new FlintstoneUser("12345", "fred.flintstone@bedrock.com", "Fred", "Flintstone", true, List.of("STONEAGE")));
+		users.add(new FlintstoneUser("23456", "wilma.flintstone@bedrock.com", "Wilma", "Flintstone", true, List.of("STONEAGE")));
+		users.add(new FlintstoneUser("34567", "pebbles.flintstone@bedrock.com", "Pebbles", "Flintstone", true, null));
+		users.add(new FlintstoneUser("45678", "barney.rubble@bedrock.com", "Barney", "Rubble", true, List.of("STONEAGE")));
+		users.add(new FlintstoneUser("56789", "betty.rubble@bedrock.com", "Betty", "Rubble", true, List.of("STONEAGE")));
+		users.add(new FlintstoneUser("67890", "bambam.rubble@bedrock.com", "Bam Bam", "Rubble", false, null));
 	}
 
 	List<FlintstoneUser> getAllUsers() {
