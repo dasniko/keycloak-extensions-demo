@@ -71,7 +71,7 @@
 			<plugin>
 				<groupId>io.smallrye</groupId>
 				<artifactId>smallrye-open-api-maven-plugin</artifactId>
-				<version>4.2.0</version>
+				<version>4.2.3</version>
 				<configuration>
 					<outputDirectory>${project.build.directory}/openapi</outputDirectory>
 					<scanPackages>dasniko.keycloak.resource</scanPackages>
