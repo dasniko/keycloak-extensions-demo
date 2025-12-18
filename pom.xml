@@ -27,6 +27,7 @@
 		<module>admin-ui</module>
 		<module>scheduled-task</module>
 		<module>passwords</module>
+		<module>validators</module>
 		<module>various</module>
 	</modules>
 
