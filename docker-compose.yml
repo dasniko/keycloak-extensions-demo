@@ -4,7 +4,7 @@ volumes:
 services:
   keycloak:
     container_name: keycloak-extensions-demo
-    image: quay.io/keycloak/keycloak:26.2
+    image: quay.io/keycloak/keycloak:latest
     command: start-dev
     environment:
       DEBUG: 'true'
@@ -22,14 +22,18 @@ services:
       - ./authenticators/target/dasniko.keycloak-authenticators.jar:/opt/keycloak/providers/authenticators.jar
       - ./conditional-authenticators/target/dasniko.keycloak-conditional-authenticators.jar:/opt/keycloak/providers/conditional-authenticators.jar
       - ./custom-sms-spi/target/dasniko.keycloak-custom-sms-spi.jar:/opt/keycloak/providers/custom-sms-spi.jar
+      - ./email/target/dasniko.keycloak-email.jar:/opt/keycloak/providers/email.jar
       - ./event-listener/target/dasniko.keycloak-event-listener.jar:/opt/keycloak/providers/event-listener.jar
       - ./flintstones-userprovider/target/dasniko.keycloak-flintstones-userprovider.jar:/opt/keycloak/providers/flintstones-userprovider.jar
+      - ./initializer/target/dasniko.keycloak-initializer.jar:/opt/keycloak/providers/initializer.jar
       - ./magiclink/target/dasniko.keycloak-magiclink.jar:/opt/keycloak/providers/magiclink.jar
-      - ./passkey/target/dasniko.keycloak-passkey.jar:/opt/keycloak/providers/passkey.jar
       - ./passwords/target/dasniko.keycloak-passwords.jar:/opt/keycloak/providers/passwords.jar
       - ./requiredaction/target/dasniko.keycloak-requiredaction.jar:/opt/keycloak/providers/requiredaction.jar
       - ./rest-endpoint/target/dasniko.keycloak-rest-endpoint.jar:/opt/keycloak/providers/rest-endpoint.jar
+      - ./scheduled-task/target/dasniko.keycloak-scheduled-task.jar:/opt/keycloak/providers/scheduled-task.jar
       - ./tokenmapper/target/dasniko.keycloak-tokenmapper.jar:/opt/keycloak/providers/tokenmapper.jar
       - ./utils/target/dasniko.keycloak-utils.jar:/opt/keycloak/providers/utils.jar
+      - ./validators/target/dasniko.keycloak-validators.jar:/opt/keycloak/providers/validators.jar
+      - ./various/target/dasniko.keycloak-various.jar:/opt/keycloak/providers/various.jar
     extra_hosts:
       - "host.docker.internal:host-gateway"
