@@ -39,6 +39,11 @@
 			<artifactId>auto-service</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.googlecode.libphonenumber</groupId>
+			<artifactId>libphonenumber</artifactId>
+			<version>9.0.21</version>
+		</dependency>
+		<dependency>
 			<groupId>org.keycloak</groupId>
 			<artifactId>keycloak-junit5</artifactId>
 			<scope>test</scope>
@@ -51,6 +56,12 @@
 
 	<build>
 		<finalName>${project.groupId}-${project.artifactId}</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+			</plugin>
+		</plugins>
 	</build>
 
 </project>
