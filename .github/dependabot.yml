@@ -24,6 +24,8 @@ updates:
     ignore:
       - dependency-name: "io.micrometer:*"
       - dependency-name: "net.bytebuddy:*"
+      - dependency-name: "software.amazon.awssdk:*"
+      - dependency-name: "com.googlecode.libphonenumber:*"
     commit-message:
       include: "scope"
       prefix: "chore"
