@@ -95,6 +95,7 @@ public class FlintstonesRepository {
 		existing.setFirstName(user.getFirstName());
 		existing.setLastName(user.getLastName());
 		existing.setEnabled(user.isEnabled());
+		existing.setPictureUrl(user.getPictureUrl());
 	}
 
 	boolean removeUser(String id) {

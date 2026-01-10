@@ -27,6 +27,8 @@ import java.util.stream.Stream;
 @Getter
 public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 
+	private static final String ATTR_PICTURE = "picture";
+
 	private final FlintstoneUser user;
 
 	private boolean dirty;
@@ -122,7 +124,20 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 			case UserModel.LAST_NAME -> setLastName(value);
 			case UserModel.FIRST_NAME -> setFirstName(value);
 			case UserModel.EMAIL -> setEmail(value);
+			case ATTR_PICTURE -> setPicture(value);
 			default -> super.setAttribute(name, values);
+		}
+	}
+
+	@Override
+	public void setSingleAttribute(String name, String value) {
+		switch (name) {
+			case UserModel.USERNAME -> setUsername(value);
+			case UserModel.LAST_NAME -> setLastName(value);
+			case UserModel.FIRST_NAME -> setFirstName(value);
+			case UserModel.EMAIL -> setEmail(value);
+			case ATTR_PICTURE -> setPicture(value);
+			default -> super.setSingleAttribute(name, value);
 		}
 	}
 
@@ -133,6 +148,7 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 			case UserModel.LAST_NAME -> getLastName();
 			case UserModel.FIRST_NAME -> getFirstName();
 			case UserModel.EMAIL -> getEmail();
+			case ATTR_PICTURE -> getPicture();
 			default -> super.getFirstAttribute(name);
 		};
 	}
@@ -144,6 +160,7 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 			case UserModel.LAST_NAME -> Stream.of(getLastName());
 			case UserModel.FIRST_NAME -> Stream.of(getFirstName());
 			case UserModel.EMAIL -> Stream.of(getEmail());
+			case "picture" -> Stream.of(getPicture());
 			default -> super.getAttributeStream(name);
 		};
 	}
@@ -158,6 +175,7 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 		attributes.add(UserModel.EMAIL, getEmail());
 		attributes.add(UserModel.FIRST_NAME, getFirstName());
 		attributes.add(UserModel.LAST_NAME, getLastName());
+		attributes.add(ATTR_PICTURE, getPicture());
 		return attributes;
 	}
 
@@ -191,14 +209,12 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 		return roles;
 	}
 
-	@Override
-	public void setSingleAttribute(String name, String value) {
-		switch (name) {
-			case UserModel.USERNAME -> setUsername(value);
-			case UserModel.LAST_NAME -> setLastName(value);
-			case UserModel.FIRST_NAME -> setFirstName(value);
-			case UserModel.EMAIL -> setEmail(value);
-			default -> super.setSingleAttribute(name, value);
-		}
+	private String getPicture() {
+		return user.getPictureUrl();
+	}
+
+	private void setPicture(String pictureUrl) {
+		dirty = dirty || !Objects.equals(pictureUrl, user.getPictureUrl());
+		user.setPictureUrl(pictureUrl);
 	}
 }

@@ -24,6 +24,7 @@ public class FlintstoneUser implements Cloneable {
 	private Long created;
 	private List<String> groups;
 	private List<String> roles;
+	private String pictureUrl;
 
 	public FlintstoneUser(String id, String email, String firstName, String lastName, boolean enabled, List<String> roles) {
 		this.id = id;
@@ -36,6 +37,7 @@ public class FlintstoneUser implements Cloneable {
 		this.created = System.currentTimeMillis();
 		this.groups = List.of(lastName);
 		this.roles = roles;
+		this.pictureUrl = "https://dasniko-public.s3.eu-central-1.amazonaws.com/" + this.username + ".png";
 	}
 
 	@Override
