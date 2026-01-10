@@ -1,6 +1,5 @@
 package dasniko.keycloak.user.flintstones.repo;
 
-import lombok.SneakyThrows;
 import org.keycloak.common.util.SecretGenerator;
 
 import java.util.ArrayList;
@@ -14,7 +13,6 @@ public class FlintstonesRepository {
 
 	private final List<FlintstoneUser> users = new ArrayList<>();
 
-	@SneakyThrows
 	FlintstonesRepository() {
 		users.add(new FlintstoneUser("12345", "fred.flintstone@bedrock.com", "Fred", "Flintstone", true, List.of("STONEAGE")));
 		users.add(new FlintstoneUser("23456", "wilma.flintstone@bedrock.com", "Wilma", "Flintstone", true, List.of("STONEAGE")));

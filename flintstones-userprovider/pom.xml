@@ -11,7 +11,6 @@
 	</parent>
 
 	<artifactId>flintstones-userprovider</artifactId>
-	<version>1.0-SNAPSHOT</version>
 	<properties>
 		<htmlunit.version>4.21.0</htmlunit.version>
 	</properties>

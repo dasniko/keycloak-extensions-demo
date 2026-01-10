@@ -1,12 +1,10 @@
 package dasniko.keycloak.user.flintstones;
 
 import com.google.auto.service.AutoService;
-import dasniko.keycloak.user.flintstones.repo.FlintstonesApiServer;
 import de.keycloak.util.BuildDetails;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.component.ComponentValidationException;
 import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.provider.ProviderConfigProperty;
@@ -34,8 +32,6 @@ public class FlintstonesUserStorageProviderFactory implements UserStorageProvide
 	static final String USE_PASSWORD_POLICY = "usePasswordPolicy";
 	static final String TRUST_EMAIL = "trustEmail";
 
-	private FlintstonesApiServer apiServer;
-
 	@Override
 	public FlintstonesUserStorageProvider create(KeycloakSession session, ComponentModel model) {
 		FlintstonesApiClient apiClient = new FlintstonesApiClient(session, model);
@@ -48,14 +44,9 @@ public class FlintstonesUserStorageProviderFactory implements UserStorageProvide
 	}
 
 	@Override
-	public void postInit(KeycloakSessionFactory factory) {
-		apiServer = new FlintstonesApiServer();
-	}
-
-	@Override
 	public List<ProviderConfigProperty> getConfigProperties() {
 		return ProviderConfigurationBuilder.create()
-			.property(USER_API_BASE_URL, "apiBaseUrl", "apiBaseUrlHelp", ProviderConfigProperty.STRING_TYPE, "http://localhost:8000", null)
+			.property(USER_API_BASE_URL, "apiBaseUrl", "apiBaseUrlHelp", ProviderConfigProperty.STRING_TYPE, "https://localhost:8443/realms/master/flintstones", null)
 			.property(CLIENT_ID, "apiClientId", "apiClientIdHelp", ProviderConfigProperty.CLIENT_LIST_TYPE, "", null)
 			.property(EDIT_MODE, "editMode", "editModeHelp", ProviderConfigProperty.LIST_TYPE, UserStorageProvider.EditMode.READ_ONLY, List.of(UserStorageProvider.EditMode.READ_ONLY.name(), UserStorageProvider.EditMode.WRITABLE.name()))
 			.property(USER_IMPORT, "importUsers", "importUsersHelp", ProviderConfigProperty.BOOLEAN_TYPE, "false", null)
@@ -77,13 +68,6 @@ public class FlintstonesUserStorageProviderFactory implements UserStorageProvide
 
 		if (config.get(EDIT_MODE).equals(UserStorageProvider.EditMode.READ_ONLY.name()) && config.get(USE_PASSWORD_POLICY, false)) {
 			throw new ComponentValidationException("Cannot set 'validatePasswordPolicy' to true if 'editMode' is set to 'READ_ONLY'");
-		}
-	}
-
-	@Override
-	public void close() {
-		if (apiServer != null) {
-			apiServer.stop();
 		}
 	}
 

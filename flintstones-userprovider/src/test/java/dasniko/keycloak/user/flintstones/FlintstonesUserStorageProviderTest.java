@@ -57,7 +57,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 
 	@Container
 	private static final KeycloakContainer keycloak = new KeycloakContainer()
-		.withEnv("KC_SPI_EVENTS_LISTENER_JBOSS_LOGGING_SUCCESS_LEVEL", "info")
+		.withEnv("KC_SPI_EVENTS_LISTENER__JBOSS_LOGGING__SUCCESS_LEVEL", "info")
 		.withEnv("KC_LOG_LEVEL", "INFO,dasniko:debug")
 		.withProviderClassesFrom("target/classes", "../utils/target/classes");
 
@@ -80,7 +80,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 		componentRep.setProviderType(UserStorageProvider.class.getTypeName());
 
 		MultivaluedHashMap<String, String> config = new MultivaluedHashMap<>();
-		config.add(FlintstonesUserStorageProviderFactory.USER_API_BASE_URL, "http://localhost:8000");
+		config.add(FlintstonesUserStorageProviderFactory.USER_API_BASE_URL, "http://localhost:8080/realms/master/flintstones");
 		config.add(FlintstonesUserStorageProviderFactory.USER_CREATION_ENABLED, "true");
 		config.add(FlintstonesUserStorageProviderFactory.EDIT_MODE, UserStorageProvider.EditMode.WRITABLE.toString());
 		config.add("enabled", "true");
