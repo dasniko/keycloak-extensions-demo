@@ -1,4 +1,4 @@
-package dasniko.keycloak.user.flintstones.repo;
+package de.keycloak.util;
 
 @FunctionalInterface
 interface TriConsumer<T, U, V> {
