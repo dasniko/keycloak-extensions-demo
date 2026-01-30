@@ -5,15 +5,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
 import io.restassured.response.ValidatableResponse;
 import org.keycloak.OAuth2Constants;
+import org.keycloak.admin.client.Keycloak;
 import org.keycloak.constants.ServiceUrlConstants;
+import org.keycloak.representations.idm.RealmRepresentation;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.utils.MediaType;
 
 import java.io.IOException;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
 
 @SuppressWarnings({"unused", "SameParameterValue", "UnusedReturnValue"})
 public class TestBase {
@@ -57,4 +66,31 @@ public class TestBase {
 		byte[] tokenPayload = Base64.getDecoder().decode(token.split("\\.")[1]);
 		return mapper.readValue(tokenPayload, mapTypeRef);
 	}
+
+	protected UserRepresentation getUser(Keycloak admin, String realm, String username) {
+		List<UserRepresentation> users = admin.realm(realm).users().searchByUsername(username, true);
+		assertThat(users.size(), not(equalTo(0)));
+		return users.getFirst();
+	}
+
+	protected void updateUser(Keycloak admin, String realm, String username, Consumer<UserRepresentation> consumer) {
+		UserRepresentation user = getUser(admin, realm, username);
+		consumer.accept(user);
+		admin.realm(realm).users().get(user.getId()).update(user);
+	}
+
+	protected static void initTestRealm(KeycloakContainer keycloak, String realmName, Consumer<RealmRepresentation> realmInitCustomizer, BiConsumer<Keycloak, RealmRepresentation> realmUpdater) {
+		Keycloak admin = keycloak.getKeycloakAdminClient();
+
+		RealmRepresentation realm = new RealmRepresentation();
+		realm.setRealm(realmName);
+		realm.setEnabled(true);
+
+		realmInitCustomizer.accept(realm);
+
+		admin.realms().create(realm);
+
+		realmUpdater.accept(admin, realm);
+	}
+
 }
