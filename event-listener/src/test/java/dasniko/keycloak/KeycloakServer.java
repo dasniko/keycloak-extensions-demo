@@ -1,7 +1,5 @@
 package dasniko.keycloak;
 
-import org.keycloak.Keycloak;
-
 /**
  * <p>Run this application from your IDE passing any CLI arguments. For instance, start-dev.
  * Make sure to add the following system properties before running:
@@ -14,10 +12,10 @@ import org.keycloak.Keycloak;
  */
 public class KeycloakServer {
 
-	public static void main(String[] args) {
-		Keycloak.builder()
-			.setVersion("999.0.0-SNAPSHOT")
-			.addDependency("dasniko.keycloak", "event-listener", "1.0-SNAPSHOT")
-			.start(args);
-	}
+//	public static void main(String[] args) {
+//		Keycloak.builder()
+//			.setVersion("999.0.0-SNAPSHOT")
+//			.addDependency("dasniko.keycloak", "event-listener", "1.0-SNAPSHOT")
+//			.start(args);
+//	}
 }
