@@ -3,8 +3,10 @@ package dasniko.keycloak.user.flintstones.repo;
 import org.keycloak.common.util.SecretGenerator;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * @author Niko Köbler, http://www.n-k.de, @dasniko
@@ -12,18 +14,20 @@ import java.util.stream.Collectors;
 public class FlintstonesRepository {
 
 	private final List<FlintstoneUser> users = new ArrayList<>();
+	private final Comparator<FlintstoneUser> byUsername = Comparator.comparing(FlintstoneUser::getUsername);
 
 	FlintstonesRepository() {
-		users.add(new FlintstoneUser("12345", "fred.flintstone@bedrock.com", "Fred", "Flintstone", true, List.of("STONEAGE")));
-		users.add(new FlintstoneUser("23456", "wilma.flintstone@bedrock.com", "Wilma", "Flintstone", true, List.of("STONEAGE")));
-		users.add(new FlintstoneUser("34567", "pebbles.flintstone@bedrock.com", "Pebbles", "Flintstone", true, null));
-		users.add(new FlintstoneUser("45678", "barney.rubble@bedrock.com", "Barney", "Rubble", true, List.of("STONEAGE")));
-		users.add(new FlintstoneUser("56789", "betty.rubble@bedrock.com", "Betty", "Rubble", true, List.of("STONEAGE")));
-		users.add(new FlintstoneUser("67890", "bambam.rubble@bedrock.com", "Bam Bam", "Rubble", false, null));
+		List<String> roles = List.of("STONEAGE");
+		users.add(new FlintstoneUser("12345", "Fred", "Flintstone", true, roles));
+		users.add(new FlintstoneUser("23456", "Wilma", "Flintstone", true, roles));
+		users.add(new FlintstoneUser("34567", "Pebbles", "Flintstone", true, null));
+		users.add(new FlintstoneUser("45678", "Barney", "Rubble", true, roles));
+		users.add(new FlintstoneUser("56789", "Betty", "Rubble", true, roles));
+		users.add(new FlintstoneUser("67890", "Bam Bam", "Rubble", false, null));
 	}
 
 	List<FlintstoneUser> getAllUsers() {
-		return users;
+		return users.stream().sorted(byUsername).toList();
 	}
 
 	int getUsersCount(String query) {
@@ -41,34 +45,37 @@ public class FlintstonesRepository {
 			.findFirst().orElse(null);
 	}
 
-	private FlintstoneUser findUserByUsernameOrEmailInternal(String username, boolean exactMatch) {
+	private Optional<FlintstoneUser> findUserByUsernameOrEmailInternal(String username, boolean exactMatch) {
 		if (!exactMatch) {
 			return users.stream()
 				.filter(user -> user.getUsername().contains(username) || user.getEmail().contains(username))
-				.findFirst().orElse(null);
+				.findFirst();
 		}
 		return users.stream()
 			.filter(user -> user.getUsername().equalsIgnoreCase(username) || user.getEmail().equalsIgnoreCase(username))
-			.findFirst().orElse(null);
+			.findFirst();
 	}
 
 	FlintstoneUser findUserByUsernameOrEmail(String username, boolean exactMatch) {
-		FlintstoneUser user = findUserByUsernameOrEmailInternal(username, exactMatch);
-		return user != null ? user.clone() : null;
+		return findUserByUsernameOrEmailInternal(username, exactMatch).orElse(null);
 	}
 
 	List<FlintstoneUser> findUsers(String query) {
 		return users.stream()
 			.filter(user -> query.equalsIgnoreCase("*") || user.getUsername().contains(query) || user.getEmail().contains(query))
-			.collect(Collectors.toList());
+			.sorted(byUsername).toList();
 	}
 
 	List<FlintstoneUser> findUsersByGroupname(String groupName) {
-		return users.stream().filter(user -> user.getGroups().contains(groupName)).toList();
+		return findUsersByFilter(user -> user.getGroups().contains(groupName));
 	}
 
 	List<FlintstoneUser> findUsersByRolename(String roleName) {
-		return users.stream().filter(user -> user.getRoles() != null && user.getRoles().contains(roleName)).toList();
+		return findUsersByFilter(user -> user.getRoles() != null && user.getRoles().contains(roleName));
+	}
+
+	private List<FlintstoneUser> findUsersByFilter(Predicate<FlintstoneUser> filter) {
+		return users.stream().filter(filter).sorted(byUsername).toList();
 	}
 
 	boolean validateCredentials(String id, String password) {
@@ -87,7 +94,7 @@ public class FlintstonesRepository {
 	}
 
 	void updateUser(FlintstoneUser user) {
-		FlintstoneUser existing = findUserByUsernameOrEmailInternal(user.getUsername(), true);
+		FlintstoneUser existing = findUserByUsernameOrEmailInternal(user.getUsername(), true).orElseThrow();
 		existing.setEmail(user.getEmail());
 		existing.setEmailVerified(user.isEmailVerified());
 		existing.setFirstName(user.getFirstName());

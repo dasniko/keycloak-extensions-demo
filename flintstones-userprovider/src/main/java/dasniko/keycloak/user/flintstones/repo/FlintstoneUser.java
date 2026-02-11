@@ -2,7 +2,6 @@ package dasniko.keycloak.user.flintstones.repo;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
 
 import java.util.List;
 
@@ -11,7 +10,7 @@ import java.util.List;
  */
 @Data
 @NoArgsConstructor
-public class FlintstoneUser implements Cloneable {
+public class FlintstoneUser {
 
 	private String id;
 	private String username;
@@ -26,23 +25,18 @@ public class FlintstoneUser implements Cloneable {
 	private List<String> roles;
 	private String pictureUrl;
 
-	public FlintstoneUser(String id, String email, String firstName, String lastName, boolean enabled, List<String> roles) {
+	public FlintstoneUser(String id, String firstName, String lastName, boolean enabled, List<String> roles) {
 		this.id = id;
+		this.email = firstName.toLowerCase().replace(" ", "") + "." + lastName.toLowerCase() + "@bedrock.com";
 		this.username = email.substring(0, email.indexOf("."));
-		this.email = email;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.password = firstName.toLowerCase();
 		this.enabled = enabled;
 		this.created = System.currentTimeMillis();
-		this.groups = List.of(lastName);
+		this.groups = List.of(lastName.toUpperCase() + "_FAMILY");
 		this.roles = roles;
 		this.pictureUrl = "https://dasniko-public.s3.eu-central-1.amazonaws.com/" + this.username + ".png";
 	}
 
-	@Override
-	@SneakyThrows
-	public FlintstoneUser clone() {
-		return (FlintstoneUser) super.clone();
-	}
 }
