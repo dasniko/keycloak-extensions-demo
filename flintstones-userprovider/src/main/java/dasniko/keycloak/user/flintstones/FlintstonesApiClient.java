@@ -31,7 +31,7 @@ public class FlintstonesApiClient {
 		this.simpleHttp = SimpleHttp.create(session);
 		this.baseUrl = model.get(FlintstonesUserStorageProviderFactory.USER_API_BASE_URL);
 		String clientId = model.get(FlintstonesUserStorageProviderFactory.CLIENT_ID);
-		this.token = clientId != null ? TokenUtils.generateServiceAccountAccessToken(session, clientId, null, null) : "";
+		this.token = clientId != null ? TokenUtils.getServiceAccountToken(session, clientId) : "";
 		this.tracing = session.getProvider(TracingProvider.class);
 	}
 

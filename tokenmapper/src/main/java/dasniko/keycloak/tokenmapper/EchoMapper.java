@@ -70,7 +70,7 @@ public class EchoMapper extends AbstractOIDCProtocolMapper implements UserInfoTo
 	protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession, KeycloakSession keycloakSession, ClientSessionContext clientSessionCtx) {
 		String url = mappingModel.getConfig().getOrDefault(URL, URL_DEFAULT);
 		String clientId = mappingModel.getConfig().getOrDefault(CLIENT_ID, "");
-		String accessToken = clientId.isEmpty() ? "" : TokenUtils.generateServiceAccountAccessToken(keycloakSession, clientId, null, null);
+		String accessToken = clientId.isEmpty() ? "" : TokenUtils.getServiceAccountToken(keycloakSession, clientId);
 		String username = userSession.getUser().getUsername();
 		log.debug("Requesting URL: {}?username={}", url, username);
 		Map<String, Object> echo = SimpleHttp.create(keycloakSession).doGet(url).param("username", username)

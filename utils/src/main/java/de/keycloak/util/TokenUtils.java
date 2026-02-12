@@ -1,5 +1,7 @@
 package de.keycloak.util;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.keycloak.common.ClientConnection;
 import org.keycloak.common.constants.ServiceAccountConstants;
 import org.keycloak.events.EventBuilder;
@@ -21,6 +23,7 @@ import org.keycloak.services.managers.AuthenticationSessionManager;
 import org.keycloak.sessions.AuthenticationSessionModel;
 import org.keycloak.sessions.RootAuthenticationSessionModel;
 
+import java.time.Duration;
 import java.util.function.Consumer;
 
 import static org.keycloak.models.UserSessionModel.SessionPersistenceState.TRANSIENT;
@@ -28,6 +31,23 @@ import static org.keycloak.models.UserSessionModel.SessionPersistenceState.TRANS
 @SuppressWarnings("unused")
 public class TokenUtils {
 
+	private static final Cache<String, String> tokenCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(1)).build();
+
+	public static String getServiceAccountToken(KeycloakSession session, String clientId) {
+		String cacheKey = session.getContext().getRealm().getName() + "@@" + clientId;
+		return tokenCache.get(cacheKey, key -> {
+			String tokenClientId = key.split("@@")[1];
+			return generateServiceAccountAccessToken(session, tokenClientId);
+		});
+	}
+
+	public static String generateServiceAccountAccessToken(KeycloakSession session, String clientId) {
+		return generateServiceAccountAccessToken(session, clientId, null);
+	}
+
+	public static String generateServiceAccountAccessToken(KeycloakSession session, String clientId, String scope) {
+		return generateServiceAccountAccessToken(session, clientId, scope, null);
+	}
 	public static String generateServiceAccountAccessToken(KeycloakSession session, String clientId, String scope, Consumer<AccessToken> tokenAdjuster) {
 
 		var context = session.getContext();
