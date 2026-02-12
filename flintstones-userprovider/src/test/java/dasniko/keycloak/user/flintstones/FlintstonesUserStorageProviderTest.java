@@ -170,7 +170,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 		assertThat(users, is(not(empty())));
 		assertThat(users, hasSize(6));
 
-		usersResource.delete(users.getLast().getId()).close();
+		usersResource.delete(users.getFirst().getId()).close();
 
 		users = usersResource.search("*", 0 , 10);
 		assertThat(users, hasSize(5));
