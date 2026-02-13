@@ -2,8 +2,10 @@ package de.keycloak.util;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import lombok.SneakyThrows;
 import org.keycloak.common.ClientConnection;
 import org.keycloak.common.constants.ServiceAccountConstants;
+import org.keycloak.common.util.Base64Url;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.ClientSessionContext;
@@ -17,11 +19,13 @@ import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.protocol.oidc.TokenManager;
 import org.keycloak.representations.AccessToken;
 import org.keycloak.representations.AccessTokenResponse;
+import org.keycloak.representations.JsonWebToken;
 import org.keycloak.services.Urls;
 import org.keycloak.services.managers.AuthenticationManager;
 import org.keycloak.services.managers.AuthenticationSessionManager;
 import org.keycloak.sessions.AuthenticationSessionModel;
 import org.keycloak.sessions.RootAuthenticationSessionModel;
+import org.keycloak.util.JsonSerialization;
 
 import java.time.Duration;
 import java.util.function.Consumer;
@@ -31,14 +35,16 @@ import static org.keycloak.models.UserSessionModel.SessionPersistenceState.TRANS
 @SuppressWarnings("unused")
 public class TokenUtils {
 
-	private static final Cache<String, String> tokenCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(1)).build();
+	private static final Cache<String, String> tokenCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(5)).build();
 
 	public static String getServiceAccountToken(KeycloakSession session, String clientId) {
-		String cacheKey = session.getContext().getRealm().getName() + "@@" + clientId;
-		return tokenCache.get(cacheKey, key -> {
+		String cacheKey = getCacheKey(session, clientId);
+		String token = tokenCache.get(cacheKey, key -> {
 			String tokenClientId = key.split("@@")[1];
 			return generateServiceAccountAccessToken(session, tokenClientId);
 		});
+		token = checkTokenExpiration(token, session, clientId);
+		return token;
 	}
 
 	public static String generateServiceAccountAccessToken(KeycloakSession session, String clientId) {
@@ -190,5 +196,21 @@ public class TokenUtils {
 		AccessTokenResponse tokenResponse = tokenResponseBuilder.build();
 
 		return tokenResponse.getToken();
+	}
+
+	private static String getCacheKey(KeycloakSession session, String clientId) {
+		return session.getContext().getRealm().getName() + "@@" + clientId;
+	}
+
+	@SneakyThrows
+	private static String checkTokenExpiration(String tokenString, KeycloakSession session, String clientId) {
+		byte[] payload = Base64Url.decode(tokenString.split("\\.")[1]);
+		JsonWebToken jwt = JsonSerialization.readValue(payload, JsonWebToken.class);
+		if (jwt.getExp() * 1000 - System.currentTimeMillis() < 10000) {
+			// if expired or will expire soon (10s), generate a new one
+			tokenString = generateServiceAccountAccessToken(session, clientId);
+			tokenCache.put(getCacheKey(session, clientId), tokenString);
+		}
+		return tokenString;
 	}
 }
