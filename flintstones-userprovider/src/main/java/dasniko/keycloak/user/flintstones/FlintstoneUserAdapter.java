@@ -131,38 +131,18 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 
 	@Override
 	public void setSingleAttribute(String name, String value) {
-		switch (name) {
-			case UserModel.USERNAME -> setUsername(value);
-			case UserModel.LAST_NAME -> setLastName(value);
-			case UserModel.FIRST_NAME -> setFirstName(value);
-			case UserModel.EMAIL -> setEmail(value);
-			case ATTR_PICTURE -> setPicture(value);
-			default -> super.setSingleAttribute(name, value);
-		}
+		setAttribute(name, value == null ? null : List.of(value));
 	}
 
 	@Override
 	public String getFirstAttribute(String name) {
-		return switch (name) {
-			case UserModel.USERNAME -> getUsername();
-			case UserModel.LAST_NAME -> getLastName();
-			case UserModel.FIRST_NAME -> getFirstName();
-			case UserModel.EMAIL -> getEmail();
-			case ATTR_PICTURE -> getPicture();
-			default -> super.getFirstAttribute(name);
-		};
+		return getAttributeStream(name).findFirst().orElse(null);
 	}
 
 	@Override
 	public Stream<String> getAttributeStream(String name) {
-		return switch (name) {
-			case UserModel.USERNAME -> Stream.of(getUsername());
-			case UserModel.LAST_NAME -> Stream.of(getLastName());
-			case UserModel.FIRST_NAME -> Stream.of(getFirstName());
-			case UserModel.EMAIL -> Stream.of(getEmail());
-			case "picture" -> Stream.of(getPicture());
-			default -> super.getAttributeStream(name);
-		};
+		List<String> values = getAttributes().get(name);
+		return values != null && !values.isEmpty() ? values.stream() : Stream.empty();
 	}
 
 	@Override
