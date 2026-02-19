@@ -41,8 +41,7 @@ This repository contains the following extensions, and probably (most likely ðŸ˜
 ### Event Processing
 
 - **[Event Listeners](./event-listener)** - Multiple event listener implementations:
-  - **Highlander** - Session restrictor allowing only the last session to survive (single session per user)
-  - **AWS SNS Publisher** - Forwards all Keycloak events to AWS SNS topics
+  - **Highlander** - Session restrictor allowing only the last session to survive (single session per user) - _deprecated_, Keycloak can do this ootb since v23
   - **LastLoginTime** - Stores most recent login timestamp in user attributes
 
 ### Protocol & Tokens

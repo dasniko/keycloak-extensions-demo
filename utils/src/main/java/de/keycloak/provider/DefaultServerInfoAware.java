@@ -9,6 +9,6 @@ import java.util.Map;
 public interface DefaultServerInfoAware extends ServerInfoAwareProviderFactory {
     @Override
     default Map<String, String> getOperationalInfo() {
-        return BuildDetails.get();
+        return BuildDetails.get(this.getClass());
     }
 }

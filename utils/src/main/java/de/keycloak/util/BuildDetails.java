@@ -12,8 +12,9 @@ public class BuildDetails {
 
 	private static final List<String> propertyNames = List.of("git.branch", "git.build.time", "git.build.version", "git.commit.id.abbrev");
 
-	public static Map<String, String> get() {
+	public static Map<String, String> get(Class<?> clazz) {
 		Map<String, String> buildDetails = new HashMap<>();
+		buildDetails.put("className", clazz.getCanonicalName());
 		java.util.Properties gitProperties = new java.util.Properties();
 		try {
 			gitProperties.load(Objects.requireNonNull(BuildDetails.class.getClassLoader().getResourceAsStream("git.properties")));
