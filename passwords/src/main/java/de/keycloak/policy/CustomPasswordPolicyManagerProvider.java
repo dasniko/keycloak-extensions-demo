@@ -11,7 +11,6 @@ import org.keycloak.policy.PasswordPolicyManagerProvider;
 import org.keycloak.policy.PasswordPolicyProvider;
 import org.keycloak.policy.PolicyError;
 
-import java.util.LinkedList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -45,7 +44,7 @@ public class CustomPasswordPolicyManagerProvider implements PasswordPolicyManage
 
 	@Override
 	public PolicyError validate(String user, String password) {
-		for (PasswordPolicyProvider p : getProviders(session)) {
+		for (PasswordPolicyProvider p : getProviders(session, session.getContext().getRealm())) {
 			PolicyError policyError = p.validate(user, password);
 			if (policyError != null) {
 				return policyError;
@@ -58,20 +57,11 @@ public class CustomPasswordPolicyManagerProvider implements PasswordPolicyManage
 	public void close() {
 	}
 
-	private List<PasswordPolicyProvider> getProviders(KeycloakSession session) {
-		return getProviders(session, session.getContext().getRealm());
-	}
-
 	private List<PasswordPolicyProvider> getProviders(KeycloakSession session, RealmModel realm) {
-		LinkedList<PasswordPolicyProvider> list = new LinkedList<>();
-		PasswordPolicy policy = realm.getPasswordPolicy();
-		for (String id : policy.getPolicies()) {
-			if (!policiesToSkip.contains(id)) {
-				PasswordPolicyProvider provider = session.getProvider(PasswordPolicyProvider.class, id);
-				list.add(provider);
-			}
-		}
-		return list;
+		return realm.getPasswordPolicy().getPolicies().stream()
+			.filter(policiesToSkip::contains)
+			.map(id -> session.getProvider(PasswordPolicyProvider.class, id))
+			.toList();
 	}
 
 	private PasswordPolicy getPasswordPolicy(KeycloakSession session, RealmModel realm, UserModel user) {
