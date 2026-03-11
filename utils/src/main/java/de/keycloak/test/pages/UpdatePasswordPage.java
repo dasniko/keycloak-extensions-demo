@@ -1,11 +1,12 @@
-package dasniko.keycloak.user.flintstones.pages;
+package de.keycloak.test.pages;
 
-import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.htmlunit.html.HtmlForm;
 import org.htmlunit.html.HtmlPage;
 
 import java.io.IOException;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class UpdatePasswordPage extends AbstractPage {
 
@@ -16,14 +17,14 @@ public class UpdatePasswordPage extends AbstractPage {
 	@Override
 	void verifyPage() {
 		super.verifyPage();
-		MatcherAssert.assertThat(page.getElementById("kc-passwd-update-form"), Matchers.notNullValue());
+		assertThat(page.getElementById("kc-passwd-update-form"), Matchers.notNullValue());
 	}
 
 	public <T extends AbstractPage> T setPasswordTo(String newPassword, Class<T> nextPageType) throws IOException {
-		HtmlForm form2 = page.getForms().getFirst();
-		form2.getInputByName("password-new").type(newPassword);
-		form2.getInputByName("password-confirm").type(newPassword);
-		HtmlPage nextPage = getButton(form2, "Submit").click();
+		HtmlForm form = page.getForms().getFirst();
+		form.getInputByName("password-new").type(newPassword);
+		form.getInputByName("password-confirm").type(newPassword);
+		HtmlPage nextPage = getButton(form, "Submit").click();
 		return preparePage(nextPageType, nextPage);
 	}
 }

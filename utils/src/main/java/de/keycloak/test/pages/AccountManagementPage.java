@@ -1,4 +1,4 @@
-package dasniko.keycloak.user.flintstones.pages;
+package de.keycloak.test.pages;
 
 import org.htmlunit.html.HtmlPage;
 

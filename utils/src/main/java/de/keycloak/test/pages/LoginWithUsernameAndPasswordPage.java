@@ -1,6 +1,5 @@
-package dasniko.keycloak.user.flintstones.pages;
+package de.keycloak.test.pages;
 
-import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.htmlunit.WebClient;
 import org.htmlunit.html.HtmlForm;
@@ -9,7 +8,10 @@ import org.htmlunit.html.HtmlPage;
 import java.io.IOException;
 import java.net.URL;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 public class LoginWithUsernameAndPasswordPage extends AbstractPage {
+
 	public LoginWithUsernameAndPasswordPage(HtmlPage page) {
 		super(page);
 	}
@@ -21,7 +23,7 @@ public class LoginWithUsernameAndPasswordPage extends AbstractPage {
 	@Override
 	void verifyPage() {
 		super.verifyPage();
-		MatcherAssert.assertThat(page.getElementById("kc-form-login"), Matchers.notNullValue());
+		assertThat(page.getElementById("kc-form-login"), Matchers.notNullValue());
 	}
 
 	public <T extends AbstractPage> T signInWithUsernameAndPassword(String username, String password, Class<T> nextPageType) throws IOException {

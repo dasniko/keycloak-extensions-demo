@@ -1,4 +1,4 @@
-package dasniko.keycloak.user.flintstones.pages;
+package de.keycloak.test.pages;
 
 import org.htmlunit.html.HtmlButton;
 import org.htmlunit.html.HtmlElement;
@@ -29,6 +29,12 @@ public abstract class AbstractPage {
 		Optional<HtmlElement> submit = form.getFormElements().stream().filter(element -> element instanceof HtmlButton && element.getTextContent().trim().equals(label)).findFirst();
 		assertThat(submit.isPresent(), is(true));
 		return (HtmlButton) submit.get();
+	}
+
+	@NotNull HtmlButton getElementById(HtmlForm form, String id) {
+		Optional<HtmlElement> element = form.getFormElements().stream().filter(e -> e.getId().equals(id)).findFirst();
+		assertThat(element.isPresent(), is(true));
+		return (HtmlButton) element.get();
 	}
 
 	void verifyPage() {

@@ -1,11 +1,11 @@
 package dasniko.keycloak.user.flintstones;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import dasniko.keycloak.user.flintstones.pages.AccountManagementPage;
-import dasniko.keycloak.user.flintstones.pages.LoginWithUsernameAndPasswordPage;
-import dasniko.keycloak.user.flintstones.pages.UpdatePasswordPage;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
 import de.keycloak.test.TestBase;
+import de.keycloak.test.pages.AccountManagementPage;
+import de.keycloak.test.pages.LoginWithUsernameAndPasswordPage;
+import de.keycloak.test.pages.UpdatePasswordPage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.utils.URIBuilder;
 import org.htmlunit.WebClient;

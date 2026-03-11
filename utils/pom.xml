@@ -63,6 +63,11 @@
 			<artifactId>rest-assured</artifactId>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.htmlunit</groupId>
+			<artifactId>htmlunit</artifactId>
+			<scope>compile</scope>
+		</dependency>
 	</dependencies>
 
 	<build>

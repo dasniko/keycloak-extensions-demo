@@ -18,13 +18,12 @@ public class AuthenticatorUtil {
 			Map<String, String> config = configModel.getConfig();
 			if (config != null && config.containsKey(configKey)) {
 				String configValue = config.get(configKey);
-				if (value instanceof Boolean) {
-					value = (T) Boolean.valueOf(configValue);
-				} else if (value instanceof Long) {
-					value = (T) Long.valueOf(configValue);
-				} else {
-					value = (T) configValue;
-				}
+				value = switch (value) {
+					case Boolean b -> (T) Boolean.valueOf(configValue);
+					case Long l -> (T) Long.valueOf(configValue);
+					case Integer i -> (T) Integer.valueOf(configValue);
+					case null, default -> (T) configValue;
+				};
 			}
 		}
 
