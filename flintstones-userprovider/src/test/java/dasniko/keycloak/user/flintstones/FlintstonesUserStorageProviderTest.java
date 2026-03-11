@@ -22,6 +22,7 @@ import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.constants.ServiceUrlConstants;
+import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.ComponentRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
@@ -74,6 +75,12 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 
 		keycloak.disableLightweightAccessTokenForAdminCliClient(REALM);
 
+		ClientRepresentation client = new ClientRepresentation();
+		client.setEnabled(true);
+		client.setClientId("api-client");
+		client.setServiceAccountsEnabled(true);
+		kcAdmin.realm(REALM).clients().create(client).close();
+
 		ComponentRepresentation componentRep = new ComponentRepresentation();
 		componentRep.setProviderId(FlintstonesUserStorageProviderFactory.PROVIDER_ID);
 		componentRep.setName(FlintstonesUserStorageProviderFactory.PROVIDER_ID);
@@ -81,6 +88,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 
 		MultivaluedHashMap<String, String> config = new MultivaluedHashMap<>();
 		config.add(FlintstonesUserStorageProviderFactory.USER_API_BASE_URL, "http://localhost:8080/realms/master/flintstones");
+		config.add(FlintstonesUserStorageProviderFactory.CLIENT_ID, "api-client");
 		config.add(FlintstonesUserStorageProviderFactory.USER_CREATION_ENABLED, "true");
 		config.add(FlintstonesUserStorageProviderFactory.EDIT_MODE, UserStorageProvider.EditMode.WRITABLE.toString());
 		config.add("enabled", "true");
