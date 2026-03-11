@@ -129,7 +129,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 	@Test
 	@Order(3)
 	public void testLoginAsUserWithInvalidPassword() {
-		requestToken(keycloak, REALM, FRED, "invalid", 401);
+		requestToken(keycloak, REALM, FRED, "invalid", 400);
 	}
 
 	@Test
