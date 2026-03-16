@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
-public class OtpMigrationResource {
+public class OtpMigrationAdminResource {
 
 	private final KeycloakSession session;
 	private final RealmModel realm;
@@ -29,19 +29,19 @@ public class OtpMigrationResource {
 	public Response importSeed(OtpImportRequest request) {
 		auth.users().requireManage();
 
-		UserModel user = session.users().getUserByUsername(realm, request.getUsername());
+		UserModel user = session.users().getUserByUsername(realm, request.username());
 
 		if (user == null) {
 			return Response.status(Response.Status.NOT_FOUND)
-				.entity(Map.of("error", "user not found: " + request.getUsername()))
+				.entity(Map.of("error", "user not found: " + request.username()))
 				.build();
 		}
 
 		try {
 			OtpMigrationService service = new OtpMigrationService();
-			String credentialId = service.migrateOtpSeed(realm, user, request.getSeed());
+			String credentialId = service.migrateOtpSeed(realm, user, request.seed());
 			return Response.ok(Map.of(
-				"username", request.getUsername(),
+				"username", request.username(),
 				"credentialId", credentialId,
 				"status", "migrated"
 			)).build();
@@ -63,21 +63,21 @@ public class OtpMigrationResource {
 
 		List<Map<String, Object>> results = requests.stream().map(request -> {
 			try {
-				UserModel user = session.users().getUserByUsername(realm, request.getUsername());
+				UserModel user = session.users().getUserByUsername(realm, request.username());
 				if (user == null) {
 					return Map.<String, Object>of(
-						"username", request.getUsername(),
+						"username", request.username(),
 						"status", "error",
 						"error", "User not found");
 				}
-				String credentialId = service.migrateOtpSeed(realm, user, request.getSeed());
+				String credentialId = service.migrateOtpSeed(realm, user, request.seed());
 				return Map.<String, Object>of(
-					"username", request.getUsername(),
+					"username", request.username(),
 					"credentialId", credentialId,
 					"status", "migrated");
 			} catch (Exception e) {
 				return Map.<String, Object>of(
-					"username", request.getUsername(),
+					"username", request.username(),
 					"status", "error",
 					"error", e.getMessage());
 			}

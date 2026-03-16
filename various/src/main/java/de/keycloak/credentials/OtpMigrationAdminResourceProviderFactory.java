@@ -11,9 +11,9 @@ import org.keycloak.services.resources.admin.ext.AdminRealmResourceProviderFacto
 import org.keycloak.services.resources.admin.fgap.AdminPermissionEvaluator;
 
 @AutoService(AdminRealmResourceProviderFactory.class)
-public class OtpMigrationResourceProviderFactory implements AdminRealmResourceProviderFactory, AdminRealmResourceProvider {
+public class OtpMigrationAdminResourceProviderFactory implements AdminRealmResourceProviderFactory, AdminRealmResourceProvider {
 
-	public static final String ID = "otp-migration";
+	public static final String PROVIDER_ID = "otp-migration";
 
 	@Override
 	public AdminRealmResourceProvider create(KeycloakSession session) {
@@ -22,7 +22,7 @@ public class OtpMigrationResourceProviderFactory implements AdminRealmResourcePr
 
 	@Override
 	public Object getResource(KeycloakSession session, RealmModel realm, AdminPermissionEvaluator auth, AdminEventBuilder adminEvent) {
-		return new OtpMigrationResource(session, realm, auth);
+		return new OtpMigrationAdminResource(session, realm, auth);
 	}
 
 	@Override
@@ -39,6 +39,6 @@ public class OtpMigrationResourceProviderFactory implements AdminRealmResourcePr
 
 	@Override
 	public String getId() {
-		return ID;
+		return PROVIDER_ID;
 	}
 }
