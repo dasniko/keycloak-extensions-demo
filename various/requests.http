@@ -1,0 +1,26 @@
+### master admin access token
+POST http://localhost:8080/realms/master/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+username=admin
+  &password=admin
+  &grant_type=password
+  &client_id=admin-cli
+
+> {% client.global.set("access_token", response.body.access_token); %}
+
+### POST import otp for single user
+POST http://localhost:8080/admin/realms/demo/otp-migration/import
+Authorization: Bearer {{ access_token }}
+Content-Type: application/json
+
+{"username": "dasniko", "seed": "J22P3RMFN42NLYA4ITC6UWB7ALXRP4FC"}
+
+### POST bulk import otps for multiple users
+POST http://localhost:8080/admin/realms/demo/otp-migration/bulk-import
+Authorization: Bearer {{ access_token }}
+Content-Type: application/json
+
+[
+  {"username": "dasniko", "seed": "J22P3RMFN42NLYA4ITC6UWB7ALXRP4FC"}
+]
