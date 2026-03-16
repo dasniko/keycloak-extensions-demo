@@ -39,11 +39,11 @@ public class AuthHelper {
 		RealmModel realm = session.getContext().getRealm();
 		ClientModel client;
 		if (clientId == null) {
-			client = authResult.getClient();
+			client = authResult.client();
 		} else {
 			client = realm.getClientByClientId(clientId);
 		}
-		return new Auth(realm, authResult.getToken(), authResult.getUser(), client, authResult.getSession(), false);
+		return new Auth(realm, authResult.token(), authResult.user(), client, authResult.session(), false);
 	}
 
 }

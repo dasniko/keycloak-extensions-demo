@@ -60,7 +60,7 @@ public class MyResourceProvider implements RealmResourceProvider {
 	@Path("hello-auth")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response helloAuthenticated() {
-		Auth auth = AuthHelper.getAuth(session, authResult -> authResult.getToken().getIssuedFor().equals("admin-cli"));
+		Auth auth = AuthHelper.getAuth(session, authResult -> authResult.token().getIssuedFor().equals("admin-cli"));
 		return Response.ok(Map.of("hello", auth.getUser().getUsername())).build();
 	}
 
