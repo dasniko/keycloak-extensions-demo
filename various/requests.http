@@ -24,3 +24,9 @@ Content-Type: application/json
 [
   {"username": "dasniko", "seed": "J22P3RMFN42NLYA4ITC6UWB7ALXRP4FC"}
 ]
+
+### POST OTP validation
+POST http://localhost:8080/realms/demo/otp-validation/validate
+Content-Type: application/json
+
+{ "username": "dasniko", "otp": "642070" }
