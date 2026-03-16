@@ -28,3 +28,4 @@ target
 deploy*.sh
 dependency-reduced-pom.xml
 passkey
+.claude
