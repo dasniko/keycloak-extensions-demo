@@ -11,9 +11,6 @@
 	</parent>
 
 	<artifactId>flintstones-userprovider</artifactId>
-	<properties>
-		<htmlunit.version>4.21.0</htmlunit.version>
-	</properties>
 
 	<dependencies>
 		<dependency>
@@ -39,7 +36,7 @@
 		<dependency>
 			<groupId>dasniko.keycloak</groupId>
 			<artifactId>utils</artifactId>
-			<version>${project.version}</version>
+			<version>${project.parent.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
