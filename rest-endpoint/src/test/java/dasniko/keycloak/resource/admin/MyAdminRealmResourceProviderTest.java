@@ -15,7 +15,7 @@ public class MyAdminRealmResourceProviderTest {
 
 	@Container
 	private static final KeycloakContainer keycloak =
-		new KeycloakContainer().withProviderClassesFrom("target/classes");
+		new KeycloakContainer("quay.io/keycloak/keycloak:nightly").withDefaultProviderClasses();
 
 	@Test
 	public void testEndpoint() {

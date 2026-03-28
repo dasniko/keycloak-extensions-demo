@@ -26,8 +26,8 @@ public class InitiailizerTest extends TestBase {
 	@ParameterizedTest
 	@ValueSource(strings = { ISSUER, "" })
 	public void testIssuer(String issuerValue) {
-		final KeycloakContainer keycloak = new KeycloakContainer()
-			.withProviderClassesFrom("target/classes")
+		final KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:nightly")
+			.withDefaultProviderClasses()
 			.withProviderLibsFrom(dependencies)
 			.withEnv("KC_SPI_INITIALIZER_ISSUER_BASE_URI", issuerValue)
 //			.withDebugFixedPort(8787, true)

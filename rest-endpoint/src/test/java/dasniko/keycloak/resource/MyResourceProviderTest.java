@@ -15,7 +15,8 @@ import static org.hamcrest.Matchers.is;
 public class MyResourceProviderTest {
 
 	@Container
-	private static final KeycloakContainer keycloak = new KeycloakContainer().withProviderClassesFrom("target/classes");
+	private static final KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:nightly")
+		.withDefaultProviderClasses();
 
 	@Test
 	public void testAnonymousEndpoint() {

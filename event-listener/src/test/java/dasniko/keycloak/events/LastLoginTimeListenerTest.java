@@ -22,7 +22,7 @@ public class LastLoginTimeListenerTest extends TestBase {
 	private static final String REALM = "demo";
 
 	@Container
-	private static final KeycloakContainer keycloak = new KeycloakContainer()
+	private static final KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:nightly")
 		.withRealmImportFile("demo-realm.json")
 		.withEnv("KC_SPI_EVENTS_LISTENER_LAST_LOGIN_TIME_ATTRIBUTE_NAME", "lastLogin")
 		.withDefaultProviderClasses();

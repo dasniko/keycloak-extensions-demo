@@ -27,8 +27,8 @@ public class LuckyNumberMapperTest {
 
 	@Test
 	public void shouldStartKeycloakWithLuckyNumberMapper() throws VerificationException {
-		try (KeycloakContainer keycloak = new KeycloakContainer()
-			.withProviderClassesFrom("target/classes")) {
+		try (KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:nightly")
+			.withDefaultProviderClasses()) {
 			keycloak.start();
 
 			keycloak.disableLightweightAccessTokenForAdminCliClient(KeycloakContainer.MASTER_REALM);

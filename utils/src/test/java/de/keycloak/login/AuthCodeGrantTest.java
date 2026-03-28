@@ -13,7 +13,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 public class AuthCodeGrantTest {
 
 	@Container
-	private static final KeycloakContainer keycloak = new KeycloakContainer();
+	private static final KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:nightly");
 
 	@Test
 	public void testAuthCodeGrant() {

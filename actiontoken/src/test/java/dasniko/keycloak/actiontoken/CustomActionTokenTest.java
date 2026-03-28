@@ -11,6 +11,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.util.Map;
 
@@ -20,7 +21,7 @@ import static io.restassured.RestAssured.given;
 public class CustomActionTokenTest {
 
 	@Container
-	private static final KeycloakContainer keycloak = new KeycloakContainer()
+	private static final KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:nightly")
 		.withDefaultProviderClasses();
 
 	@BeforeAll
@@ -56,7 +57,7 @@ public class CustomActionTokenTest {
 			.then().statusCode(200)
 			.extract().body().path("link");
 
-		URL url = new URL(actionTokenLink);
+		URL url = URI.create(actionTokenLink).toURL();
 		HttpURLConnection con = (HttpURLConnection) url.openConnection();
 		con.setRequestMethod("GET");
 		con.setInstanceFollowRedirects(false);

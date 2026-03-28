@@ -56,7 +56,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 	static final String FRED = "fred";
 
 	@Container
-	private static final KeycloakContainer keycloak = new KeycloakContainer()
+	private static final KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:nightly")
 		.withEnv("KC_SPI_EVENTS_LISTENER__JBOSS_LOGGING__SUCCESS_LEVEL", "info")
 		.withEnv("KC_LOG_LEVEL", "INFO,dasniko:debug")
 		.withProviderClassesFrom("target/classes", "../utils/target/classes");
