@@ -86,11 +86,15 @@ public class TestBase {
 		realm.setRealm(realmName);
 		realm.setEnabled(true);
 
-		realmInitCustomizer.accept(realm);
+		if (realmInitCustomizer != null) {
+			realmInitCustomizer.accept(realm);
+		}
 
 		admin.realms().create(realm);
 
-		realmUpdater.accept(admin, realm);
+		if (realmUpdater != null) {
+			realmUpdater.accept(admin, realm);
+		}
 	}
 
 }
