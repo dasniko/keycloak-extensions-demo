@@ -1,5 +1,6 @@
 package dasniko.keycloak.email;
 
+import com.google.auto.service.AutoService;
 import org.keycloak.Config;
 import org.keycloak.email.EmailTemplateProvider;
 import org.keycloak.email.EmailTemplateProviderFactory;
@@ -9,6 +10,7 @@ import org.keycloak.models.KeycloakSessionFactory;
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
  */
+@AutoService(EmailTemplateProviderFactory.class)
 public class JsonEmailTemplateProviderFactory implements EmailTemplateProviderFactory {
 
 	public static final String PROVIDER_ID = "json";

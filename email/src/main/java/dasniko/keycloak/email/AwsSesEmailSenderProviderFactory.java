@@ -1,5 +1,6 @@
 package dasniko.keycloak.email;
 
+import com.google.auto.service.AutoService;
 import org.keycloak.Config;
 import org.keycloak.email.EmailSenderProvider;
 import org.keycloak.email.EmailSenderProviderFactory;
@@ -10,6 +11,7 @@ import software.amazon.awssdk.services.ses.SesClient;
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
  */
+@AutoService(EmailSenderProviderFactory.class)
 public class AwsSesEmailSenderProviderFactory implements EmailSenderProviderFactory {
 
 	public static final String PROVIDER_ID = "aws-ses";
