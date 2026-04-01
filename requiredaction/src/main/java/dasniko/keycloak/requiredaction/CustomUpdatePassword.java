@@ -6,7 +6,9 @@ import org.keycloak.authentication.RequiredActionContext;
 import org.keycloak.authentication.RequiredActionFactory;
 import org.keycloak.authentication.RequiredActionProvider;
 import org.keycloak.authentication.requiredactions.UpdatePassword;
+import org.keycloak.models.Constants;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.RequiredActionConfigModel;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.provider.ProviderConfigurationBuilder;
 
@@ -18,13 +20,13 @@ import java.util.List;
 public class CustomUpdatePassword extends UpdatePassword {
 
 	private static final List<ProviderConfigProperty> CONFIG_PROPERTIES;
-	protected static final String DISALLOW_FOR_FEDERATED_IDENTITIES = "disallowForFedId";
+	protected static final String DISALLOWED_IDENTITY_PROVIDERS = "disallowedIdPs";
 
 	static {
 		CONFIG_PROPERTIES = ProviderConfigurationBuilder.create()
 			.property()
-			.name(DISALLOW_FOR_FEDERATED_IDENTITIES)
-			.label("Disallow for federated identities")
+			.name(DISALLOWED_IDENTITY_PROVIDERS)
+			.label("Disallowed for IdPs")
 			.helpText("Disallow password update for users with a federated identity from on of the selected identity providers.")
 			.type(ProviderConfigProperty.IDENTITY_PROVIDER_MULTI_LIST_TYPE)
 			.add()
@@ -77,9 +79,12 @@ public class CustomUpdatePassword extends UpdatePassword {
 	}
 
 	private List<String> getDisallowedProviders(RequiredActionContext context) {
-		String configValue = context.getConfig().getConfigValue(DISALLOW_FOR_FEDERATED_IDENTITIES, null);
+		RequiredActionConfigModel config = context.getConfig();
+		if (config == null) return List.of();
+
+		String configValue = config.getConfigValue(DISALLOWED_IDENTITY_PROVIDERS, null);
 		if (configValue == null || configValue.isBlank()) return List.of();
-		return List.of(configValue.split(","));
+		return List.of(configValue.split(Constants.CFG_DELIMITER));
 	}
 
 }
