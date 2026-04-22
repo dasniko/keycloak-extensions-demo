@@ -29,6 +29,7 @@
 		<module>passwords</module>
 		<module>validators</module>
 		<module>various</module>
+		<module>identityprovider</module>
 	</modules>
 
 	<properties>
