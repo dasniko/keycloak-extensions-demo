@@ -3,7 +3,6 @@ package dasniko.keycloak.broker.oidc;
 import com.google.auto.service.AutoService;
 import de.keycloak.provider.DefaultServerInfoAware;
 import org.keycloak.broker.oidc.OIDCIdentityProvider;
-import org.keycloak.broker.oidc.OIDCIdentityProviderConfig;
 import org.keycloak.broker.oidc.OIDCIdentityProviderFactory;
 import org.keycloak.broker.provider.IdentityProviderFactory;
 import org.keycloak.models.IdentityProviderModel;
@@ -20,7 +19,7 @@ public class CustomIdentityProviderFactory extends OIDCIdentityProviderFactory i
 
 	@Override
 	public OIDCIdentityProvider create(KeycloakSession session, IdentityProviderModel model) {
-		return new CustomIdentityProvider(session, new OIDCIdentityProviderConfig(model));
+		return new CustomIdentityProvider(session, new CustomOIDCIdentityProviderConfig(model));
 	}
 
 	@Override

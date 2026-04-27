@@ -6,7 +6,6 @@ import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.broker.oidc.OIDCIdentityProvider;
-import org.keycloak.broker.oidc.OIDCIdentityProviderConfig;
 import org.keycloak.broker.provider.IdentityBrokerException;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
@@ -21,7 +20,7 @@ import java.io.IOException;
 @Slf4j
 public class CustomIdentityProvider extends OIDCIdentityProvider {
 
-	public CustomIdentityProvider(KeycloakSession session, OIDCIdentityProviderConfig config) {
+	public CustomIdentityProvider(KeycloakSession session, CustomOIDCIdentityProviderConfig config) {
 		super(session, config);
 	}
 
