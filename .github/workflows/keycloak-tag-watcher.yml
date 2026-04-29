@@ -1,0 +1,127 @@
+name: Keycloak Tag Watcher
+
+on:
+  schedule:
+    - cron: '17 8 * * MON-FRI'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+concurrency:
+  group: keycloak-tag-watcher
+  cancel-in-progress: false
+
+env:
+  WATCH_REPO: keycloak/keycloak
+  TAG_REGEX: '^[0-9]+\.[0-9]+\.[0-9]+$'
+  TRACKER_LABEL: keycloak-tag-watcher
+  TRACKER_TITLE: 'Keycloak Tag Watcher'
+  GH_TOKEN: ${{ github.token }}
+  GH_REPO: ${{ github.repository }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure tracker label exists
+        run: |
+          gh label create "$TRACKER_LABEL" \
+            --color "0E8A16" \
+            --description "State storage for Keycloak Tag Watcher" \
+            --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
+
+      - name: Fetch matching tags from upstream
+        run: |
+          set -euo pipefail
+          page=1
+          : > all.txt
+          while :; do
+            resp=$(gh api -H 'Accept: application/vnd.github+json' \
+              "/repos/$WATCH_REPO/tags?per_page=100&page=$page")
+            jq -r '.[].name' <<<"$resp" >> all.txt
+            [ "$(jq 'length' <<<"$resp")" -lt 100 ] && break
+            page=$((page+1))
+          done
+          grep -E "$TAG_REGEX" all.txt | sort -Vu | jq -R . | jq -s . > current.json
+          echo "Matching tags upstream: $(jq 'length' current.json)"
+
+      - name: Find tracker issue
+        id: tracker
+        run: |
+          issue=$(gh issue list --label "$TRACKER_LABEL" --state open \
+            --limit 1 --json number --jq '.[0].number // empty')
+          echo "issue=$issue" >> "$GITHUB_OUTPUT"
+          echo "Tracker issue: ${issue:-<none>}"
+
+      - name: Build issue body
+        run: |
+          set -euo pipefail
+          state=$(jq -c --arg repo "$WATCH_REPO" '{repo: $repo, seen: .}' current.json)
+          {
+            echo "# $TRACKER_TITLE"
+            echo
+            echo "Tracks release tags of [\`$WATCH_REPO\`](https://github.com/$WATCH_REPO) matching \`$TAG_REGEX\`."
+            echo "A comment is posted on every new tag — that's how you get notified (subscribe to this issue)."
+            echo
+            echo "**Do not edit or close this issue** — the workflow stores state in the body below."
+            echo "Closing it triggers a re-initialization on the next run (all current tags will be marked as seen again)."
+            echo
+            echo "- Last check: \`$(date -u +%Y-%m-%dT%H:%M:%SZ)\`"
+            echo "- Tracked tags: $(jq 'length' current.json)"
+            echo
+            echo "<details><summary>State (machine-readable)</summary>"
+            echo
+            echo "<!-- tag-watcher-state-begin -->"
+            echo '```json'
+            echo "$state"
+            echo '```'
+            echo "<!-- tag-watcher-state-end -->"
+            echo
+            echo "</details>"
+          } > new_body.md
+
+      - name: Initialize tracker issue (first run)
+        if: steps.tracker.outputs.issue == ''
+        run: |
+          gh issue create \
+            --title "$TRACKER_TITLE" \
+            --label "$TRACKER_LABEL" \
+            --body-file new_body.md
+          echo "Initialized — existing tags marked as seen, no notifications sent."
+
+      - name: Diff and notify
+        if: steps.tracker.outputs.issue != ''
+        run: |
+          set -euo pipefail
+          issue=${{ steps.tracker.outputs.issue }}
+          gh issue view "$issue" --json body --jq .body > old_body.md
+
+          awk '
+            /<!-- tag-watcher-state-begin -->/{flag=1; next}
+            /<!-- tag-watcher-state-end -->/{flag=0}
+            flag && !/^```/
+          ' old_body.md > state.json
+
+          if [ ! -s state.json ]; then
+            echo "::error::State block missing in tracker issue body. Refusing to overwrite."
+            exit 1
+          fi
+
+          jq '.seen' state.json > seen.json
+          jq -n --slurpfile c current.json --slurpfile s seen.json \
+            '$c[0] - $s[0]' > new.json
+
+          new_count=$(jq 'length' new.json)
+          echo "New tags: $new_count"
+
+          if [ "$new_count" -gt 0 ]; then
+            while read -r tag; do
+              url="https://github.com/$WATCH_REPO/tree/$tag"
+              gh issue comment "$issue" \
+                --body "🏷️ New tag in \`$WATCH_REPO\`: [\`$tag\`]($url)"
+            done < <(jq -r '.[]' new.json)
+          fi
+
+          gh issue edit "$issue" --body-file new_body.md
