@@ -1,0 +1,44 @@
+{
+  "realm": "idp",
+  "enabled": true,
+  "registrationAllowed": false,
+  "users": [
+    {
+      "username": "idp-user",
+      "enabled": true,
+      "email": "idp-user@example.com",
+      "firstName": "Idp",
+      "lastName": "User",
+      "credentials": [{"type": "password", "value": "password", "temporary": false}]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "keycloak-broker",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "broker-secret",
+      "redirectUris": ["*"],
+      "webOrigins": ["*"],
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "protocol": "openid-connect",
+      "protocolMappers": [
+        {
+          "name": "groups-claim",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-hardcoded-claim-mapper",
+          "consentRequired": false,
+          "config": {
+            "claim.name": "groups",
+            "claim.value": "[\"engineering\", \"qa\"]",
+            "jsonType.label": "JSON",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ]
+}
