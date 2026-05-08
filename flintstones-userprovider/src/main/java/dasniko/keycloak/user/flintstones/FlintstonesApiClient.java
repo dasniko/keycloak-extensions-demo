@@ -112,6 +112,12 @@ public class FlintstonesApiClient {
 		return handleRequestWithNoContentResponse(request, "deleteUser");
 	}
 
+	public List<Credential> getCredentials(String userId) {
+		String url = String.format("%s/users/%s/credentials", baseUrl, userId);
+		SimpleHttpRequest request = prepareGetRequest(url);
+		return handleRequest(request, "getCredentials", response -> response.asJson(new TypeReference<>() {}));
+	}
+
 	public boolean verifyCredentials(String userId, Credential credential) {
 		String url = String.format("%s/users/%s/credentials/verify", baseUrl, userId);
 		SimpleHttpRequest request = simpleHttp.doPost(url).auth(token).json(credential);

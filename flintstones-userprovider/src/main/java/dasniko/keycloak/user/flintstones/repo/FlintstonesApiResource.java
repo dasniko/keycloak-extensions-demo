@@ -82,10 +82,17 @@ public class FlintstonesApiResource {
 		return Response.status(status).build();
 	}
 
+	@GET
+	@Path("users/{id}/credentials")
+	public Response getCredentials(@PathParam("id") String id) {
+		List<Credential> credentials = repository.getCredentials(id);
+		return Response.ok(credentials).build();
+	}
+
 	@POST
 	@Path("users/{id}/credentials/verify")
 	public Response verifyCredentials(@PathParam("id") String id, Credential credential) {
-		boolean success = repository.validateCredentials(id, credential.getValue());
+		boolean success = repository.validateCredentials(id, credential.getType(), credential.getValue());
 		Response.Status status = success ? Response.Status.NO_CONTENT : Response.Status.BAD_REQUEST;
 		return Response.status(status).build();
 	}
@@ -93,7 +100,7 @@ public class FlintstonesApiResource {
 	@PUT
 	@Path("users/{id}/credentials")
 	public Response updateCredentials(@PathParam("id") String id, Credential credential) {
-		boolean success = repository.updateCredentials(id, credential.getValue());
+		boolean success = repository.updateCredentials(id, credential.getType(), credential.getValue());
 		Response.Status status = success ? Response.Status.NO_CONTENT : Response.Status.BAD_REQUEST;
 		return Response.status(status).build();
 	}

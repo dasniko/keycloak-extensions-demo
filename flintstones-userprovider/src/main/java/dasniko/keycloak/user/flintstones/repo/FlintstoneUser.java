@@ -18,12 +18,15 @@ public class FlintstoneUser {
 	private boolean emailVerified;
 	private String firstName;
 	private String lastName;
-	private String password;
+	private String pictureUrl;
 	private boolean enabled;
 	private Long created;
+
 	private List<String> groups;
 	private List<String> roles;
-	private String pictureUrl;
+
+	private String password;
+	private String otp;
 
 	public FlintstoneUser(String id, String firstName, String lastName, boolean enabled, List<String> roles) {
 		this.id = id;
@@ -31,12 +34,15 @@ public class FlintstoneUser {
 		this.username = email.substring(0, email.indexOf("."));
 		this.firstName = firstName;
 		this.lastName = lastName;
-		this.password = firstName.toLowerCase();
+		this.pictureUrl = "https://dasniko-public.s3.eu-central-1.amazonaws.com/" + this.username + ".png";
 		this.enabled = enabled;
 		this.created = System.currentTimeMillis();
+
 		this.groups = List.of(lastName.toUpperCase() + "_FAMILY");
 		this.roles = roles;
-		this.pictureUrl = "https://dasniko-public.s3.eu-central-1.amazonaws.com/" + this.username + ".png";
+
+		this.password = firstName.toLowerCase();
+		this.otp = id;
 	}
 
 }

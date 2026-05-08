@@ -51,7 +51,9 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public boolean supportsCredentialType(String credentialType) {
-		return PasswordCredentialModel.TYPE.equals(credentialType);
+		return model.getConfig()
+			.getOrDefault(FlintstonesUserStorageProviderFactory.SUPPORTED_CREDENTIAL_TYPES, List.of(PasswordCredentialModel.TYPE))
+			.contains(credentialType);
 	}
 
 	@Override
@@ -61,14 +63,15 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public boolean isValid(RealmModel realm, UserModel user, CredentialInput input) {
-		if (!supportsCredentialType(input.getType()) || !(input instanceof UserCredentialModel cred)) {
+		String credentialType = input.getType();
+		if (!supportsCredentialType(credentialType) || !(input instanceof UserCredentialModel cred)) {
 			return false;
 		}
 
 		TracingProvider tracing = session.getProvider(TracingProvider.class);
 		tracing.startSpan(FlintstonesUserStorageProvider.class, "isValid");
 
-		Credential credential = new Credential("password", cred.getChallengeResponse());
+		Credential credential = new Credential(credentialType, cred.getChallengeResponse());
 		boolean isValid = apiClient.verifyCredentials(StorageId.externalId(user.getId()), credential);
 		tracing.endSpan();
 		return isValid;
@@ -76,7 +79,8 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public boolean updateCredential(RealmModel realm, UserModel user, CredentialInput input) {
-		if (!supportsCredentialType(input.getType()) || !(input instanceof UserCredentialModel cred)) {
+		String credentialType = input.getType();
+		if (!supportsCredentialType(credentialType) || !(input instanceof UserCredentialModel cred)) {
 			return false;
 		}
 
@@ -88,7 +92,7 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 		TracingProvider tracing = session.getProvider(TracingProvider.class);
 		tracing.startSpan(FlintstonesUserStorageProvider.class, "updateCredential");
 
-		if (usePasswordPolicy()) {
+		if (PasswordCredentialModel.TYPE.equals(credentialType) && usePasswordPolicy()) {
 			PolicyError policyError = session.getProvider(PasswordPolicyManagerProvider.class)
 				.validate(realm, user, cred.getChallengeResponse());
 			if (policyError != null) {
@@ -99,7 +103,7 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 			}
 		}
 
-		Credential credential = new Credential("password", cred.getChallengeResponse());
+		Credential credential = new Credential(credentialType, cred.getChallengeResponse());
 		boolean success = apiClient.updateCredentials(StorageId.externalId(user.getId()), credential);
 		tracing.endSpan();
 		return success;
@@ -107,11 +111,18 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public Stream<CredentialModel> getCredentials(RealmModel realm, UserModel user) {
-		CredentialModel cm = new CredentialModel();
-		cm.setType(PasswordCredentialModel.TYPE);
-		cm.setCreatedDate(0L);
-		cm.setFederationLink(user.getFederationLink());
-		return Stream.of(cm);
+		return apiClient.getCredentials(StorageId.externalId(user.getId()))
+			.stream()
+			.filter(c -> supportsCredentialType(c.getType()))
+			.map(c -> {
+				CredentialModel cm = new CredentialModel();
+				cm.setType(c.getType());
+				cm.setCreatedDate(0L);
+				cm.setFederationLink(user.getFederationLink());
+				cm.setCredentialData(c.getValue());
+				cm.setSecretData(c.getValue());
+				return cm;
+			});
 	}
 
 	@Override

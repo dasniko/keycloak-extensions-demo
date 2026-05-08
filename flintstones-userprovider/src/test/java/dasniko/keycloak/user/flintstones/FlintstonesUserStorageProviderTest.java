@@ -83,6 +83,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 				MultivaluedHashMap<String, String> config = new MultivaluedHashMap<>();
 				config.add(FlintstonesUserStorageProviderFactory.USER_API_BASE_URL, "http://localhost:8080/realms/master/flintstones");
 				config.add(FlintstonesUserStorageProviderFactory.CLIENT_ID, "api-client");
+				config.add(FlintstonesUserStorageProviderFactory.SUPPORTED_CREDENTIAL_TYPES, "password");
 				config.add(FlintstonesUserStorageProviderFactory.USER_CREATION_ENABLED, "true");
 				config.add(FlintstonesUserStorageProviderFactory.EDIT_MODE, UserStorageProvider.EditMode.WRITABLE.toString());
 				config.add("enabled", "true");

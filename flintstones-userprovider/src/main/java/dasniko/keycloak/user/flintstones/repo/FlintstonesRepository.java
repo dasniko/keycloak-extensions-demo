@@ -78,12 +78,26 @@ public class FlintstonesRepository {
 		return users.stream().filter(filter).sorted(byUsername).toList();
 	}
 
-	boolean validateCredentials(String id, String password) {
-		return findUserById(id).getPassword().equals(password);
+	List<Credential> getCredentials(@SuppressWarnings("unused") String id) {
+		return List.of(
+			new Credential(Credential.TYPE_PASSWORD, "{}"),
+			new Credential(Credential.TYPE_OTP, "{}")
+		);
 	}
 
-	boolean updateCredentials(String id, String password) {
-		findUserById(id).setPassword(password);
+	boolean validateCredentials(String id, String type, String value) {
+		if (Credential.TYPE_OTP.equals(type)) {
+			return findUserById(id).getOtp().equals(value);
+		}
+		return findUserById(id).getPassword().equals(value);
+	}
+
+	boolean updateCredentials(String id, String type, String value) {
+		if (Credential.TYPE_OTP.equals(type)) {
+			findUserById(id).setOtp(value);
+		} else {
+			findUserById(id).setPassword(value);
+		}
 		return true;
 	}
 
