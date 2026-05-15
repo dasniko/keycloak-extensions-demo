@@ -14,36 +14,36 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 @Retention(SOURCE)
 @Target({TYPE, METHOD, FIELD, CONSTRUCTOR})
 public @interface CopiedFromKeycloak {
-    /**
-     * Original class or file in Keycloak.
-     * Example: "org.keycloak.common.util.Time"
-     */
-    String source() default "";
+	/**
+	 * Original class or file in Keycloak.
+	 * Example: "org.keycloak.common.util.Time"
+	 */
+	String source() default "";
 
-    /**
-     * Keycloak version the code was copied from.
-     * Example: "26.5.5"
-     */
-    String version() default "";
+	/**
+	 * Keycloak version the code was copied from.
+	 * Example: "26.6.0"
+	 */
+	String version() default "";
 
-    /**
-     * Whether the copied code was modified.
-     */
-    boolean modified() default false;
+	/**
+	 * Whether the copied code was modified.
+	 */
+	boolean modified() default false;
 
-    /**
-     * Description of the modifications, if any.
-     */
-    String changes() default "";
+	/**
+	 * Description of the modifications, if any.
+	 */
+	String changes() default "";
 
-    /**
-     * Reason why the code was copied instead of reused.
-     */
-    String reason() default "";
+	/**
+	 * Reason why the code was copied instead of reused.
+	 */
+	String reason() default "";
 
-    /**
-     * Optional date when the code was copied.
-     * Example: "2026-03-16"
-     */
-    String copiedAt() default "";
+	/**
+	 * Optional date when the code was copied.
+	 * Example: "2026-04-01"
+	 */
+	String copiedAt() default "";
 }
