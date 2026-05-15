@@ -9,6 +9,7 @@ import org.keycloak.authentication.requiredactions.UpdatePassword;
 import org.keycloak.models.Constants;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RequiredActionConfigModel;
+import org.keycloak.models.credential.PasswordCredentialModel;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.provider.ProviderConfigurationBuilder;
 
@@ -72,7 +73,8 @@ public class CustomUpdatePassword extends UpdatePassword {
 			.getFederatedIdentitiesStream(context.getRealm(), context.getUser())
 			.anyMatch(identity -> disallowedProviders.contains(identity.getIdentityProvider()));
 		if (userHasDisallowedFederatedIdentity) {
-			context.challenge(context.form().setError("passwordUpdateNotAllowed").createErrorPage(Response.Status.FORBIDDEN));
+			context.challenge(context.form().setError("credentialUpdateNotAllowed", PasswordCredentialModel.TYPE)
+				.createErrorPage(Response.Status.FORBIDDEN));
 			return false;
 		}
 		return true;
