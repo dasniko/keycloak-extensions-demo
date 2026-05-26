@@ -11,6 +11,7 @@ import org.keycloak.provider.ProviderConfigProperty;
 import java.math.BigInteger;
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.util.Arrays;
 import java.util.List;
 
 @JBossLog
@@ -25,13 +26,9 @@ public class ConditionalCidrAuthenticator extends AbstractConditionalAuthenticat
 	public boolean matchCondition(AuthenticationFlowContext context) {
 		String remoteAddress = context.getConnection().getRemoteAddr();
 		String cidrString = AuthenticatorUtil.getConfig(context, CONFIG_CIDR, "0.0.0.0/0");
-		String[] cidrs = cidrString.split(",");
-		boolean isInSubnet = false;
-		for (String cidr : cidrs) {
-			if (isIpInSubnet(remoteAddress, cidr.trim())) {
-				isInSubnet = true;
-			}
-		}
+		boolean isInSubnet = Arrays.stream(cidrString.split(","))
+			.map(String::trim)
+			.anyMatch(cidr -> isIpInSubnet(remoteAddress, cidr));
 		log.debugf("Configured CIDRs: %s - Remote IP Address: %s - isInSubnet: %s", cidrString, remoteAddress, isInSubnet);
 
 		boolean negateOutput = AuthenticatorUtil.getConfig(context, ConditionalAuthNoteAuthenticatorFactory.CONF_NOT, Boolean.FALSE);
