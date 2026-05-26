@@ -1,47 +1,68 @@
 package dasniko.keycloak.authentication.conditional;
 
+import com.google.auto.service.AutoService;
+import de.keycloak.util.AuthenticatorUtil;
 import jakarta.ws.rs.core.HttpHeaders;
 import org.keycloak.authentication.AuthenticationFlowContext;
-import org.keycloak.authentication.authenticators.conditional.ConditionalAuthenticator;
-import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.RealmModel;
-import org.keycloak.models.UserModel;
+import org.keycloak.authentication.AuthenticatorFactory;
+import org.keycloak.provider.ProviderConfigProperty;
 
-import static de.keycloak.util.AuthenticatorUtil.getConfig;
+import java.util.List;
 
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
  */
-public class ConditionalHeaderAuthenticator implements ConditionalAuthenticator {
+@AutoService(AuthenticatorFactory.class)
+public class ConditionalHeaderAuthenticator extends AbstractConditionalAuthenticator {
 
-	static final ConditionalHeaderAuthenticator SINGLETON = new ConditionalHeaderAuthenticator();
+	public static final String PROVIDER_ID = "conditional-custom-header";
+
+	static final String CONF_HEADER_NAME = "header_name";
+	static final String CONF_HEADER_EXPECTED_VALUE = "header_expected_value";
 
 	@Override
 	public boolean matchCondition(AuthenticationFlowContext context) {
-		String headerName = getConfig(context, ConditionalHeaderAuthenticatorFactory.CONF_HEADER_NAME, "");
-		String headerValue = getConfig(context, ConditionalHeaderAuthenticatorFactory.CONF_HEADER_EXPECTED_VALUE, "");
-		boolean negateOutput = getConfig(context, ConditionalHeaderAuthenticatorFactory.CONF_NOT, Boolean.FALSE);
+		String headerName = AuthenticatorUtil.getConfig(context, CONF_HEADER_NAME, "");
+		String headerValue = AuthenticatorUtil.getConfig(context, CONF_HEADER_EXPECTED_VALUE, "");
 
 		HttpHeaders httpHeaders = context.getHttpRequest().getHttpHeaders();
 		String customHeader = httpHeaders.getHeaderString(headerName);
 
-		return negateOutput != headerValue.equalsIgnoreCase(customHeader);
+		return isNegateOutput(context) != headerValue.equalsIgnoreCase(customHeader);
 	}
 
 	@Override
-	public void action(AuthenticationFlowContext authenticationFlowContext) {
+	public String getDisplayType() {
+		return "Condition - Custom Header";
 	}
 
 	@Override
-	public boolean requiresUser() {
-		return false;
+	public String getHelpText() {
+		return "Flow is executed only if...";
 	}
 
 	@Override
-	public void setRequiredActions(KeycloakSession keycloakSession, RealmModel realmModel, UserModel userModel) {
+	public List<ProviderConfigProperty> getConfigProperties() {
+		ProviderConfigProperty authNoteName = new ProviderConfigProperty();
+		authNoteName.setType(ProviderConfigProperty.STRING_TYPE);
+		authNoteName.setName(CONF_HEADER_NAME);
+		authNoteName.setLabel("Header name");
+		authNoteName.setHelpText("Name of the header to check");
+		authNoteName.setDefaultValue("X-Custom-Header");
+
+		ProviderConfigProperty authNoteExpectedValue = new ProviderConfigProperty();
+		authNoteExpectedValue.setType(ProviderConfigProperty.STRING_TYPE);
+		authNoteExpectedValue.setName(CONF_HEADER_EXPECTED_VALUE);
+		authNoteExpectedValue.setLabel("Expected header value");
+		authNoteExpectedValue.setHelpText("Expected value in the header");
+		authNoteExpectedValue.setDefaultValue("my-custom-value");
+
+		return List.of(authNoteName, authNoteExpectedValue, negateOutputConfProperty);
 	}
 
 	@Override
-	public void close() {
+	public String getId() {
+		return PROVIDER_ID;
 	}
+
 }

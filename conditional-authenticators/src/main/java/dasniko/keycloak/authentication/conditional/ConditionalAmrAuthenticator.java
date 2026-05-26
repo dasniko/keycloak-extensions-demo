@@ -25,9 +25,8 @@ public class ConditionalAmrAuthenticator extends AbstractConditionalAuthenticato
 	public boolean matchCondition(AuthenticationFlowContext context) {
 		String expectedValue = AuthenticatorUtil.getConfig(context, CONF_AMR_VALUE, "");
 		List<String> amrValues = getAmr(context);
-		boolean negateOutput = AuthenticatorUtil.getConfig(context, ConditionalAuthNoteAuthenticatorFactory.CONF_NOT, Boolean.FALSE);
 
-		return negateOutput != amrValues.contains(expectedValue);
+		return isNegateOutput(context) != amrValues.contains(expectedValue);
 	}
 
 	@Override

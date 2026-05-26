@@ -31,8 +31,7 @@ public class ConditionalCidrAuthenticator extends AbstractConditionalAuthenticat
 			.anyMatch(cidr -> isIpInSubnet(remoteAddress, cidr));
 		log.debugf("Configured CIDRs: %s - Remote IP Address: %s - isInSubnet: %s", cidrString, remoteAddress, isInSubnet);
 
-		boolean negateOutput = AuthenticatorUtil.getConfig(context, ConditionalAuthNoteAuthenticatorFactory.CONF_NOT, Boolean.FALSE);
-		return negateOutput != isInSubnet;
+		return isNegateOutput(context) != isInSubnet;
 	}
 
 	@Override

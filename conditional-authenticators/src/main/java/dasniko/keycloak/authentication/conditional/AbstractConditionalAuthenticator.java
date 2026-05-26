@@ -1,5 +1,6 @@
 package dasniko.keycloak.authentication.conditional;
 
+import de.keycloak.util.AuthenticatorUtil;
 import org.keycloak.Config;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.authenticators.conditional.ConditionalAuthenticator;
@@ -62,6 +63,10 @@ public abstract class AbstractConditionalAuthenticator implements ConditionalAut
 
 	@Override
 	public void setRequiredActions(KeycloakSession keycloakSession, RealmModel realmModel, UserModel userModel) {
+	}
+
+	protected boolean isNegateOutput(AuthenticationFlowContext context) {
+		return AuthenticatorUtil.getConfig(context, CONF_NOT, Boolean.FALSE);
 	}
 
 }
