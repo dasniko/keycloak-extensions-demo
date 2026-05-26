@@ -11,6 +11,7 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.RequiredActionConfigModel;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.provider.ProviderConfigurationBuilder;
+import org.keycloak.sessions.AuthenticationSessionModel;
 import org.keycloak.userprofile.ValidationException;
 import org.keycloak.validate.ValidationError;
 
@@ -65,6 +66,11 @@ public class SkippableConfigureTOTP extends UpdateTotp {
 		} catch (Exception ex) {
 			throw new ValidationException(new ValidationError(getId(), SKIP_DEADLINE_KEY, "error-invalid-value"));
 		}
+	}
+
+	@Override
+	public void initiatedActionCanceled(KeycloakSession session, AuthenticationSessionModel authSession) {
+		authSession.removeRequiredAction(getId());
 	}
 
 	@Override
