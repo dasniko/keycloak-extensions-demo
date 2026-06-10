@@ -10,7 +10,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     commit-message:
       prefix: "chore"
 
@@ -18,7 +18,7 @@ updates:
   # Maintain dependencies for maven
   - package-ecosystem: "maven"
     directory: "/"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 99
     schedule:
       interval: "weekly"
     ignore:
