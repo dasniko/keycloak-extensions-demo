@@ -1,7 +1,6 @@
 package dasniko.keycloak.events;
 
 import lombok.RequiredArgsConstructor;
-import org.keycloak.common.util.Time;
 import org.keycloak.events.Event;
 import org.keycloak.events.EventListenerProvider;
 import org.keycloak.events.EventType;
@@ -9,9 +8,10 @@ import org.keycloak.events.admin.AdminEvent;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.UserModel;
 
-/**
- * @author Niko Köbler, https://www.n-k.de, @dasniko
- */
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+
 @RequiredArgsConstructor
 public class LastLoginTimeListener implements EventListenerProvider {
 
@@ -22,7 +22,8 @@ public class LastLoginTimeListener implements EventListenerProvider {
 		if (event.getType().equals(EventType.LOGIN)) {
 			UserModel user = session.users().getUserById(session.getContext().getRealm(), event.getUserId());
 			if (user != null) {
-				user.setSingleAttribute(LastLoginTimeListenerFactory.attributeName, Integer.toString(Time.currentTime()));
+				user.setSingleAttribute(LastLoginTimeListenerFactory.attributeName,
+					Instant.now().atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
 			}
 		}
 	}
