@@ -13,7 +13,6 @@ import org.keycloak.policy.PasswordPolicyProvider;
 import org.keycloak.policy.PolicyError;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -80,7 +79,8 @@ public class HibpPasswordPolicyProvider implements PasswordPolicyProvider {
 				log.warn("Could not retrieve HIBP data. Status code: {}", response.getStatus());
 			}
 		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+			// if anything goes wrong on I/O level, we don't want to fail the login, but we just log the exception
+			log.warn("Could not retrieve HIBP data.", e);
 		}
 
 		return null;
