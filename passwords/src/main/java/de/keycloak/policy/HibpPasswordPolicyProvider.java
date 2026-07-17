@@ -3,6 +3,7 @@ package de.keycloak.policy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.http.client.config.RequestConfig;
 import org.keycloak.http.simple.SimpleHttp;
 import org.keycloak.http.simple.SimpleHttpResponse;
 import org.keycloak.models.KeycloakSession;
@@ -20,6 +21,12 @@ public class HibpPasswordPolicyProvider implements PasswordPolicyProvider {
 
 	private static final String HIBP_URL = "https://api.pwnedpasswords.com/range/";
 	private static final String ERROR_MESSAGE = "invalidPasswordHibpMessage";
+
+	private static final RequestConfig REQUEST_CONFIG = RequestConfig.custom()
+		.setConnectionRequestTimeout(1000)
+		.setConnectTimeout(1000)
+		.setSocketTimeout(1000)
+		.build();
 
 	private final KeycloakSession session;
 
@@ -52,7 +59,9 @@ public class HibpPasswordPolicyProvider implements PasswordPolicyProvider {
 		String prefix = sha1.substring(0, 5);
 		String suffix = sha1.substring(5).toUpperCase();
 
-		try (SimpleHttpResponse response = SimpleHttp.create(session).doGet(HIBP_URL + prefix).asResponse()) {
+		try (SimpleHttpResponse response = SimpleHttp.create(session)
+			.withRequestConfig(RequestConfig.copy(REQUEST_CONFIG).build())
+			.doGet(HIBP_URL + prefix).asResponse()) {
 			if (response.getStatus() == 200) {
 				String body = response.asString();
 				String[] lines = body.split("\r\n");
