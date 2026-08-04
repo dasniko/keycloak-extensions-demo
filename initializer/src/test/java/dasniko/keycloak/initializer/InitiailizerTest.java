@@ -20,7 +20,7 @@ public class InitiailizerTest extends TestBase {
 
 	private static final List<File> dependencies = Maven.resolver()
 			.loadPomFromFile("./pom.xml")
-			.resolve("net.bytebuddy:byte-buddy-agent")
+			.resolve("net.bytebuddy:byte-buddy", "net.bytebuddy:byte-buddy-agent")
 			.withoutTransitivity().asList(File.class);
 
 	@ParameterizedTest
@@ -30,6 +30,7 @@ public class InitiailizerTest extends TestBase {
 			.withDefaultProviderClasses()
 			.withProviderLibsFrom(dependencies)
 			.withEnv("KC_SPI_INITIALIZER_ISSUER_BASE_URI", issuerValue)
+			.withVerboseOutput()
 //			.withDebugFixedPort(8787, true)
 			;
 		keycloak.start();
