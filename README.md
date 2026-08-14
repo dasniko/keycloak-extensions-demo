@@ -23,6 +23,8 @@ This repository contains the following extensions, and probably (most likely ðŸ˜
 - **[Authenticators](./authenticators)** - Collection of various demo authenticators including:
   - CAPTCHA integration
   - Deny/block authenticator
+  - Email domain restriction
+  - IdP link auto-override
   - MFA implementations
   - MFA enrollment flows
   - Redirect authenticators
@@ -30,7 +32,8 @@ This repository contains the following extensions, and probably (most likely ðŸ˜
 - **[Conditional Authenticators](./conditional-authenticators)** - Conditional logic for authentication flows based on:
   - HTTP headers and values (or negated values)
   - Authentication session notes and values
-  - Custom conditions
+  - Authentication Method Reference (AMR) values already used in the session
+  - Client CIDR/IP ranges
 
 ### User Management
 
