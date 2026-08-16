@@ -37,6 +37,53 @@ Neither is configurable.
 
 ---
 
+## Trusted Device Cookie (`device-cookie`)
+
+`DeviceCookieAuthenticator` recognizes a previously confirmed browser/device via a cookie. If the cookie is present and valid for the current user, the authenticator succeeds immediately. Otherwise, the user is emailed a one-time confirmation code (and link); only after confirming is the device trusted and remembered.
+
+> Must run **after** an execution that resolves the user (e.g. `Username Password Form`) — `requiresUser()` returns `true`, so it needs `context.getUser()` to already be set.
+
+### Cookie & device recognition
+
+- Cookie name: `KC_DEVICE`. Value: `<deviceId>.<secret>` — two independent random alphanumeric strings (`deviceId`: 20 chars, `secret`: 32 chars), generated via `SecretGenerator`.
+- Matched against the user's multi-valued `trusted_devices` attribute. Each entry has the form `<deviceId>:<sha256(secret)>:<expiresAt>`.
+	- Only the **SHA-256 hash** of the secret is stored, never the secret itself — so reading a user's attributes (admin console/API) can't be used to forge a valid cookie. Comparison uses `MessageDigest.isEqual` (constant-time).
+	- `expiresAt` is a server-side Unix timestamp, set to match the cookie's `Max-Age` at issuance time, and checked on every login. This closes a gap that a client-only `Max-Age` can't: a non-browser client could otherwise replay a captured cookie value forever, ignoring the browser-enforced expiry.
+	- A user can have **multiple** trusted devices at once (phone, laptop, ...) — confirming a new one doesn't invalidate the others.
+
+### Confirmation flow (cookie missing or invalid)
+
+1. A numeric code is generated (`SecretGenerator`, digits only, length configurable) and stored purely as an **ephemeral auth-session note** (never persisted to the user) together with its own expiry.
+2. It's emailed via `EmailTemplateProvider`. The email contains both the raw code, for manual entry, and a link back to the current authentication step (`getRefreshExecutionUrl()`) with that same code as a query parameter — clicking the link achieves the same result as typing the code, since both use one shared code rather than a separate "magic key".
+3. Manual entry submits through `action()` (form POST); clicking the link re-enters `authenticate()` (GET) and detects the code in the query string. Both paths are verified by the same `verifyCode()` method.
+4. The instant a submitted code matches, the auth-session notes are deleted — **before** even checking expiry — so a code or link can never be reused a second time, regardless of outcome.
+5. A wrong code follows the same required/conditional/alternative retry semantics as `MfaAuthenticator`: re-challenge with an error if the execution is `REQUIRED`, otherwise `context.attempted()`. A correct-but-expired code is a hard failure — the login must be restarted for a new one.
+6. Once verified, the device is added to `trusted_devices`, the cookie is set on the response, and the authenticator succeeds.
+
+### Keeping `trusted_devices` bounded
+
+Nothing ever runs on a timer to clean up the attribute. Instead, every time a device is (re)confirmed, expired entries are pruned from the list in the same write that appends the new one — since that's the *only* code path that ever writes the attribute, an actively-used account's device list stays bounded to roughly what was confirmed within one cookie lifetime. Accounts that stop logging in entirely just keep their last, now-stale, entries — harmless, since `isTrustedDevice()` already rejects anything past its `expiresAt`.
+
+### Configuration
+
+| Property | Config key | Default | Description |
+|---|---|---|---|
+| Cookie lifetime (seconds) | `cookieMaxAge` | `2592000` (30 days) | How long a confirmed device is remembered — used for both the cookie's `Max-Age` and the matching server-side `expiresAt`. |
+| Confirmation code length | `codeLength` | `6` | Number of digits of the emailed confirmation code. |
+| Confirmation code time-to-live (seconds) | `codeTtl` | `300` (5 minutes) | How long the emailed code/link stays valid. |
+
+### Cookie attributes
+
+Path is scoped to the realm (`AuthenticationManager.getRealmCookiePath`), `HttpOnly`, `SameSite=Lax`, and `Secure` is auto-detected via Keycloak's `SecureContextResolver` — so it still works over plain HTTP on `localhost` (e.g. the `docker compose` dev setup) without needing TLS.
+
+### Templates & messages
+
+- `device-confirm.ftl` — the login-form challenge page (code input field).
+- `device-confirm-email.ftl` (in both `templates/html/` and `templates/text/`) — the confirmation email.
+- Message keys: `deviceConfirmTitle`, `deviceConfirmText`, `deviceConfirmCodeLabel`, `deviceConfirmSubmit`, `deviceConfirmCodeInvalid`, `deviceConfirmCodeExpired`, `deviceConfirmEmailSubject`, `deviceConfirmEmailBody(Html)` — defined in `messages_en.properties` / `messages_de.properties`.
+
+---
+
 ## Email Domain Regex Authenticator (`email-domain-regex-authenticator`)
 
 `EmailDomainAuthenticator` rejects login if the resolved user's email doesn't match a configured regular expression (case-insensitive) — e.g. to restrict access to specific corporate domains.

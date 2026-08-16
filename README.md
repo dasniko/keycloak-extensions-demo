@@ -29,6 +29,7 @@ This repository contains the following extensions, and probably (most likely ðŸ˜
   - MFA enrollment flows
   - Redirect authenticators
   - Registration enhancements
+  - Trusted device cookie (email-verified, with cookie-based device recognition)
 - **[Conditional Authenticators](./conditional-authenticators)** - Conditional logic for authentication flows based on:
   - HTTP headers and values (or negated values)
   - Authentication session notes and values
