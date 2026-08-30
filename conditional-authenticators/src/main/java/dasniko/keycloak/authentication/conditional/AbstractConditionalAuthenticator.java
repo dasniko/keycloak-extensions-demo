@@ -14,11 +14,15 @@ import org.keycloak.provider.ProviderConfigProperty;
 
 public abstract class AbstractConditionalAuthenticator implements ConditionalAuthenticatorFactory, ConditionalAuthenticator {
 
-	static final String CONF_NOT = "not";
+	protected static final String CONF_NOT = "not";
 
-	static final AuthenticationExecutionModel.Requirement[] REQUIREMENT_CHOICES = {AuthenticationExecutionModel.Requirement.REQUIRED, AuthenticationExecutionModel.Requirement.DISABLED};
+	protected static final AuthenticationExecutionModel.Requirement[] REQUIREMENT_CHOICES = {
+		AuthenticationExecutionModel.Requirement.REQUIRED,
+		AuthenticationExecutionModel.Requirement.DISABLED
+	};
 
-	ProviderConfigProperty negateOutputConfProperty = new ProviderConfigProperty(CONF_NOT, "Negate output", "Apply a NOT to the check result", ProviderConfigProperty.BOOLEAN_TYPE, false);
+	protected static ProviderConfigProperty negateOutputConfProperty = new ProviderConfigProperty(CONF_NOT, "Negate output",
+		"Apply a NOT to the check result", ProviderConfigProperty.BOOLEAN_TYPE, false);
 
 	@Override
 	public ConditionalAuthenticator getSingleton() {
