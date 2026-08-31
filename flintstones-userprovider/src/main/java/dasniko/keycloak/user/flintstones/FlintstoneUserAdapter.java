@@ -1,5 +1,7 @@
 package dasniko.keycloak.user.flintstones;
 
+import dasniko.keycloak.user.flintstones.mappers.AttributeMapping;
+import dasniko.keycloak.user.flintstones.mappers.AttributeMappings;
 import dasniko.keycloak.user.flintstones.repo.FlintstoneUser;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +9,7 @@ import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.ModelException;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserModel;
@@ -26,8 +29,6 @@ import java.util.stream.Stream;
 @Slf4j
 @Getter
 public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
-
-	private static final String ATTR_PICTURE = "picture";
 
 	private final FlintstoneUser user;
 
@@ -124,8 +125,26 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 			case UserModel.LAST_NAME -> setLastName(value);
 			case UserModel.FIRST_NAME -> setFirstName(value);
 			case UserModel.EMAIL -> setEmail(value);
-			case ATTR_PICTURE -> setPicture(value);
-			default -> super.setAttribute(name, values);
+			default -> {
+				AttributeMapping mapping = findMapping(name);
+				if (mapping == null) {
+					super.setAttribute(name, values);
+				} else if (!mapping.readOnly()) {
+					writeMappedAttribute(mapping, values);
+				}
+				// A read-only mapping is normally already filtered out by the write condition decorateUserProfile() puts on the
+				// attribute; this guard is the second line of defence for callers that bypass the user profile.
+			}
+		}
+	}
+
+	@Override
+	public void removeAttribute(String name) {
+		AttributeMapping mapping = findMapping(name);
+		if (mapping == null) {
+			super.removeAttribute(name);
+		} else if (!mapping.readOnly()) {
+			writeMappedAttribute(mapping, null);
 		}
 	}
 
@@ -155,7 +174,12 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 		attributes.add(UserModel.EMAIL, getEmail());
 		attributes.add(UserModel.FIRST_NAME, getFirstName());
 		attributes.add(UserModel.LAST_NAME, getLastName());
-		attributes.add(ATTR_PICTURE, getPicture());
+		for (AttributeMapping mapping : mappings()) {
+			List<String> values = readMappedAttribute(mapping);
+			if (!values.isEmpty()) {
+				attributes.put(mapping.name(), values);
+			}
+		}
 		return attributes;
 	}
 
@@ -189,12 +213,46 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 		return roles;
 	}
 
-	private String getPicture() {
-		return user.getPictureUrl();
+	private List<AttributeMapping> mappings() {
+		return AttributeMappings.get(storageProviderModel);
 	}
 
-	private void setPicture(String pictureUrl) {
-		dirty = dirty || !Objects.equals(pictureUrl, user.getPictureUrl());
-		user.setPictureUrl(pictureUrl);
+	private AttributeMapping findMapping(String name) {
+		return mappings().stream()
+			.filter(mapping -> mapping.name().equals(name))
+			.findFirst().orElse(null);
+	}
+
+	/**
+	 * A value the external source cannot deliver in the configured shape must not break a login, so it is skipped with a warning
+	 * rather than propagated.
+	 */
+	private List<String> readMappedAttribute(AttributeMapping mapping) {
+		try {
+			return mapping.toAttributeValues(user.getAttribute(mapping.field()));
+		} catch (IllegalArgumentException e) {
+			log.warn("Skipping attribute '{}' of user {}: field '{}' is not a valid {} ({})",
+				mapping.name(), user.getId(), mapping.field(), mapping.type(), e.getMessage());
+			return List.of();
+		}
+	}
+
+	/**
+	 * A value that cannot be written, on the other hand, is rejected — silently dropping what somebody just typed is worse than
+	 * failing the update.
+	 */
+	private void writeMappedAttribute(AttributeMapping mapping, List<String> values) {
+		Object externalValue;
+		try {
+			externalValue = mapping.toExternalValue(values);
+		} catch (IllegalArgumentException e) {
+			throw new ModelException("Cannot write attribute '%s' to field '%s': %s"
+				.formatted(mapping.name(), mapping.field(), e.getMessage()), e);
+		}
+
+		if (!Objects.equals(externalValue, user.getAttribute(mapping.field()))) {
+			user.setAttribute(mapping.field(), externalValue);
+			dirty = true;
+		}
 	}
 }

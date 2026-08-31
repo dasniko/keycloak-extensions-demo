@@ -1,11 +1,13 @@
 package dasniko.keycloak.user.flintstones;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import dasniko.keycloak.user.flintstones.mappers.AttributeMappings;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
 import de.keycloak.test.TestBase;
 import de.keycloak.test.pages.AccountManagementPage;
 import de.keycloak.test.pages.LoginWithUsernameAndPasswordPage;
 import de.keycloak.test.pages.UpdatePasswordPage;
+import jakarta.ws.rs.BadRequestException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.utils.URIBuilder;
 import org.htmlunit.WebClient;
@@ -18,6 +20,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.ComponentResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.common.util.MultivaluedHashMap;
@@ -38,11 +41,13 @@ import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author Niko Köbler, https://www.n-k.de, @dasniko
@@ -54,6 +59,14 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 
 	static final String REALM = "flintstones";
 	static final String FRED = "fred";
+	static final String FRED_PICTURE = "https://dasniko-public.s3.eu-central-1.amazonaws.com/fred.png";
+	// users only touched by their own test, so the mapping tests stay independent of the ordering above
+	static final String BETTY = "betty";
+	static final String BETTY_ID = "56789";
+	static final String BARNEY = "barney";
+	static final String BARNEY_ID = "45678";
+	static final String PEBBLES = "pebbles";
+	static final String PEBBLES_PICTURE = "https://dasniko-public.s3.eu-central-1.amazonaws.com/pebbles.png";
 
 	@Container
 	private static final KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:nightly")
@@ -86,6 +99,13 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 				config.add(FlintstonesUserStorageProviderFactory.SUPPORTED_CREDENTIAL_TYPES, "password");
 				config.add(FlintstonesUserStorageProviderFactory.USER_CREATION_ENABLED, "true");
 				config.add(FlintstonesUserStorageProviderFactory.EDIT_MODE, UserStorageProvider.EditMode.WRITABLE.toString());
+				config.add(AttributeMappings.CONFIG_KEY, """
+					[
+					  { "name": "picture", "field": "pictureUrl" },
+					  { "name": "avatar", "field": "pictureUrl", "readOnly": true },
+					  { "name": "phone", "field": "phoneNumbers", "multivalued": true },
+					  { "name": "yearOfBirth", "field": "yearOfBirth", "type": "integer" }
+					]""");
 				config.add("enabled", "true");
 				componentRep.setConfig(config);
 
@@ -217,6 +237,107 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 
 		UserRepresentation updatedWilma = usersResource.get(wilma.getId()).toRepresentation();
 		assertThat(updatedWilma.getLastName(), is("Feuerstein"));
+	}
+
+	@Test
+	@Order(8)
+	public void testMappedAttributeIsReadFromAndWrittenBackToTheExternalSource() {
+		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
+		UsersResource usersResource = kcAdmin.realm(REALM).users();
+
+		String fredId = usersResource.searchByUsername(FRED, true).getFirst().getId();
+		UserRepresentation fred = usersResource.get(fredId).toRepresentation();
+		assertThat(fred.firstAttribute("picture"), is(FRED_PICTURE));
+
+		fred.singleAttribute("picture", "https://example.com/fred-new.png");
+		usersResource.get(fredId).update(fred);
+
+		UserRepresentation updated = usersResource.get(fredId).toRepresentation();
+		assertThat(updated.firstAttribute("picture"), is("https://example.com/fred-new.png"));
+	}
+
+	@Test
+	@Order(9)
+	public void testMultivaluedMappedAttributeKeepsItsJsonArray() {
+		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
+		UsersResource usersResource = kcAdmin.realm(REALM).users();
+
+		String bettyId = usersResource.searchByUsername(BETTY, true).getFirst().getId();
+		UserRepresentation betty = usersResource.get(bettyId).toRepresentation();
+		assertThat(betty.getAttributes().get("phone"), contains("+1-555-" + BETTY_ID, "+1-666-" + BETTY_ID));
+
+		betty.getAttributes().put("phone", List.of("+1-777-1", "+1-777-2", "+1-777-3"));
+		usersResource.get(bettyId).update(betty);
+
+		UserRepresentation updated = usersResource.get(bettyId).toRepresentation();
+		assertThat(updated.getAttributes().get("phone"), contains("+1-777-1", "+1-777-2", "+1-777-3"));
+
+		// and the external record still holds a JSON array, not a joined string
+		given().when().get(flintstonesApiUrl("/users/" + BETTY_ID))
+			.then().statusCode(200)
+			.body("phoneNumbers", contains("+1-777-1", "+1-777-2", "+1-777-3"));
+	}
+
+	@Test
+	@Order(10)
+	public void testNumericMappedAttributeKeepsItsJsonType() {
+		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
+		UsersResource usersResource = kcAdmin.realm(REALM).users();
+
+		String barneyId = usersResource.searchByUsername(BARNEY, true).getFirst().getId();
+		UserRepresentation barney = usersResource.get(barneyId).toRepresentation();
+		assertThat(barney.firstAttribute("yearOfBirth"), is("1960"));
+
+		barney.singleAttribute("yearOfBirth", "1959");
+		usersResource.get(barneyId).update(barney);
+
+		assertThat(usersResource.get(barneyId).toRepresentation().firstAttribute("yearOfBirth"), is("1959"));
+
+		// written back as a JSON number, not as the string Keycloak keeps internally
+		given().when().get(flintstonesApiUrl("/users/" + BARNEY_ID))
+			.then().statusCode(200)
+			.body("yearOfBirth", is(1959));
+	}
+
+	@Test
+	@Order(11)
+	public void testReadOnlyMappedAttributeIsReadableButRejectedForWriting() {
+		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
+		UsersResource usersResource = kcAdmin.realm(REALM).users();
+
+		String pebblesId = usersResource.searchByUsername(PEBBLES, true).getFirst().getId();
+		UserRepresentation pebbles = usersResource.get(pebblesId).toRepresentation();
+		// both mappings read the same external field, only 'picture' may write it
+		assertThat(pebbles.firstAttribute("picture"), is(PEBBLES_PICTURE));
+		assertThat(pebbles.firstAttribute("avatar"), is(PEBBLES_PICTURE));
+
+		// the write condition set by decorateUserProfile() makes Keycloak drop the change before it reaches the adapter
+		pebbles.singleAttribute("avatar", "https://example.com/ignored.png");
+		usersResource.get(pebblesId).update(pebbles);
+
+		UserRepresentation updated = usersResource.get(pebblesId).toRepresentation();
+		assertThat(updated.firstAttribute("avatar"), is(PEBBLES_PICTURE));
+		assertThat(updated.firstAttribute("picture"), is(PEBBLES_PICTURE));
+	}
+
+	@Test
+	@Order(12)
+	public void testInvalidAttributeMappingsAreRejected() {
+		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
+		String componentId = kcAdmin.realm(REALM).components()
+			.query(null, UserStorageProvider.class.getName(), FlintstonesUserStorageProviderFactory.PROVIDER_ID)
+			.getFirst().getId();
+		ComponentResource componentResource = kcAdmin.realm(REALM).components().component(componentId);
+
+		ComponentRepresentation rep = componentResource.toRepresentation();
+		rep.getConfig().putSingle(AttributeMappings.CONFIG_KEY, """
+			[{ "name": "email", "field": "mail" }]""");
+
+		assertThrows(BadRequestException.class, () -> componentResource.update(rep));
+	}
+
+	private static String flintstonesApiUrl(String path) {
+		return keycloak.getAuthServerUrl() + "/realms/master/flintstones" + path;
 	}
 
 }

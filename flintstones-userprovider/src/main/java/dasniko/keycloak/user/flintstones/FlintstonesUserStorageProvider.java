@@ -1,5 +1,7 @@
 package dasniko.keycloak.user.flintstones;
 
+import dasniko.keycloak.user.flintstones.mappers.AttributeMapping;
+import dasniko.keycloak.user.flintstones.mappers.AttributeMappings;
 import dasniko.keycloak.user.flintstones.repo.Credential;
 import dasniko.keycloak.user.flintstones.repo.FlintstoneUser;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +26,12 @@ import org.keycloak.storage.user.UserLookupProvider;
 import org.keycloak.storage.user.UserQueryProvider;
 import org.keycloak.storage.user.UserRegistrationProvider;
 import org.keycloak.tracing.TracingProvider;
+import org.keycloak.userprofile.AttributeMetadata;
+import org.keycloak.userprofile.UserProfileDecorator;
+import org.keycloak.userprofile.UserProfileMetadata;
+import org.keycloak.userprofile.UserProfileUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -33,7 +40,7 @@ import java.util.stream.Stream;
 @Slf4j
 public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	UserLookupProvider, UserQueryProvider, CredentialInputUpdater, CredentialInputValidator,
-	UserRegistrationProvider {
+	UserRegistrationProvider, UserProfileDecorator {
 
 	private final KeycloakSession session;
 	private final ComponentModel model;
@@ -263,6 +270,32 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 		}
 		log.warn("Edit mode is read-only. Skipping removal for user {}.", user.getId());
 		return false;
+	}
+
+	/**
+	 * Declares the mapped attributes on the user profile. Without this, they would be unmanaged attributes and therefore invisible
+	 * unless the realm sets an {@code unmanagedAttributePolicy}.
+	 */
+	@Override
+	public List<AttributeMetadata> decorateUserProfile(String providerId, UserProfileMetadata metadata) {
+		int guiOrder = (int) metadata.getAttributes().stream()
+			.map(AttributeMetadata::getName)
+			.distinct()
+			.count();
+
+		List<AttributeMetadata> metadatas = new ArrayList<>();
+		for (AttributeMapping mapping : AttributeMappings.get(model)) {
+			AttributeMetadata attributeMetadata =
+				UserProfileUtil.createAttributeMetadata(mapping.name(), metadata, guiOrder++, model.getName());
+			if (attributeMetadata != null) {
+				attributeMetadata.setMultivalued(mapping.multivalued());
+				if (mapping.readOnly() || !isWritable()) {
+					attributeMetadata.addWriteCondition(AttributeMetadata.ALWAYS_FALSE);
+				}
+				metadatas.add(attributeMetadata);
+			}
+		}
+		return metadatas;
 	}
 
 	@Override

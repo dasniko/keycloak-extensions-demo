@@ -75,6 +75,25 @@ Extend `TestBase` (from the `utils` module, test scope) for common helpers:
 
 Realm configuration for tests lives in `src/test/resources/` as JSON import files.
 
+### Attribute mapping in `flintstones-userprovider`
+
+Attributes beyond the core `UserModel` fields are configured, not coded. Decided against a sub-component mapper SPI (the
+LDAP `ldap-mapper` pattern): the new admin console renders custom user federation providers with `CustomProviderSettings`,
+which has no mappers tab, so those mappers would only be manageable via the components REST API. `UiPageProvider` would give
+a list UI but is gated behind the experimental `declarative-ui` feature.
+
+Instead: a single `attributeMappings` config property (`TEXT_TYPE`) holding a JSON array of mapping definitions, plus
+`@JsonAnySetter`/`@JsonAnyGetter` on `FlintstoneUser` so the DTO is agnostic to the external schema. See the module README for
+the format. Key pieces:
+
+- `AttributeMappings` — parse/validate/cache; the parsed result is cached in `ComponentModel.getNote()`, keyed on the raw
+  config string so a config update invalidates it.
+- `AttributeMapping#toAttributeValues` / `#toExternalValue` — the two conversion directions.
+- `FlintstonesUserStorageProvider implements UserProfileDecorator` — declares mapped attributes on the user profile, otherwise
+  they are unmanaged attributes and invisible without a realm `unmanagedAttributePolicy`.
+- Jackson will not honour `@JsonCreator` on the `ValueType` enum here, so `AttributeMapping.create` takes the type as a `String`
+  and resolves it via `ValueType.from`. Pinned by `AttributeMappingsTest.rejectsUnknownType`.
+
 ### Key Conventions
 
 - Java 21, tabs indentation, 140-char line limit (see `.editorconfig`)

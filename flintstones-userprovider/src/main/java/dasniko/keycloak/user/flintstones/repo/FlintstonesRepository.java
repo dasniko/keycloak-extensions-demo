@@ -18,12 +18,12 @@ public class FlintstonesRepository {
 
 	FlintstonesRepository() {
 		List<String> roles = List.of("STONEAGE");
-		users.add(new FlintstoneUser("12345", "Fred", "Flintstone", true, roles));
-		users.add(new FlintstoneUser("23456", "Wilma", "Flintstone", true, roles));
-		users.add(new FlintstoneUser("34567", "Pebbles", "Flintstone", true, null));
-		users.add(new FlintstoneUser("45678", "Barney", "Rubble", true, roles));
-		users.add(new FlintstoneUser("56789", "Betty", "Rubble", true, roles));
-		users.add(new FlintstoneUser("67890", "Bam Bam", "Rubble", false, null));
+		users.add(new FlintstoneUser("12345", "Fred", "Flintstone", 1960, true, roles));
+		users.add(new FlintstoneUser("23456", "Wilma", "Flintstone", 1961, true, roles));
+		users.add(new FlintstoneUser("34567", "Pebbles", "Flintstone", 1963, true, null));
+		users.add(new FlintstoneUser("45678", "Barney", "Rubble", 1960, true, roles));
+		users.add(new FlintstoneUser("56789", "Betty", "Rubble", 1962, true, roles));
+		users.add(new FlintstoneUser("67890", "Bam Bam", "Rubble", 1963, false, null));
 	}
 
 	List<FlintstoneUser> getAllUsers() {
@@ -114,7 +114,7 @@ public class FlintstonesRepository {
 		existing.setFirstName(user.getFirstName());
 		existing.setLastName(user.getLastName());
 		existing.setEnabled(user.isEnabled());
-		existing.setPictureUrl(user.getPictureUrl());
+		existing.replaceAttributes(user.getAttributes());
 	}
 
 	boolean removeUser(String id) {
