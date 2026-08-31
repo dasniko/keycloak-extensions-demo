@@ -56,7 +56,7 @@ public class FlintstonesUserStorageProviderFactory implements UserStorageProvide
 			.property(USER_CREATION_ENABLED, "syncRegistrations", "syncRegistrationsHelp", ProviderConfigProperty.BOOLEAN_TYPE, "false", null)
 			.property(USE_PASSWORD_POLICY, "validatePasswordPolicy", "validatePasswordPolicyHelp", ProviderConfigProperty.BOOLEAN_TYPE, "false", null)
 			.property(TRUST_EMAIL, "trustEmail", "trustEmailHelp", ProviderConfigProperty.BOOLEAN_TYPE, "false", null)
-			.property(AttributeMappings.CONFIG_KEY, "attributeMappings", "attributeMappingsHelp", ProviderConfigProperty.TEXT_TYPE, null, null)
+			.property(AttributeMappings.CONFIG_KEY, "attributeMappings", "attributeMappingsHelp", ProviderConfigProperty.SCRIPT_TYPE, null, null)
 			.build();
 	}
 

@@ -82,7 +82,7 @@ LDAP `ldap-mapper` pattern): the new admin console renders custom user federatio
 which has no mappers tab, so those mappers would only be manageable via the components REST API. `UiPageProvider` would give
 a list UI but is gated behind the experimental `declarative-ui` feature.
 
-Instead: a single `attributeMappings` config property (`TEXT_TYPE`) holding a JSON array of mapping definitions, plus
+Instead: a single `attributeMappings` config property (`SCRIPT_TYPE`) holding a JSON array of mapping definitions, plus
 `@JsonAnySetter`/`@JsonAnyGetter` on `FlintstoneUser` so the DTO is agnostic to the external schema. See the module README for
 the format. Key pieces:
 
@@ -93,6 +93,11 @@ the format. Key pieces:
   they are unmanaged attributes and invisible without a realm `unmanagedAttributePolicy`.
 - Jackson will not honour `@JsonCreator` on the `ValueType` enum here, so `AttributeMapping.create` takes the type as a `String`
   and resolves it via `ValueType.from`. Pinned by `AttributeMappingsTest.rejectsUnknownType`.
+- `SCRIPT_TYPE` on `attributeMappings` is a *rendering* choice only — it makes the admin console use its code editor
+  (`ScriptComponent`, syntax highlighting, bracket matching) instead of a plain textarea, which beats a `TEXT_TYPE` box for a JSON
+  document this size. Nothing executes the value: the property type is not feature-gated (the `SCRIPTS` preview feature gates
+  script *providers*), and the config stays an ordinary string. The editor is hardcoded to `language="js"`, which is close enough
+  for JSON.
 - Complex external values are handled declaratively, not by a scripting hook. A JS transform (Nashorn/GraalJS) was considered and
   rejected: admin-editable script = code execution in the auth server, which is why Keycloak's own `SCRIPTS` feature is still
   `Type.PREVIEW`; plus Nashorn left the JDK in 15. `type: "json"` and `property` cover the cases we have. If an arbitrary

@@ -8,7 +8,7 @@ Attributes beyond the core `UserModel` fields (username, email, first/last name)
 (`FlintstoneUser`) captures every unknown JSON field via `@JsonAnySetter`/`@JsonAnyGetter`, and the provider's `attributeMappings`
 configuration decides which of those fields become Keycloak user attributes.
 
-The config property is a JSON array, edited as a textarea in the admin console (User federation → the-flintstones → Attribute
+The config property is a JSON array, edited in the admin console's code editor (User federation → the-flintstones → Attribute
 mappings):
 
 ```json
