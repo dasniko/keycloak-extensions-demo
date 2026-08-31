@@ -21,11 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class AttributeMappingTest {
 
 	private static AttributeMapping mapping(ValueType type, boolean multivalued, String delimiter) {
-		return new AttributeMapping("attr", "field", type, multivalued, false, delimiter, null);
+		return new AttributeMapping("attr", "field", type, multivalued, false, delimiter, null, null);
 	}
 
 	private static AttributeMapping projection(ValueType type, boolean multivalued, String property) {
-		return new AttributeMapping("attr", "field", type, multivalued, false, null, property);
+		return new AttributeMapping("attr", "field", type, multivalued, false, null, property, null);
 	}
 
 	@Test

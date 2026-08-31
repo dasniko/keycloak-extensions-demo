@@ -103,6 +103,13 @@ the format. Key pieces:
 - `property` writes use **replace** semantics: the object is rebuilt from the mapped member alone. Guarded by
   `AttributeMapping#changes`, which compares in Keycloak attribute space so an unrelated update cannot truncate the record.
 
+- A mapping may name a user profile attribute `group`. The group has to exist in the realm's `UPConfig`: the profile payload's
+  group list is built solely from that config (`UserProfileUtil.createUserProfileMetadata`), and `UserProfileFields.tsx` buckets
+  attributes by matching the name against it — an undeclared group means the attribute is rendered *nowhere*, not just ungrouped.
+  Hence validation on save plus an ungrouped fallback in `decorateUserProfile` for when the group is deleted later.
+  Do not use the group-aware `UserProfileUtil.createAttributeMetadata` overload: it hardcodes the write condition to
+  `ALWAYS_FALSE` and would make every mapped attribute read-only. Attach the group with `setAttributeGroupMetadata` instead.
+
 Note when testing: Keycloak's user profile filters read-only attributes and never pushes unchanged attributes down to the
 provider, so the adapter's `readOnly` guard and `AttributeMapping#changes` are *not* reachable from the container tests. Both are
 defence-in-depth for callers that bypass the user profile; `changes` is covered by unit tests instead.

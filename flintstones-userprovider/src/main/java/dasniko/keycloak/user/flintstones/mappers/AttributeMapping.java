@@ -20,6 +20,8 @@ import java.util.Map;
  *                    instead of as a JSON array
  * @param property    if set, the external value is a complex object and only this member of it is mapped. Writing replaces the
  *                    object with one built from this member alone — the other members are not preserved
+ * @param group       if set, the name of the user profile attribute group the attribute is shown in. The group must be declared
+ *                    in the realm's user profile configuration
  *
  * @author Niko Köbler, http://www.n-k.de, @dasniko
  */
@@ -30,13 +32,15 @@ public record AttributeMapping(
 	boolean multivalued,
 	boolean readOnly,
 	String delimiter,
-	String property
+	String property,
+	String group
 ) {
 
 	public AttributeMapping {
 		type = type == null ? ValueType.STRING : type;
 		delimiter = delimiter == null || delimiter.isEmpty() ? null : delimiter;
 		property = property == null || property.isBlank() ? null : property;
+		group = group == null || group.isBlank() ? null : group;
 	}
 
 	/**
@@ -51,9 +55,10 @@ public record AttributeMapping(
 		@JsonProperty("multivalued") boolean multivalued,
 		@JsonProperty("readOnly") boolean readOnly,
 		@JsonProperty("delimiter") String delimiter,
-		@JsonProperty("property") String property
+		@JsonProperty("property") String property,
+		@JsonProperty("group") String group
 	) {
-		return new AttributeMapping(name, field, ValueType.from(type), multivalued, readOnly, delimiter, property);
+		return new AttributeMapping(name, field, ValueType.from(type), multivalued, readOnly, delimiter, property, group);
 	}
 
 	/**

@@ -20,21 +20,25 @@ import org.keycloak.models.UserModel;
 import org.keycloak.models.credential.PasswordCredentialModel;
 import org.keycloak.policy.PasswordPolicyManagerProvider;
 import org.keycloak.policy.PolicyError;
+import org.keycloak.representations.userprofile.config.UPGroup;
 import org.keycloak.storage.StorageId;
 import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.storage.user.UserLookupProvider;
 import org.keycloak.storage.user.UserQueryProvider;
 import org.keycloak.storage.user.UserRegistrationProvider;
 import org.keycloak.tracing.TracingProvider;
+import org.keycloak.userprofile.AttributeGroupMetadata;
 import org.keycloak.userprofile.AttributeMetadata;
 import org.keycloak.userprofile.UserProfileDecorator;
 import org.keycloak.userprofile.UserProfileMetadata;
+import org.keycloak.userprofile.UserProfileProvider;
 import org.keycloak.userprofile.UserProfileUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -283,8 +287,13 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 			.distinct()
 			.count();
 
+		List<AttributeMapping> mappings = AttributeMappings.get(model);
+		Map<String, AttributeGroupMetadata> groups = mappings.stream().anyMatch(mapping -> mapping.group() != null)
+			? declaredAttributeGroups()
+			: Map.of();
+
 		List<AttributeMetadata> metadatas = new ArrayList<>();
-		for (AttributeMapping mapping : AttributeMappings.get(model)) {
+		for (AttributeMapping mapping : mappings) {
 			AttributeMetadata attributeMetadata =
 				UserProfileUtil.createAttributeMetadata(mapping.name(), metadata, guiOrder++, model.getName());
 			if (attributeMetadata != null) {
@@ -292,10 +301,36 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 				if (mapping.readOnly() || !isWritable()) {
 					attributeMetadata.addWriteCondition(AttributeMetadata.ALWAYS_FALSE);
 				}
+				applyGroup(attributeMetadata, mapping, groups);
 				metadatas.add(attributeMetadata);
 			}
 		}
 		return metadatas;
+	}
+
+	/**
+	 * An attribute referring to a group the user profile does not declare ends up in no group bucket at all and is therefore not
+	 * rendered. The mapping is validated on save, but the group can be removed from the realm afterwards, so fall back to showing
+	 * the attribute without a group rather than letting it disappear.
+	 */
+	private void applyGroup(AttributeMetadata attributeMetadata, AttributeMapping mapping, Map<String, AttributeGroupMetadata> groups) {
+		if (mapping.group() == null) {
+			return;
+		}
+		AttributeGroupMetadata group = groups.get(mapping.group());
+		if (group != null) {
+			attributeMetadata.setAttributeGroupMetadata(group);
+		} else {
+			log.warn("User profile of realm {} declares no attribute group '{}', showing attribute '{}' without a group.",
+				session.getContext().getRealm().getName(), mapping.group(), mapping.name());
+		}
+	}
+
+	private Map<String, AttributeGroupMetadata> declaredAttributeGroups() {
+		return session.getProvider(UserProfileProvider.class).getConfiguration().getGroups().stream()
+			.collect(Collectors.toMap(UPGroup::getName, group -> new AttributeGroupMetadata(
+				group.getName(), group.getDisplayHeader(), group.getDisplayDescription(), group.getAnnotations()),
+				(first, second) -> first));
 	}
 
 	@Override

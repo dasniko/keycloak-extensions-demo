@@ -78,7 +78,7 @@ public class FlintstonesUserStorageProviderFactory implements UserStorageProvide
 			throw new ComponentValidationException("Cannot set 'validatePasswordPolicy' to true if 'editMode' is set to 'READ_ONLY'");
 		}
 
-		AttributeMappings.validate(config.get(AttributeMappings.CONFIG_KEY));
+		AttributeMappings.validate(session, realm, config.get(AttributeMappings.CONFIG_KEY));
 	}
 
 }

@@ -26,7 +26,7 @@ public class AttributeMappingsTest {
 		List<AttributeMapping> mappings = AttributeMappings.parse("""
 			[{ "name": "picture", "field": "pictureUrl" }]""");
 
-		assertThat(mappings, contains(new AttributeMapping("picture", "pictureUrl", ValueType.STRING, false, false, null, null)));
+		assertThat(mappings, contains(new AttributeMapping("picture", "pictureUrl", ValueType.STRING, false, false, null, null, null)));
 	}
 
 	@Test
@@ -187,6 +187,27 @@ public class AttributeMappingsTest {
 			  { "name": "addressJson", "field": "address", "type": "json", "readOnly": true },
 			  { "name": "city", "field": "address", "property": "city" }
 			]"""));
+	}
+
+	@Test
+	public void parsesGroup() {
+		List<AttributeMapping> mappings = AttributeMappings.parse("""
+			[{ "name": "city", "field": "address", "property": "city", "group": "user-metadata" }]""");
+		assertThat(mappings.getFirst().group(), is("user-metadata"));
+	}
+
+	@Test
+	public void blankGroupIsTreatedAsOmitted() {
+		List<AttributeMapping> mappings = AttributeMappings.parse("""
+			[{ "name": "picture", "field": "pictureUrl", "group": "  " }]""");
+		assertThat(mappings.getFirst().group(), is(nullValue()));
+	}
+
+	@Test
+	public void structuralValidationDoesNotCheckGroupsAgainstTheRealm() {
+		// group existence needs the realm's user profile config, so it is only checked by the session-aware overload
+		assertDoesNotThrow(() -> AttributeMappings.validate("""
+			[{ "name": "picture", "field": "pictureUrl", "group": "no-such-group" }]"""));
 	}
 
 	@Test

@@ -17,8 +17,8 @@ mappings):
   { "name": "avatar", "field": "pictureUrl", "readOnly": true },
   { "name": "phone", "field": "phoneNumbers", "multivalued": true },
   { "name": "yearOfBirth", "field": "yearOfBirth", "type": "integer" },
-  { "name": "addressJson", "field": "address", "type": "json", "readOnly": true },
-  { "name": "city", "field": "address", "property": "city" }
+  { "name": "addressJson", "field": "address", "type": "json", "readOnly": true, "group": "user-metadata" },
+  { "name": "city", "field": "address", "property": "city", "group": "user-metadata" }
 ]
 ```
 
@@ -32,6 +32,16 @@ leave it writable.
 `{"street": "…", "city": "Bedrock"}` becomes `{"city": "Rock Vegas"}`. That only happens when the mapped member actually changes —
 `AttributeMapping#changes` compares in Keycloak attribute space, so an unrelated update never truncates the record. `property`
 combines with `multivalued` (project a member out of each element of an array) and with `type` (including `json`).
+
+### Attribute groups
+
+`group` places the attribute in a user profile attribute group. The group must be **declared in the realm's user profile
+configuration** (Realm settings → User profile) — Keycloak builds the group list of the profile payload purely from that config,
+and an attribute pointing at an undeclared group falls into no group bucket and is **not rendered at all**. `user-metadata` ships
+in the default configuration, so it works out of the box.
+
+Two things guard against that trap: the configuration is rejected on save if it names a group the realm does not declare, and if
+the group disappears from the realm afterwards the attribute is shown ungrouped (with a warning) rather than vanishing.
 
 Only single-level members are supported. A dotted path (`department.manager.id`) would be a small extension on read and write;
 see the note in the repository `CLAUDE.md`.
@@ -50,6 +60,7 @@ may write it.
 | `readOnly` | no | `false` | if true, the attribute is never written back to the external source |
 | `delimiter` | no | — | store a multivalued attribute externally as a single delimited string instead of a JSON array |
 | `property` | no | — | the external value is a complex object; map only this member of it |
+| `group` | no | — | user profile attribute group to show the attribute in; must be declared in the realm |
 
 Notes:
 

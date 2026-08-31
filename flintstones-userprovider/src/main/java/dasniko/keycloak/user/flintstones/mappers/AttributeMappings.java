@@ -5,6 +5,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectReader;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.component.ComponentValidationException;
+import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.RealmModel;
+import org.keycloak.representations.userprofile.config.UPConfig;
+import org.keycloak.representations.userprofile.config.UPGroup;
+import org.keycloak.userprofile.UserProfileProvider;
 import org.keycloak.userprofile.UserProfileUtil;
 import org.keycloak.util.JsonSerialization;
 
@@ -12,7 +17,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 /**
  * Parsing, validation and caching of the attribute mapping definitions configured on the user storage provider.
@@ -29,7 +37,7 @@ public final class AttributeMappings {
 		  { "name": "phone", "field": "phoneNumbers", "multivalued": true },
 		  { "name": "loginCount", "field": "logins", "type": "integer", "readOnly": true },
 		  { "name": "addressJson", "field": "address", "type": "json", "readOnly": true },
-		  { "name": "city", "field": "address", "property": "city" }
+		  { "name": "city", "field": "address", "property": "city", "group": "user-metadata" }
 		]""";
 
 	private static final String NOTE_KEY = AttributeMappings.class.getName();
@@ -70,6 +78,18 @@ public final class AttributeMappings {
 	}
 
 	/**
+	 * Validates the configuration, including the checks that need the realm's user profile configuration.
+	 *
+	 * @throws ComponentValidationException if the configuration cannot be parsed or is semantically invalid
+	 */
+	public static void validate(KeycloakSession session, RealmModel realm, String raw) throws ComponentValidationException {
+		validate(raw);
+		validateGroups(session, realm, parse(raw));
+	}
+
+	/**
+	 * Structural validation, independent of the realm.
+	 *
 	 * @throws ComponentValidationException if the configuration cannot be parsed or is semantically invalid
 	 */
 	public static void validate(String raw) throws ComponentValidationException {
@@ -116,6 +136,38 @@ public final class AttributeMappings {
 
 		if (!errors.isEmpty()) {
 			throw new ComponentValidationException("Invalid attribute mappings: " + String.join("; ", errors));
+		}
+	}
+
+	/**
+	 * An attribute pointing at a group the user profile does not declare is not rendered at all, so a typo here would make the
+	 * attribute silently disappear. Reject it while the admin is still looking at the form.
+	 */
+	private static void validateGroups(KeycloakSession session, RealmModel realm, List<AttributeMapping> mappings)
+			throws ComponentValidationException {
+		Set<String> wanted = mappings.stream()
+			.map(AttributeMapping::group)
+			.filter(Objects::nonNull)
+			.collect(Collectors.toCollection(TreeSet::new));
+		if (wanted.isEmpty()) {
+			return;
+		}
+
+		RealmModel contextRealm = session.getContext().getRealm();
+		if (contextRealm == null || !contextRealm.getId().equals(realm.getId())) {
+			// the user profile provider resolves its configuration from the realm in the session context; if that is not the
+			// realm being configured we cannot check, and decorateUserProfile() falls back to ungrouped anyway
+			return;
+		}
+
+		UPConfig config = session.getProvider(UserProfileProvider.class).getConfiguration();
+		Set<String> declared = config.getGroups().stream().map(UPGroup::getName).collect(Collectors.toSet());
+		wanted.removeAll(declared);
+
+		if (!wanted.isEmpty()) {
+			throw new ComponentValidationException(
+				"Unknown user profile attribute group(s): %s. Declare them under Realm settings -> User profile first."
+					.formatted(String.join(", ", wanted)));
 		}
 	}
 

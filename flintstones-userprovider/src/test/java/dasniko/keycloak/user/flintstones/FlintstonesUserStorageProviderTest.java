@@ -28,7 +28,9 @@ import org.keycloak.constants.ServiceUrlConstants;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.ComponentRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.UserProfileAttributeMetadata;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.keycloak.representations.userprofile.config.UPConfig;
 import org.keycloak.storage.UserStorageProvider;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -107,8 +109,8 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 					  { "name": "avatar", "field": "pictureUrl", "readOnly": true },
 					  { "name": "phone", "field": "phoneNumbers", "multivalued": true },
 					  { "name": "yearOfBirth", "field": "yearOfBirth", "type": "integer" },
-					  { "name": "addressJson", "field": "address", "type": "json", "readOnly": true },
-					  { "name": "city", "field": "address", "property": "city" }
+					  { "name": "addressJson", "field": "address", "type": "json", "readOnly": true, "group": "user-metadata" },
+					  { "name": "city", "field": "address", "property": "city", "group": "user-metadata" }
 					]""");
 				config.add("enabled", "true");
 				componentRep.setConfig(config);
@@ -368,12 +370,55 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 
 	@Test
 	@Order(14)
+	public void testMappedAttributeIsPlacedInTheConfiguredUserProfileGroup() {
+		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
+		UsersResource usersResource = kcAdmin.realm(REALM).users();
+
+		String pebblesId = usersResource.searchByUsername(PEBBLES, true).getFirst().getId();
+		UserRepresentation pebbles = usersResource.get(pebblesId).toRepresentation(true);
+
+		assertThat(attributeMetadata(pebbles, "addressJson").getGroup(), is("user-metadata"));
+		assertThat(attributeMetadata(pebbles, "city").getGroup(), is("user-metadata"));
+		// a mapping without a group stays ungrouped
+		assertThat(attributeMetadata(pebbles, "picture").getGroup(), is(nullValue()));
+	}
+
+	@Test
+	@Order(15)
+	public void testUnknownUserProfileGroupIsRejected() {
+		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
+		ComponentResource componentResource = flintstonesComponent(kcAdmin);
+
+		ComponentRepresentation rep = componentResource.toRepresentation();
+		rep.getConfig().putSingle(AttributeMappings.CONFIG_KEY, """
+			[{ "name": "picture", "field": "pictureUrl", "group": "no-such-group" }]""");
+
+		assertThrows(BadRequestException.class, () -> componentResource.update(rep));
+	}
+
+	@Test
+	@Order(16)
+	public void testAttributeStaysVisibleWhenItsGroupIsRemovedFromTheRealm() {
+		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
+		UsersResource usersResource = kcAdmin.realm(REALM).users();
+
+		// the mapping was valid when it was saved; dropping the group afterwards must not make the attribute disappear
+		UPConfig config = usersResource.userProfile().getConfiguration();
+		config.setGroups(List.of());
+		usersResource.userProfile().update(config);
+
+		String pebblesId = usersResource.searchByUsername(PEBBLES, true).getFirst().getId();
+		UserRepresentation pebbles = usersResource.get(pebblesId).toRepresentation(true);
+
+		assertThat(attributeMetadata(pebbles, "addressJson").getGroup(), is(nullValue()));
+		assertThat(pebbles.firstAttribute("city"), is("Bedrock"));
+	}
+
+	@Test
+	@Order(17)
 	public void testInvalidAttributeMappingsAreRejected() {
 		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
-		String componentId = kcAdmin.realm(REALM).components()
-			.query(null, UserStorageProvider.class.getName(), FlintstonesUserStorageProviderFactory.PROVIDER_ID)
-			.getFirst().getId();
-		ComponentResource componentResource = kcAdmin.realm(REALM).components().component(componentId);
+		ComponentResource componentResource = flintstonesComponent(kcAdmin);
 
 		ComponentRepresentation rep = componentResource.toRepresentation();
 		rep.getConfig().putSingle(AttributeMappings.CONFIG_KEY, """
@@ -384,6 +429,19 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 
 	private static String flintstonesApiUrl(String path) {
 		return keycloak.getAuthServerUrl() + "/realms/master/flintstones" + path;
+	}
+
+	private static UserProfileAttributeMetadata attributeMetadata(UserRepresentation user, String name) {
+		return user.getUserProfileMetadata().getAttributes().stream()
+			.filter(attribute -> attribute.getName().equals(name))
+			.findFirst().orElseThrow(() -> new AssertionError("attribute '" + name + "' is not on the user profile"));
+	}
+
+	private static ComponentResource flintstonesComponent(Keycloak kcAdmin) {
+		String componentId = kcAdmin.realm(REALM).components()
+			.query(null, UserStorageProvider.class.getName(), FlintstonesUserStorageProviderFactory.PROVIDER_ID)
+			.getFirst().getId();
+		return kcAdmin.realm(REALM).components().component(componentId);
 	}
 
 }
