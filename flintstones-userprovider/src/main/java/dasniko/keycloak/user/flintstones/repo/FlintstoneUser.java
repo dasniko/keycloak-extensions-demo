@@ -56,6 +56,12 @@ public class FlintstoneUser {
 		setAttribute("pictureUrl", "https://dasniko-public.s3.eu-central-1.amazonaws.com/" + this.username + ".png");
 		setAttribute("phoneNumbers", List.of("+1-555-" + id, "+1-666-" + id));
 		setAttribute("yearOfBirth", yearOfBirth);
+
+		// a complex value: mapped either as a serialized JSON string, or by projecting a single member out of it
+		Map<String, Object> address = new LinkedHashMap<>();
+		address.put("street", id + " Cobblestone Way");
+		address.put("city", "Bedrock");
+		setAttribute("address", address);
 	}
 
 	@JsonAnyGetter

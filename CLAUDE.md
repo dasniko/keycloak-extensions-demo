@@ -93,6 +93,19 @@ the format. Key pieces:
   they are unmanaged attributes and invisible without a realm `unmanagedAttributePolicy`.
 - Jackson will not honour `@JsonCreator` on the `ValueType` enum here, so `AttributeMapping.create` takes the type as a `String`
   and resolves it via `ValueType.from`. Pinned by `AttributeMappingsTest.rejectsUnknownType`.
+- Complex external values are handled declaratively, not by a scripting hook. A JS transform (Nashorn/GraalJS) was considered and
+  rejected: admin-editable script = code execution in the auth server, which is why Keycloak's own `SCRIPTS` feature is still
+  `Type.PREVIEW`; plus Nashorn left the JDK in 15. `type: "json"` and `property` cover the cases we have. If an arbitrary
+  transform is ever needed, add a *named* transform registered in Java and referenced from the config — never inline script.
+- `property` supports a single level only. A dotted path (`department.manager.id`) is a deliberate TODO: read would walk the maps,
+  write would rebuild the nested minimal objects. Left out because nothing needs it yet, and a dotted path is ambiguous when a
+  key legitimately contains a dot.
+- `property` writes use **replace** semantics: the object is rebuilt from the mapped member alone. Guarded by
+  `AttributeMapping#changes`, which compares in Keycloak attribute space so an unrelated update cannot truncate the record.
+
+Note when testing: Keycloak's user profile filters read-only attributes and never pushes unchanged attributes down to the
+provider, so the adapter's `readOnly` guard and `AttributeMapping#changes` are *not* reachable from the container tests. Both are
+defence-in-depth for callers that bypass the user profile; `changes` is covered by unit tests instead.
 
 ### Key Conventions
 

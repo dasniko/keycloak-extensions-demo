@@ -47,6 +47,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -66,6 +67,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 	static final String BARNEY = "barney";
 	static final String BARNEY_ID = "45678";
 	static final String PEBBLES = "pebbles";
+	static final String PEBBLES_ID = "34567";
 	static final String PEBBLES_PICTURE = "https://dasniko-public.s3.eu-central-1.amazonaws.com/pebbles.png";
 
 	@Container
@@ -104,7 +106,9 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 					  { "name": "picture", "field": "pictureUrl" },
 					  { "name": "avatar", "field": "pictureUrl", "readOnly": true },
 					  { "name": "phone", "field": "phoneNumbers", "multivalued": true },
-					  { "name": "yearOfBirth", "field": "yearOfBirth", "type": "integer" }
+					  { "name": "yearOfBirth", "field": "yearOfBirth", "type": "integer" },
+					  { "name": "addressJson", "field": "address", "type": "json", "readOnly": true },
+					  { "name": "city", "field": "address", "property": "city" }
 					]""");
 				config.add("enabled", "true");
 				componentRep.setConfig(config);
@@ -322,6 +326,48 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 
 	@Test
 	@Order(12)
+	public void testComplexValueIsExposedAsSerializedJson() {
+		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
+		UsersResource usersResource = kcAdmin.realm(REALM).users();
+
+		String pebblesId = usersResource.searchByUsername(PEBBLES, true).getFirst().getId();
+		UserRepresentation pebbles = usersResource.get(pebblesId).toRepresentation();
+
+		assertThat(pebbles.firstAttribute("addressJson"),
+			is("{\"street\":\"" + PEBBLES_ID + " Cobblestone Way\",\"city\":\"Bedrock\"}"));
+	}
+
+	@Test
+	@Order(13)
+	public void testProjectedMemberIsWrittenBackAsAReplacedObject() {
+		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
+		UsersResource usersResource = kcAdmin.realm(REALM).users();
+
+		String bettyId = usersResource.searchByUsername(BETTY, true).getFirst().getId();
+		UserRepresentation betty = usersResource.get(bettyId).toRepresentation();
+		assertThat(betty.firstAttribute("city"), is("Bedrock"));
+
+		// an update that leaves the projected member alone leaves the object intact — Keycloak does not push unchanged
+		// attributes down to the provider (AttributeMapping#changes covers the case where a caller does)
+		betty.setLastName("Rubble-Smith");
+		usersResource.get(bettyId).update(betty);
+		given().when().get(flintstonesApiUrl("/users/" + BETTY_ID))
+			.then().statusCode(200)
+			.body("address.street", is(BETTY_ID + " Cobblestone Way"));
+
+		// changing it does rewrite the object, and replace semantics drop everything else it held
+		betty.singleAttribute("city", "Rock Vegas");
+		usersResource.get(bettyId).update(betty);
+
+		assertThat(usersResource.get(bettyId).toRepresentation().firstAttribute("city"), is("Rock Vegas"));
+		given().when().get(flintstonesApiUrl("/users/" + BETTY_ID))
+			.then().statusCode(200)
+			.body("address.city", is("Rock Vegas"))
+			.body("address.street", is(nullValue()));
+	}
+
+	@Test
+	@Order(14)
 	public void testInvalidAttributeMappingsAreRejected() {
 		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
 		String componentId = kcAdmin.realm(REALM).components()

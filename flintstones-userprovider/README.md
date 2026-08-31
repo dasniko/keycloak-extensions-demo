@@ -16,12 +16,28 @@ mappings):
   { "name": "picture", "field": "pictureUrl" },
   { "name": "avatar", "field": "pictureUrl", "readOnly": true },
   { "name": "phone", "field": "phoneNumbers", "multivalued": true },
-  { "name": "yearOfBirth", "field": "yearOfBirth", "type": "integer" }
+  { "name": "yearOfBirth", "field": "yearOfBirth", "type": "integer" },
+  { "name": "addressJson", "field": "address", "type": "json", "readOnly": true },
+  { "name": "city", "field": "address", "property": "city" }
 ]
 ```
 
+### Complex values
+
+`type: "json"` exposes a whole object (or array) as its serialized JSON string. Useful when the consumer just wants the payload
+through; usually paired with `readOnly`, since hand-editing raw JSON in a text field is a footgun — but it does round-trip if you
+leave it writable.
+
+`property` maps a single member out of a complex object. **Writing replaces the object with one built from that member alone**, so
+`{"street": "…", "city": "Bedrock"}` becomes `{"city": "Rock Vegas"}`. That only happens when the mapped member actually changes —
+`AttributeMapping#changes` compares in Keycloak attribute space, so an unrelated update never truncates the record. `property`
+combines with `multivalued` (project a member out of each element of an array) and with `type` (including `json`).
+
+Only single-level members are supported. A dotted path (`department.manager.id`) would be a small extension on read and write;
+see the note in the repository `CLAUDE.md`.
+
 That is the configuration the integration tests use. The demo records carry `pictureUrl` (string), `phoneNumbers` (JSON array)
-and `yearOfBirth` (JSON number), so all three shapes are exercised end to end — including that a value written back keeps its JSON
+`yearOfBirth` (JSON number) and `address` (JSON object), so all the shapes are exercised end to end — including that a value written back keeps its JSON
 type rather than becoming the string Keycloak stores internally. Several mappings may read the same field, but only one of them
 may write it.
 
@@ -29,10 +45,11 @@ may write it.
 |-----|----------|---------|---------|
 | `name` | yes | — | attribute name on the Keycloak side |
 | `field` | yes | — | field name in the external user record |
-| `type` | no | `string` | `string`, `integer`, `long` or `boolean` — the JSON type of the external value |
+| `type` | no | `string` | `string`, `integer`, `long`, `boolean` or `json` — the JSON type of the external value |
 | `multivalued` | no | `false` | whether the attribute can hold more than one value |
 | `readOnly` | no | `false` | if true, the attribute is never written back to the external source |
 | `delimiter` | no | — | store a multivalued attribute externally as a single delimited string instead of a JSON array |
+| `property` | no | — | the external value is a complex object; map only this member of it |
 
 Notes:
 

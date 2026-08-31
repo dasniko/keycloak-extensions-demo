@@ -242,17 +242,21 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 	 * failing the update.
 	 */
 	private void writeMappedAttribute(AttributeMapping mapping, List<String> values) {
+		List<String> newValues = values == null ? List.of() : values;
+
 		Object externalValue;
 		try {
-			externalValue = mapping.toExternalValue(values);
+			externalValue = mapping.toExternalValue(newValues);
 		} catch (IllegalArgumentException e) {
 			throw new ModelException("Cannot write attribute '%s' to field '%s': %s"
 				.formatted(mapping.name(), mapping.field(), e.getMessage()), e);
 		}
 
-		if (!Objects.equals(externalValue, user.getAttribute(mapping.field()))) {
-			user.setAttribute(mapping.field(), externalValue);
-			dirty = true;
+		if (!mapping.changes(user.getAttribute(mapping.field()), newValues)) {
+			return;
 		}
+
+		user.setAttribute(mapping.field(), externalValue);
+		dirty = true;
 	}
 }

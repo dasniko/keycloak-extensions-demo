@@ -26,7 +26,7 @@ public class AttributeMappingsTest {
 		List<AttributeMapping> mappings = AttributeMappings.parse("""
 			[{ "name": "picture", "field": "pictureUrl" }]""");
 
-		assertThat(mappings, contains(new AttributeMapping("picture", "pictureUrl", ValueType.STRING, false, false, null)));
+		assertThat(mappings, contains(new AttributeMapping("picture", "pictureUrl", ValueType.STRING, false, false, null, null)));
 	}
 
 	@Test
@@ -142,6 +142,51 @@ public class AttributeMappingsTest {
 				[{ "name": "email", "field": "mail" }, { "name": "picture" }]"""));
 		assertThat(e.getMessage(), containsString("root attribute"));
 		assertThat(e.getMessage(), containsString("missing the 'field'"));
+	}
+
+	@Test
+	public void parsesJsonTypeAndProperty() {
+		List<AttributeMapping> mappings = AttributeMappings.parse("""
+			[
+			  { "name": "addressJson", "field": "address", "type": "json", "readOnly": true },
+			  { "name": "city", "field": "address", "property": "city" }
+			]""");
+
+		assertThat(mappings.getFirst().type(), is(ValueType.JSON));
+		assertThat(mappings.getFirst().readOnly(), is(true));
+		assertThat(mappings.getLast().property(), is("city"));
+	}
+
+	@Test
+	public void blankPropertyIsTreatedAsOmitted() {
+		List<AttributeMapping> mappings = AttributeMappings.parse("""
+			[{ "name": "picture", "field": "pictureUrl", "property": "  " }]""");
+		assertThat(mappings.getFirst().property(), is(nullValue()));
+	}
+
+	@Test
+	public void rejectsDelimiterCombinedWithJsonType() {
+		ComponentValidationException e = assertThrows(ComponentValidationException.class,
+			() -> AttributeMappings.validate("""
+				[{ "name": "a", "field": "b", "type": "json", "multivalued": true, "delimiter": "," }]"""));
+		assertThat(e.getMessage(), containsString("cannot combine 'delimiter' with type 'json'"));
+	}
+
+	@Test
+	public void rejectsDelimiterCombinedWithProperty() {
+		ComponentValidationException e = assertThrows(ComponentValidationException.class,
+			() -> AttributeMappings.validate("""
+				[{ "name": "a", "field": "b", "property": "c", "multivalued": true, "delimiter": "," }]"""));
+		assertThat(e.getMessage(), containsString("cannot combine 'delimiter' with 'property'"));
+	}
+
+	@Test
+	public void allowsAJsonMappingAndAProjectionOnTheSameFieldWhenOnlyOneWrites() {
+		assertDoesNotThrow(() -> AttributeMappings.validate("""
+			[
+			  { "name": "addressJson", "field": "address", "type": "json", "readOnly": true },
+			  { "name": "city", "field": "address", "property": "city" }
+			]"""));
 	}
 
 	@Test

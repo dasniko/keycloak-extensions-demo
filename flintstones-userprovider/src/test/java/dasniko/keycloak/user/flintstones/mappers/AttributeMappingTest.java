@@ -2,7 +2,9 @@ package dasniko.keycloak.user.flintstones.mappers;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -19,7 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class AttributeMappingTest {
 
 	private static AttributeMapping mapping(ValueType type, boolean multivalued, String delimiter) {
-		return new AttributeMapping("attr", "field", type, multivalued, false, delimiter);
+		return new AttributeMapping("attr", "field", type, multivalued, false, delimiter, null);
+	}
+
+	private static AttributeMapping projection(ValueType type, boolean multivalued, String property) {
+		return new AttributeMapping("attr", "field", type, multivalued, false, null, property);
 	}
 
 	@Test
@@ -87,6 +93,98 @@ public class AttributeMappingTest {
 	public void writesNoValuesAsNull() {
 		assertThat(mapping(ValueType.STRING, false, null).toExternalValue(List.of()), is(nullValue()));
 		assertThat(mapping(ValueType.STRING, false, null).toExternalValue(null), is(nullValue()));
+	}
+
+	@Test
+	public void readsAComplexValueAsASerializedJsonString() {
+		Map<String, Object> address = new LinkedHashMap<>();
+		address.put("street", "301 Cobblestone Way");
+		address.put("city", "Bedrock");
+
+		assertThat(mapping(ValueType.JSON, false, null).toAttributeValues(address),
+			contains("{\"street\":\"301 Cobblestone Way\",\"city\":\"Bedrock\"}"));
+	}
+
+	@Test
+	public void writesASerializedJsonStringBackAsAComplexValue() {
+		Object written = mapping(ValueType.JSON, false, null).toExternalValue(List.of("{\"city\":\"Bedrock\"}"));
+		assertThat(written, is(Map.of("city", "Bedrock")));
+	}
+
+	@Test
+	public void rejectsWritingAMalformedJsonString() {
+		assertThrows(IllegalArgumentException.class, () -> mapping(ValueType.JSON, false, null).toExternalValue(List.of("{oops")));
+	}
+
+	@Test
+	public void projectsASingleMemberOutOfAComplexValue() {
+		Map<String, Object> address = Map.of("street", "301 Cobblestone Way", "city", "Bedrock");
+		assertThat(projection(ValueType.STRING, false, "city").toAttributeValues(address), contains("Bedrock"));
+	}
+
+	@Test
+	public void projectsAMemberOutOfEachElementOfACollection() {
+		List<Map<String, Object>> groups = List.of(Map.of("id", 1, "name", "quarry"), Map.of("id", 2, "name", "lodge"));
+		assertThat(projection(ValueType.STRING, true, "name").toAttributeValues(groups), contains("quarry", "lodge"));
+	}
+
+	@Test
+	public void projectsATypedMember() {
+		assertThat(projection(ValueType.INTEGER, false, "id").toAttributeValues(Map.of("id", 7)), contains("7"));
+	}
+
+	@Test
+	public void projectingAnAbsentMemberYieldsNoValues() {
+		assertThat(projection(ValueType.STRING, false, "city").toAttributeValues(Map.of("street", "x")), is(empty()));
+	}
+
+	@Test
+	public void rejectsProjectingOutOfSomethingThatIsNotAnObject() {
+		assertThrows(IllegalArgumentException.class,
+			() -> projection(ValueType.STRING, false, "city").toAttributeValues("just a string"));
+	}
+
+	@Test
+	public void writingAProjectedMemberReplacesTheObject() {
+		assertThat(projection(ValueType.STRING, false, "city").toExternalValue(List.of("Rock Vegas")),
+			is(Map.of("city", "Rock Vegas")));
+	}
+
+	@Test
+	public void writingAMultivaluedProjectionYieldsOneMinimalObjectPerValue() {
+		assertThat(projection(ValueType.STRING, true, "name").toExternalValue(List.of("quarry", "lodge")),
+			is(List.of(Map.of("name", "quarry"), Map.of("name", "lodge"))));
+	}
+
+	@Test
+	public void rewritingAProjectedMemberWithItsCurrentValueIsNotAChange() {
+		Map<String, Object> address = Map.of("street", "301 Cobblestone Way", "city", "Bedrock");
+		AttributeMapping mapping = projection(ValueType.STRING, false, "city");
+
+		// comparing the rebuilt object against the stored one would report a change here and truncate the record
+		assertThat(mapping.changes(address, List.of("Bedrock")), is(false));
+		assertThat(mapping.changes(address, List.of("Rock Vegas")), is(true));
+	}
+
+	@Test
+	public void clearingAValueIsAChangeOnlyWhenThereWasOne() {
+		AttributeMapping mapping = mapping(ValueType.STRING, false, null);
+
+		assertThat(mapping.changes("x", List.of()), is(true));
+		assertThat(mapping.changes(null, List.of()), is(false));
+		assertThat(mapping.changes(null, null), is(false));
+	}
+
+	@Test
+	public void aValueTheSourceCannotDeliverCountsAsAChange() {
+		assertThat(mapping(ValueType.INTEGER, false, null).changes("not a number", List.of("42")), is(true));
+	}
+
+	@Test
+	public void typedValuesCompareByTheirAttributeRepresentation() {
+		assertThat(mapping(ValueType.INTEGER, false, null).changes(1960, List.of("1960")), is(false));
+		assertThat(mapping(ValueType.BOOLEAN, false, null).changes(true, List.of("true")), is(false));
+		assertThat(mapping(ValueType.INTEGER, false, null).changes(1960, List.of("1959")), is(true));
 	}
 
 	@Test

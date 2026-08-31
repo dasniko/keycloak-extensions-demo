@@ -27,7 +27,9 @@ public final class AttributeMappings {
 		[
 		  { "name": "picture", "field": "pictureUrl" },
 		  { "name": "phone", "field": "phoneNumbers", "multivalued": true },
-		  { "name": "loginCount", "field": "logins", "type": "integer", "readOnly": true }
+		  { "name": "loginCount", "field": "logins", "type": "integer", "readOnly": true },
+		  { "name": "addressJson", "field": "address", "type": "json", "readOnly": true },
+		  { "name": "city", "field": "address", "property": "city" }
 		]""";
 
 	private static final String NOTE_KEY = AttributeMappings.class.getName();
@@ -101,6 +103,14 @@ public final class AttributeMappings {
 
 			if (mapping.delimiter() != null && !mapping.multivalued()) {
 				errors.add("mapping '%s' declares a 'delimiter' but is not 'multivalued'".formatted(label));
+			}
+
+			if (mapping.delimiter() != null && mapping.type() == ValueType.JSON) {
+				errors.add("mapping '%s' cannot combine 'delimiter' with type 'json'".formatted(label));
+			}
+
+			if (mapping.delimiter() != null && mapping.property() != null) {
+				errors.add("mapping '%s' cannot combine 'delimiter' with 'property', a delimited string holds no objects".formatted(label));
 			}
 		}
 

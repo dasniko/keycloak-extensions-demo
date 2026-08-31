@@ -1,5 +1,8 @@
 package dasniko.keycloak.user.flintstones.mappers;
 
+import org.keycloak.util.JsonSerialization;
+
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Locale;
 
@@ -41,6 +44,29 @@ public enum ValueType {
 				throw new IllegalArgumentException("'%s' is not a boolean".formatted(value));
 			}
 			return Boolean.valueOf(value);
+		}
+	},
+
+	/**
+	 * A complex value (object or array) exposed to Keycloak as its serialized JSON string.
+	 */
+	JSON {
+		@Override
+		Object toExternalValue(String value) {
+			try {
+				return JsonSerialization.readValue(value, Object.class);
+			} catch (IOException e) {
+				throw new IllegalArgumentException("'%s' is not valid JSON".formatted(value), e);
+			}
+		}
+
+		@Override
+		String toAttributeValue(Object value) {
+			try {
+				return JsonSerialization.writeValueAsString(value);
+			} catch (IOException e) {
+				throw new IllegalArgumentException("value cannot be serialized to JSON: " + e.getMessage(), e);
+			}
 		}
 	};
 
