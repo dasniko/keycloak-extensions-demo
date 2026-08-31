@@ -21,7 +21,7 @@ public class UserCredentialResourceProvider implements RealmResourceProvider {
 	private final Auth auth;
 
 	public UserCredentialResourceProvider(KeycloakSession session) {
-		this.auth = AuthHelper.getAuth(session, Constants.ACCOUNT_MANAGEMENT_CLIENT_ID, auth -> auth.getToken().hasAudience(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID));
+		this.auth = AuthHelper.getAuth(session, Constants.ACCOUNT_MANAGEMENT_CLIENT_ID, auth -> auth.token().hasAudience(Constants.ACCOUNT_MANAGEMENT_CLIENT_ID));
 	}
 
 	@Override
