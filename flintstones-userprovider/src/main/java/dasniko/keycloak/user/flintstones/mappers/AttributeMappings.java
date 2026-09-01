@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
@@ -47,19 +48,35 @@ public final class AttributeMappings {
 	}
 
 	/**
-	 * Returns the mappings configured on the given provider model. The parsed result is cached on the model, keyed by the raw
-	 * configuration string, so a configuration update invalidates it.
+	 * Returns the mappings configured on the given provider model.
+	 * <p>
+	 * The parsed result is cached on the model, keyed by the raw configuration string, so a configuration update invalidates it.
+	 * Note that the cache does not outlive the {@link org.keycloak.models.KeycloakSession}: {@code ComponentModel.notes} is
+	 * transient and is not carried over by the copy constructor, and the storage manager wraps the realm-cached model in a fresh
+	 * {@code UserStorageProviderModel} per lookup. It therefore saves the repeated parses within one request, not across requests.
 	 */
 	public static List<AttributeMapping> get(ComponentModel model) {
+		return cached(model).mappings();
+	}
+
+	/**
+	 * The same mappings as {@link #get(ComponentModel)}, indexed by the Keycloak attribute name. Names are unique, enforced by
+	 * {@link #validate(String)}.
+	 */
+	public static Map<String, AttributeMapping> byName(ComponentModel model) {
+		return cached(model).byName();
+	}
+
+	private static Cached cached(ComponentModel model) {
 		String raw = model.get(CONFIG_KEY, "");
 		Cached cached = model.getNote(NOTE_KEY);
 		if (cached != null && cached.raw().equals(raw)) {
-			return cached.mappings();
+			return cached;
 		}
 
-		List<AttributeMapping> mappings = parse(raw);
-		model.setNote(NOTE_KEY, new Cached(raw, mappings));
-		return mappings;
+		cached = new Cached(raw, parse(raw));
+		model.setNote(NOTE_KEY, cached);
+		return cached;
 	}
 
 	/**
@@ -83,16 +100,16 @@ public final class AttributeMappings {
 	 * @throws ComponentValidationException if the configuration cannot be parsed or is semantically invalid
 	 */
 	public static void validate(KeycloakSession session, RealmModel realm, String raw) throws ComponentValidationException {
-		validate(raw);
-		validateGroups(session, realm, parse(raw));
+		validateGroups(session, realm, validate(raw));
 	}
 
 	/**
 	 * Structural validation, independent of the realm.
 	 *
+	 * @return the parsed mappings, so a caller that validates further does not have to parse again
 	 * @throws ComponentValidationException if the configuration cannot be parsed or is semantically invalid
 	 */
-	public static void validate(String raw) throws ComponentValidationException {
+	public static List<AttributeMapping> validate(String raw) throws ComponentValidationException {
 		List<AttributeMapping> mappings;
 		try {
 			mappings = parse(raw);
@@ -105,13 +122,15 @@ public final class AttributeMappings {
 		List<String> errors = new ArrayList<>();
 
 		for (AttributeMapping mapping : mappings) {
-			String label = mapping.name() == null || mapping.name().isBlank() ? "<unnamed>" : mapping.name();
+			String name = mapping.name();
+			boolean unnamed = name == null || name.isBlank();
+			String label = unnamed ? "<unnamed>" : name;
 
-			if (mapping.name() == null || mapping.name().isBlank()) {
+			if (unnamed) {
 				errors.add("a mapping is missing the 'name' of the Keycloak attribute");
-			} else if (UserProfileUtil.isRootAttribute(mapping.name())) {
-				errors.add("'%s' is a root attribute and is always mapped by the provider itself".formatted(label));
-			} else if (!names.add(mapping.name())) {
+			} else if (UserProfileUtil.isRootAttribute(name)) {
+				errors.add("'%s' is a root attribute of the user profile and cannot be mapped".formatted(label));
+			} else if (!names.add(name)) {
 				errors.add("'%s' is mapped more than once".formatted(label));
 			}
 
@@ -137,6 +156,7 @@ public final class AttributeMappings {
 		if (!errors.isEmpty()) {
 			throw new ComponentValidationException("Invalid attribute mappings: " + String.join("; ", errors));
 		}
+		return mappings;
 	}
 
 	/**
@@ -181,9 +201,16 @@ public final class AttributeMappings {
 				return cause.getMessage();
 			}
 		}
-		return e instanceof JsonProcessingException jpe ? jpe.getOriginalMessage() : e.getMessage();
+		// the loop returns on the first non-Jackson cause, starting at e itself, so getting here means e is Jackson's own
+		return ((JsonProcessingException) e).getOriginalMessage();
 	}
 
-	private record Cached(String raw, List<AttributeMapping> mappings) {
+	private record Cached(String raw, List<AttributeMapping> mappings, Map<String, AttributeMapping> byName) {
+
+		Cached(String raw, List<AttributeMapping> mappings) {
+			this(raw, mappings, mappings.stream()
+				.filter(mapping -> mapping.name() != null)
+				.collect(Collectors.toUnmodifiableMap(AttributeMapping::name, mapping -> mapping, (first, second) -> first)));
+		}
 	}
 }

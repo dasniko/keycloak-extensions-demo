@@ -160,6 +160,12 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 
 	@Override
 	public Stream<String> getAttributeStream(String name) {
+		// resolve a mapped attribute directly: getAttributes() would hit federated storage and convert every other mapping
+		// only to discard all but this one, and Keycloak asks for single attributes on every token request
+		AttributeMapping mapping = findMapping(name);
+		if (mapping != null) {
+			return readMappedAttribute(mapping).stream();
+		}
 		List<String> values = getAttributes().get(name);
 		return values != null && !values.isEmpty() ? values.stream() : Stream.empty();
 	}
@@ -218,9 +224,7 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 	}
 
 	private AttributeMapping findMapping(String name) {
-		return mappings().stream()
-			.filter(mapping -> mapping.name().equals(name))
-			.findFirst().orElse(null);
+		return AttributeMappings.byName(storageProviderModel).get(name);
 	}
 
 	/**

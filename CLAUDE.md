@@ -86,8 +86,13 @@ Instead: a single `attributeMappings` config property (`SCRIPT_TYPE`) holding a 
 `@JsonAnySetter`/`@JsonAnyGetter` on `FlintstoneUser` so the DTO is agnostic to the external schema. See the module README for
 the format. Key pieces:
 
-- `AttributeMappings` — parse/validate/cache; the parsed result is cached in `ComponentModel.getNote()`, keyed on the raw
-  config string so a config update invalidates it.
+- `AttributeMappings` — parse/validate/cache; the parsed result (plus a by-name index) is cached in `ComponentModel.getNote()`,
+  keyed on the raw config string so a config update invalidates it. The cache is **per `KeycloakSession`, not per config**:
+  `ComponentModel.notes` is `transient` and is not carried over by `ComponentModel(ComponentModel copy)`, and
+  `AbstractStorageManager.getStorageProviderModel` wraps the realm-cached model in a fresh `UserStorageProviderModel` on every
+  lookup. It survives within one request because the provider instance is cached in `session.setAttribute(model.getId(), …)`.
+  So it saves the repeated parses inside a request, not across them. Moving it to a factory-level map keyed on component id
+  would make it persist — deliberately not done, the per-request parse is cheap and the note keeps the invalidation trivial.
 - `AttributeMapping#toAttributeValues` / `#toExternalValue` — the two conversion directions.
 - `FlintstonesUserStorageProvider implements UserProfileDecorator` — declares mapped attributes on the user profile, otherwise
   they are unmanaged attributes and invisible without a realm `unmanagedAttributePolicy`.
