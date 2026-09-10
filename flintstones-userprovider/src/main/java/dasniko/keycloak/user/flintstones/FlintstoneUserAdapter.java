@@ -47,7 +47,7 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 
 	@Override
 	public void setUsername(String username) {
-		dirty = dirty || !Objects.equals(username, user.getUsername());
+		markDirty(username, user.getUsername());
 		user.setUsername(username);
 	}
 
@@ -58,7 +58,7 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 
 	@Override
 	public void setFirstName(String firstName) {
-		dirty = dirty || !Objects.equals(firstName, user.getFirstName());
+		markDirty(firstName, user.getFirstName());
 		user.setFirstName(firstName);
 	}
 
@@ -69,7 +69,7 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 
 	@Override
 	public void setLastName(String lastName) {
-		dirty = dirty || !Objects.equals(lastName, user.getLastName());
+		markDirty(lastName, user.getLastName());
 		user.setLastName(lastName);
 	}
 
@@ -80,7 +80,7 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 
 	@Override
 	public void setEmail(String email) {
-		dirty = dirty || !Objects.equals(email, user.getEmail());
+		markDirty(email, user.getEmail());
 		user.setEmail(email);
 	}
 
@@ -92,7 +92,7 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 
 	@Override
 	public void setEmailVerified(boolean verified) {
-		dirty = dirty || verified != user.isEmailVerified();
+		markDirty(verified, user.isEmailVerified());
 		user.setEmailVerified(verified);
 	}
 
@@ -103,7 +103,7 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 
 	@Override
 	public void setEnabled(boolean enabled) {
-		dirty = dirty || enabled != user.isEnabled();
+		markDirty(enabled, user.isEnabled());
 		user.setEnabled(enabled);
 	}
 
@@ -217,6 +217,10 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 			}
 		}
 		return roles;
+	}
+
+	private void markDirty(Object current, Object next) {
+		dirty = dirty || !Objects.equals(current, next);
 	}
 
 	private List<AttributeMapping> mappings() {
