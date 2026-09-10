@@ -9,14 +9,21 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
+@Slf4j
 @RequiredArgsConstructor
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
@@ -29,7 +36,12 @@ public class FlintstonesApiResource {
 	public Response findUsers(@QueryParam("search") String search,
 														@QueryParam("username") String username,
 														@QueryParam("email") String email,
-														@QueryParam("exactMatch") boolean exactMatch) {
+														@QueryParam("exactMatch") boolean exactMatch,
+														@Context UriInfo uriInfo) {
+
+		MultivaluedMap<String, String> attributes = new MultivaluedHashMap<>(uriInfo.getQueryParameters());
+		attributes.keySet().removeAll(Set.of("search", "username", "email", "exactMatch"));
+
 		List<FlintstoneUser> users = List.of();
 
 		if (username != null || email != null) {
@@ -41,6 +53,9 @@ public class FlintstonesApiResource {
 		} else if (search != null) {
 			users = repository.findUsers(search);
 		} else {
+			if (!attributes.isEmpty()) {
+				log.warn("***** search by attributes not yet implemented *****");
+			}
 			users = repository.getAllUsers();
 		}
 

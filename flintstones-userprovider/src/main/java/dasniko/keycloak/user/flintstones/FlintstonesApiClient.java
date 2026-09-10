@@ -35,20 +35,18 @@ public class FlintstonesApiClient {
 		this.tracing = session.getProvider(TracingProvider.class);
 	}
 
-	public List<FlintstoneUser> searchUsers(String search, Integer first, Integer max) {
+	public List<FlintstoneUser> searchUsers(Map<String, String> params, Integer first, Integer max) {
 		String url = String.format("%s/users", baseUrl);
-		return searchUsersRequest(url, search, null, first, max, "searchUsers");
+		return searchUsersRequest(url, params, first, max, "searchUsers");
 	}
 
-	public Integer usersCount(String search) {
+	public Integer usersCount(Map<String, String> params) {
 		String url = String.format("%s/users/count", baseUrl);
 		SimpleHttpRequest request = prepareGetRequest(url);
-		if (search != null) {
-			request.param("search", search);
-		}
+		params.forEach(request::param);
 
 		return handleRequest(request, "usersCount", response -> {
-			Map<String, Integer> payload = request.asJson(new TypeReference<>() {});
+			Map<String, Integer> payload = response.asJson(new TypeReference<>() {});
 			return payload.getOrDefault("count", 0);
 		});
 	}
@@ -87,17 +85,8 @@ public class FlintstonesApiClient {
 
 	private List<FlintstoneUser> getUserByUsernameOrEmail(String field, String value, boolean exactMatch, Integer first, Integer max) {
 		String url = String.format("%s/users", baseUrl);
-		SimpleHttpRequest request = prepareGetRequest(url);
-		request.param(field, value);
-		request.param("exactMatch", String.valueOf(exactMatch));
-		if (first != null && first >= 0) {
-			request.param("first", String.valueOf(first));
-		}
-		if (max != null && max >= 0) {
-			request.param("max", String.valueOf(max));
-		}
-
-		return handleRequest(request, "getUserByUsernameOrEmail:" + field, response -> response.asJson(new TypeReference<>() {}));
+		Map<String, String> params = Map.of(field, value, "exactMatch", String.valueOf(exactMatch));
+		return searchUsersRequest(url, params, first, max, "getUserByUsernameOrEmail:" + field);
 	}
 
 	public boolean updateUser(FlintstoneUser user) {
@@ -132,27 +121,22 @@ public class FlintstonesApiClient {
 
 	public List<FlintstoneUser> searchGroupMembers(String name, Integer first, Integer max) {
 		String url = String.format("%s/groups/members", baseUrl);
-		return searchUsersRequest(url, null, name, first, max, "searchGroupMembers");
+		return searchUsersRequest(url, Map.of("name", name), first, max, "searchGroupMembers");
 	}
 
 	public List<FlintstoneUser> searchRoleMembers(String name, Integer first, Integer max) {
 		String url = String.format("%s/roles/members", baseUrl);
-		return searchUsersRequest(url, null, name, first, max, "searchRoleMembers");
+		return searchUsersRequest(url, Map.of("name", name), first, max, "searchRoleMembers");
 	}
 
-	private List<FlintstoneUser> searchUsersRequest(String url, String search, String name, Integer first, Integer max, String spanSuffix) {
+	private List<FlintstoneUser> searchUsersRequest(String url, Map<String, String> params, Integer first, Integer max, String spanSuffix) {
 		SimpleHttpRequest request = prepareGetRequest(url);
-		if (name != null) {
-			request.param("name", name);
-		}
+		params.forEach(request::param);
 		if (first != null && first >= 0) {
 			request.param("first", String.valueOf(first));
 		}
 		if (max != null && max >= 0) {
 			request.param("max", String.valueOf(max));
-		}
-		if (search != null) {
-			request.param("search", search);
 		}
 
 		return handleRequest(request, spanSuffix, response -> response.asJson(new TypeReference<>() {}));

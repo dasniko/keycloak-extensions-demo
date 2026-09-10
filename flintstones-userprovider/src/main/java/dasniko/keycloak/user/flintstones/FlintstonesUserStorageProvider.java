@@ -35,8 +35,10 @@ import org.keycloak.userprofile.UserProfileProvider;
 import org.keycloak.userprofile.UserProfileUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -45,6 +47,14 @@ import java.util.stream.Stream;
 public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	UserLookupProvider, UserQueryProvider, CredentialInputUpdater, CredentialInputValidator,
 	UserRegistrationProvider, UserProfileDecorator {
+
+	/**
+	 * Keycloak's own query vocabulary. These keys carry no meaning for the external API and must not be forwarded to it;
+	 * {@link UserModel#SEARCH} is the only one with a counterpart, so it is translated rather than dropped.
+	 */
+	private static final Set<String> INTERNAL_QUERY_KEYS = Set.of(
+		UserModel.SEARCH, UserModel.EXACT, UserModel.IDP_ALIAS, UserModel.IDP_USER_ID,
+		UserModel.INCLUDE_SERVICE_ACCOUNT, UserModel.GROUPS);
 
 	private final KeycloakSession session;
 	private final ComponentModel model;
@@ -209,7 +219,7 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public int getUsersCount(RealmModel realm, Map<String, String> params) {
-		return apiClient.usersCount(params.getOrDefault(UserModel.SEARCH, null));
+		return apiClient.usersCount(toExternalQuery(params));
 	}
 
 	@Override
@@ -223,7 +233,7 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 		} else if (params.containsKey(UserModel.EMAIL)) {
 			result = apiClient.searchUsersByEmail(params.get(UserModel.EMAIL), firstResult, maxResults);
 		} else {
-			result = apiClient.searchUsers(params.getOrDefault(UserModel.SEARCH, null), firstResult, maxResults);
+			result = apiClient.searchUsers(toExternalQuery(params), firstResult, maxResults);
 		}
 
 		Stream<UserModel> stream = result.stream().map(user -> new FlintstoneUserAdapter(session, realm, model, user));
@@ -245,7 +255,28 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public Stream<UserModel> searchForUserByUserAttributeStream(RealmModel realm, String attrName, String attrValue) {
+		// only reached by X.509 client cert auth (mapped to custom attributes) and the OID4VC DID uniqueness validator
 		return Stream.empty();
+	}
+
+	/**
+	 * Converts Keycloak's query parameters into the ones the external API expects.
+	 * <p>
+	 * Derives a new map instead of editing the argument: {@code UserStorageManager} hands the same instance to every provider of
+	 * the realm and to the count pass, and some callers pass an immutable {@code Map.of(...)}.
+	 */
+	private static Map<String, String> toExternalQuery(Map<String, String> params) {
+		Map<String, String> query = new HashMap<>(params);
+		query.keySet().removeAll(INTERNAL_QUERY_KEYS);
+		String search = params.get(UserModel.SEARCH);
+		if (search != null) {
+			query.put("search", search);
+		}
+		String exact = params.get(UserModel.EXACT);
+		if (exact != null) {
+			query.put("exactMatch", exact);
+		}
+		return query;
 	}
 
 	@Override
