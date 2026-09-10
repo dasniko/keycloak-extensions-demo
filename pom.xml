@@ -35,9 +35,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<aws.version>2.35.0</aws.version>
-		<bytebuddy.version>1.17.8</bytebuddy.version>
+		<bytebuddy.version>1.18.13</bytebuddy.version>
 		<git-commit-id.version>10.0.1</git-commit-id.version>
-<!--		<keycloak.version>26.2.1</keycloak.version>-->
 		<keycloak.version>999.0.0-SNAPSHOT</keycloak.version>
 		<maven.compiler.version>3.16.0</maven.compiler.version>
 		<maven.compiler.release>21</maven.compiler.release>
