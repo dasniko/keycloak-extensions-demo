@@ -117,7 +117,7 @@ public class CustomTokenResource {
 	private CustomActionToken createActionToken(UserModel user, String clientId, Integer expiration, String redirectUri,
 																							boolean reuse, String scope, String nonce, String state) {
 		int expirationInSecs = (expiration != null && expiration > 0) ? expiration : (60 * 60 * 24);
-		int absoluteExpirationInSecs = Time.currentTime() + expirationInSecs;
+		int absoluteExpirationInSecs = Math.toIntExact(Time.currentTimeSeconds() + expirationInSecs);
 		return new CustomActionToken(user.getId(), clientId, absoluteExpirationInSecs, reuse, redirectUri, scope, nonce, state);
 	}
 
@@ -139,7 +139,7 @@ public class CustomTokenResource {
 
 		// now do the work
 		String tokenString = token.serialize(session, realm, uriInfo);
-		UriBuilder uriBuilder = Urls.actionTokenBuilder(uriInfo.getBaseUri(), tokenString, token.issuedFor, "", "");
+		UriBuilder uriBuilder = Urls.actionTokenBuilder(uriInfo.getBaseUri(), tokenString, token.getIssuedFor(), "", "");
 
 		// and then reset the realm to the proper one
 		session.getContext().setRealm(sessionContextRealm);
