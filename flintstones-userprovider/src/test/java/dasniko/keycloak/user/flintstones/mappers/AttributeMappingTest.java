@@ -2,6 +2,8 @@ package dasniko.keycloak.user.flintstones.mappers;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -112,6 +114,31 @@ public class AttributeMappingTest {
 	public void writesNoValuesAsNull() {
 		assertThat(mapping(ValueType.STRING, false, null).toExternalValue(List.of()), is(nullValue()));
 		assertThat(mapping(ValueType.STRING, false, null).toExternalValue(null), is(nullValue()));
+	}
+
+	@Test
+	public void writingIgnoresNullValues() {
+		assertThat(mapping(ValueType.STRING, true, null).toExternalValue(Arrays.asList("a", null)), is(List.of("a")));
+		assertThat(mapping(ValueType.STRING, true, ",").toExternalValue(Arrays.asList("a", null, "b")), is("a,b"));
+		assertThat(mapping(ValueType.INTEGER, false, null).toExternalValue(Arrays.asList(null, "42")), is(42));
+		assertThat(projection(ValueType.STRING, false, "city").toExternalValue(Arrays.asList(null, "Bedrock")),
+			is(Map.of("city", "Bedrock")));
+		assertThat(projection(ValueType.STRING, true, "name").toExternalValue(Arrays.asList("quarry", null)),
+			is(List.of(Map.of("name", "quarry"))));
+	}
+
+	@Test
+	public void writingOnlyNullValuesIsWritingNoValue() {
+		assertThat(mapping(ValueType.STRING, false, null).toExternalValue(Collections.singletonList(null)), is(nullValue()));
+		assertThat(projection(ValueType.STRING, false, "city").toExternalValue(Collections.singletonList(null)), is(nullValue()));
+		assertThat(mapping(ValueType.STRING, true, ",").toExternalValue(Collections.singletonList(null)), is(nullValue()));
+	}
+
+	@Test
+	public void nullValuesDoNotCountAsAChange() {
+		assertThat(mapping(ValueType.STRING, false, null).changes(null, Collections.singletonList(null)), is(false));
+		assertThat(mapping(ValueType.STRING, true, null).changes(List.of("a"), Arrays.asList("a", null)), is(false));
+		assertThat(mapping(ValueType.STRING, false, null).changes("x", Collections.singletonList(null)), is(true));
 	}
 
 	@Test

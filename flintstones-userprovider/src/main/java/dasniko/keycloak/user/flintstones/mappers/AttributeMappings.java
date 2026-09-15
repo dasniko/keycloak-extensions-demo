@@ -88,7 +88,13 @@ public final class AttributeMappings {
 		}
 		try {
 			List<AttributeMapping> mappings = READER.readValue(raw);
-			return mappings == null ? List.of() : List.copyOf(mappings);
+			if (mappings == null) {
+				return List.of();
+			}
+			if (mappings.contains(null)) {
+				throw new IllegalArgumentException("the list contains a null entry instead of a mapping definition");
+			}
+			return List.copyOf(mappings);
 		} catch (IOException e) {
 			throw new IllegalArgumentException(rootCauseMessage(e), e);
 		}

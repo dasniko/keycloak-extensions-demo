@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -103,11 +104,13 @@ public record AttributeMapping(
 	/**
 	 * Converts Keycloak attribute values into the representation the external API expects.
 	 *
+	 * @param attributeValues the attribute values, {@code null} elements are ignored
 	 * @return the external value, {@code null} if there is no value to write
 	 * @throws IllegalArgumentException if a value does not match the configured {@link #type()}
 	 */
-	public Object toExternalValue(List<String> values) {
-		if (values == null || values.isEmpty()) {
+	public Object toExternalValue(List<String> attributeValues) {
+		List<String> values = withoutNulls(attributeValues);
+		if (values.isEmpty()) {
 			return null;
 		}
 
@@ -145,7 +148,15 @@ public record AttributeMapping(
 			// we cannot make sense of what is there, so let the write through
 			return true;
 		}
-		return !current.equals(values == null ? List.of() : values);
+		return !current.equals(withoutNulls(values));
+	}
+
+	/**
+	 * Reading skips {@code null} values, so writing does too — otherwise they would end up in the external record, or break the
+	 * conversion.
+	 */
+	private static List<String> withoutNulls(List<String> values) {
+		return values == null ? List.of() : values.stream().filter(Objects::nonNull).toList();
 	}
 
 	/**

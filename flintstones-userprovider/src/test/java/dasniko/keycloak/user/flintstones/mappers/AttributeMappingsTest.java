@@ -53,6 +53,14 @@ public class AttributeMappingsTest {
 	}
 
 	@Test
+	public void rejectsANullEntry() {
+		ComponentValidationException e = assertThrows(ComponentValidationException.class,
+			() -> AttributeMappings.validate("""
+				[{ "name": "picture", "field": "pictureUrl" }, null]"""));
+		assertThat(e.getMessage(), containsString("null"));
+	}
+
+	@Test
 	public void validConfigurationPasses() {
 		assertDoesNotThrow(() -> AttributeMappings.validate(AttributeMappings.CONFIG_EXAMPLE));
 	}
