@@ -9,9 +9,11 @@ import de.keycloak.test.pages.AccountManagementPage;
 import de.keycloak.test.pages.LoginWithUsernameAndPasswordPage;
 import de.keycloak.test.pages.UpdatePasswordPage;
 import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.utils.URIBuilder;
 import org.htmlunit.WebClient;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -30,6 +32,8 @@ import org.keycloak.constants.ServiceUrlConstants;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.ComponentRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.FederatedIdentityRepresentation;
+import org.keycloak.representations.idm.IdentityProviderRepresentation;
 import org.keycloak.representations.idm.UserProfileAttributeMetadata;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.representations.userprofile.config.UPConfig;
@@ -74,25 +78,34 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 	static final String PEBBLES_ID = "34567";
 	static final String PEBBLES_PICTURE = "https://dasniko-public.s3.eu-central-1.amazonaws.com/pebbles.png";
 
+	// never contacted, only needed to link users to
+	private static final String IDP_ALIAS = "test-idp";
+
 	@Container
 	private static final KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:nightly")
 		.withEnv("KC_SPI_EVENTS_LISTENER__JBOSS_LOGGING__SUCCESS_LEVEL", "info")
 		.withEnv("KC_LOG_LEVEL", "INFO,dasniko:debug")
 		.withProviderClassesFrom("target/classes", "../utils/target/classes");
 
+	private static Keycloak admin;
+
 	@BeforeAll
 	static void beforeAll() {
+		admin = keycloak.getKeycloakAdminClient();
+
 		initTestRealm(keycloak, REALM,
 			realm -> {
 				realm.setLoginWithEmailAllowed(true);
 				realm.setResetPasswordAllowed(true);
 			},
-			(kcAdmin, realmRep) -> {
+			(admin, realmRep) -> {
+				RealmResource realm = admin.realm(REALM);
+
 				ClientRepresentation client = new ClientRepresentation();
 				client.setEnabled(true);
 				client.setClientId("api-client");
 				client.setServiceAccountsEnabled(true);
-				kcAdmin.realm(REALM).clients().create(client).close();
+				realm.clients().create(client).close();
 
 				ComponentRepresentation componentRep = new ComponentRepresentation();
 				componentRep.setProviderId(FlintstonesUserStorageProviderFactory.PROVIDER_ID);
@@ -118,11 +131,29 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 				config.add("enabled", "true");
 				componentRep.setConfig(config);
 
-				kcAdmin.realm(REALM).components().add(componentRep).close();
+				realm.components().add(componentRep).close();
+
+				IdentityProviderRepresentation idp = new IdentityProviderRepresentation();
+				idp.setAlias(IDP_ALIAS);
+				idp.setProviderId("oidc");
+				idp.setConfig(Map.of(
+					"clientId", "keycloak",
+					"clientSecret", "secret",
+					"clientAuthMethod", "client_secret_post",
+					"authorizationUrl", "https://idp.invalid/auth",
+					"tokenUrl", "https://idp.invalid/token"));
+				try (Response response = realm.identityProviders().create(idp)) {
+					assertThat("creating identity provider " + IDP_ALIAS, response.getStatus(), is(201));
+				}
 			}
 		);
 
 		keycloak.disableLightweightAccessTokenForAdminCliClient(REALM);
+	}
+
+	@AfterAll
+	static void afterAll() {
+		admin.close();
 	}
 
 
@@ -186,8 +217,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 	@Test
 	@Order(5)
 	public void testAccessingUsersAsAdmin() {
-		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
-		UsersResource usersResource = kcAdmin.realm(REALM).users();
+		UsersResource usersResource = admin.realm(REALM).users();
 		List<UserRepresentation> users = usersResource.searchByUsername("fred", true);
 		assertThat(users, is(not(empty())));
 		assertThat(users, hasSize(1));
@@ -200,8 +230,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 	@Test
 	@Order(6)
 	public void testSearchAllUsersAndRemoveUserAsAdmin() {
-		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
-		UsersResource usersResource = kcAdmin.realm(REALM).users();
+		UsersResource usersResource = admin.realm(REALM).users();
 		List<UserRepresentation> users = usersResource.search("*", 0, 10);
 		assertThat(users, is(not(empty())));
 		assertThat(users, hasSize(6));
@@ -234,8 +263,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 	@Test
 	@Order(7)
 	public void testUpdateUserAsAdmin() {
-		Keycloak kcAdmin = keycloak.getKeycloakAdminClient();
-		UsersResource usersResource = kcAdmin.realm(REALM).users();
+		UsersResource usersResource = admin.realm(REALM).users();
 		List<UserRepresentation> users = usersResource.searchByUsername("wilma", true);
 		assertThat(users, hasSize(1));
 
@@ -394,6 +422,40 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 		assertThrows(BadRequestException.class, () -> componentResource.update(rep));
 	}
 
+	@Test
+	@Order(18)
+	void searchByIdpLinkResolvesTheApiUserFromFederatedStorage() {
+		// the link of an API user is kept in Keycloak's federated storage, the API knows nothing about it;
+		// this is the lookup a broker backchannel logout does
+		UserResource tester = admin.realm(REALM).users().get(getUser(admin, REALM, FRED).getId());
+		FederatedIdentityRepresentation link = new FederatedIdentityRepresentation();
+		link.setIdentityProvider(IDP_ALIAS);
+		link.setUserId("idp-fred");
+		link.setUserName(FRED);
+		try (Response response = tester.addFederatedIdentity(IDP_ALIAS, link)) {
+			assertThat(response.getStatus(), is(204));
+		}
+
+		try {
+			assertThat(searchByIdpLink(IDP_ALIAS, "idp-fred"), contains(FRED));
+			assertThat(countByIdpLink(IDP_ALIAS, "idp-fred"), is(1));
+		} finally {
+			tester.removeFederatedIdentity(IDP_ALIAS);
+		}
+	}
+
+	@Test
+	@Order(19)
+	void searchByIdpLinkIsNotForwardedToApi() {
+		// without the link criteria, which the API can't apply, the API would answer with an unfiltered user list
+		assertThat(searchByIdpLink(IDP_ALIAS, "no-such-idp-user"), is(empty()));
+		assertThat(countByIdpLink(IDP_ALIAS, "no-such-idp-user"), is(0));
+
+		// federated storage can't list all users of an IdP
+		assertThat(searchByIdpLink(IDP_ALIAS, null), is(empty()));
+	}
+
+
 	private static String flintstonesApiUrl(String path) {
 		return keycloak.getAuthServerUrl() + "/realms/master/" + FlintstonesApiResourceProvider.PROVIDER_ID + path;
 	}
@@ -423,6 +485,16 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 			.query(null, UserStorageProvider.class.getName(), FlintstonesUserStorageProviderFactory.PROVIDER_ID)
 			.getFirst().getId();
 		return realm.components().component(componentId);
+	}
+
+	private static List<String> searchByIdpLink(String idpAlias, String idpUserId) {
+		return admin.realm(REALM).users()
+			.search(null, null, null, null, null, idpAlias, idpUserId, null, null, null, true)
+			.stream().map(UserRepresentation::getUsername).toList();
+	}
+
+	private static int countByIdpLink(String idpAlias, String idpUserId) {
+		return admin.realm(REALM).users().count(null, null, null, null, null, null, null, idpAlias, idpUserId, null);
 	}
 
 }

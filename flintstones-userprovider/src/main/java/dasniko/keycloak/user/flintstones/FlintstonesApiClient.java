@@ -66,27 +66,19 @@ public class FlintstonesApiClient {
 	}
 
 	public FlintstoneUser getUserByUsername(String username) {
-		List<FlintstoneUser> users = getUserByUsernameOrEmail("username", username, true, 0, 1);
+		List<FlintstoneUser> users = getUserByUsernameOrEmail("username", username);
 		return users.isEmpty() ? null : users.getFirst();
-	}
-
-	public List<FlintstoneUser> searchUsersByUsername(String username, Integer firstResult, Integer maxResults) {
-		return getUserByUsernameOrEmail("username", username, false, firstResult, maxResults);
 	}
 
 	public FlintstoneUser getUserByEmail(String email) {
-		List<FlintstoneUser> users = getUserByUsernameOrEmail("email", email, true, 0, 1);
+		List<FlintstoneUser> users = getUserByUsernameOrEmail("email", email);
 		return users.isEmpty() ? null : users.getFirst();
 	}
 
-	public List<FlintstoneUser> searchUsersByEmail(String email, Integer firstResult, Integer maxResults) {
-		return getUserByUsernameOrEmail("email", email, false, firstResult, maxResults);
-	}
-
-	private List<FlintstoneUser> getUserByUsernameOrEmail(String field, String value, boolean exactMatch, Integer first, Integer max) {
+	private List<FlintstoneUser> getUserByUsernameOrEmail(String field, String value) {
 		String url = String.format("%s/users", baseUrl);
-		Map<String, String> params = Map.of(field, value, "exactMatch", String.valueOf(exactMatch));
-		return searchUsersRequest(url, params, first, max, "getUserByUsernameOrEmail:" + field);
+		Map<String, String> params = Map.of(field, value, "exactMatch", Boolean.TRUE.toString());
+		return searchUsersRequest(url, params, 0, 1, "getUserByUsernameOrEmail:" + field);
 	}
 
 	public boolean updateUser(FlintstoneUser user) {

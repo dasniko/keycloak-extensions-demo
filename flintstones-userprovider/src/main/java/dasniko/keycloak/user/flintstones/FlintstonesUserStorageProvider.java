@@ -10,6 +10,8 @@ import org.keycloak.credential.CredentialInput;
 import org.keycloak.credential.CredentialInputUpdater;
 import org.keycloak.credential.CredentialInputValidator;
 import org.keycloak.credential.CredentialModel;
+import org.keycloak.models.Constants;
+import org.keycloak.models.FederatedIdentityModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ModelException;
@@ -38,7 +40,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,12 +51,15 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	UserRegistrationProvider, UserProfileDecorator {
 
 	/**
-	 * Keycloak's own query vocabulary. These keys carry no meaning for the external API and must not be forwarded to it;
-	 * {@link UserModel#SEARCH} is the only one with a counterpart, so it is translated rather than dropped.
+	 * Common prefix of Keycloak's own query keys ({@link UserModel#SEARCH}, {@link UserModel#IDP_ALIAS}, ...). These keys carry no
+	 * meaning for the external API and must not be forwarded to it; matching the prefix also covers keys added in later versions.
 	 */
-	private static final Set<String> INTERNAL_QUERY_KEYS = Set.of(
-		UserModel.SEARCH, UserModel.EXACT, UserModel.IDP_ALIAS, UserModel.IDP_USER_ID,
-		UserModel.INCLUDE_SERVICE_ACCOUNT, UserModel.GROUPS);
+	private static final String INTERNAL_QUERY_KEY_PREFIX = "keycloak.session.realm.users.query.";
+
+	/**
+	 * The internal query keys with a counterpart in the external API, translated rather than dropped.
+	 */
+	private static final Map<String, String> TRANSLATED_QUERY_KEYS = Map.of(UserModel.SEARCH, "search", UserModel.EXACT, "exactMatch");
 
 	private final KeycloakSession session;
 	private final ComponentModel model;
@@ -219,23 +224,22 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 
 	@Override
 	public int getUsersCount(RealmModel realm, Map<String, String> params) {
+		if (isBrokerLinkQuery(params)) {
+			return findByBrokerLink(realm, params).isPresent() ? 1 : 0;
+		}
 		return apiClient.usersCount(toExternalQuery(params));
 	}
 
 	@Override
 	public Stream<UserModel> searchForUserStream(RealmModel realm, Map<String, String> params, Integer firstResult, Integer maxResults) {
+		if (isBrokerLinkQuery(params)) {
+			return findByBrokerLink(realm, params).stream();
+		}
+
 		TracingProvider tracing = session.getProvider(TracingProvider.class);
 		tracing.startSpan(FlintstonesUserStorageProvider.class, "searchForUserStream");
 
-		List<FlintstoneUser> result;
-		if (params.containsKey(UserModel.USERNAME)) {
-			result = apiClient.searchUsersByUsername(params.get(UserModel.USERNAME), firstResult, maxResults);
-		} else if (params.containsKey(UserModel.EMAIL)) {
-			result = apiClient.searchUsersByEmail(params.get(UserModel.EMAIL), firstResult, maxResults);
-		} else {
-			result = apiClient.searchUsers(toExternalQuery(params), firstResult, maxResults);
-		}
-
+		List<FlintstoneUser> result = apiClient.searchUsers(toExternalQuery(params), firstResult, maxResults);
 		Stream<UserModel> stream = result.stream().map(user -> new FlintstoneUserAdapter(session, realm, model, user));
 		tracing.endSpan();
 		return stream;
@@ -256,7 +260,27 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	@Override
 	public Stream<UserModel> searchForUserByUserAttributeStream(RealmModel realm, String attrName, String attrValue) {
 		// only reached by X.509 client cert auth (mapped to custom attributes) and the OID4VC DID uniqueness validator
-		return Stream.empty();
+		return searchForUserStream(realm, Map.of(attrName, attrValue), 0, Constants.DEFAULT_MAX_RESULTS + 1);
+	}
+
+	/**
+	 * Broker links of flintstone users live in Keycloak's federated storage, not in API, so API can't answer a query by IdP link;
+	 * forwarding it without the link criteria would return an unfiltered user list, e.g. on every broker backchannel logout.
+	 */
+	private static boolean isBrokerLinkQuery(Map<String, String> params) {
+		return params.containsKey(UserModel.IDP_ALIAS) || params.containsKey(UserModel.IDP_USER_ID);
+	}
+
+	private Optional<UserModel> findByBrokerLink(RealmModel realm, Map<String, String> params) {
+		String alias = params.get(UserModel.IDP_ALIAS);
+		String idpUserId = params.get(UserModel.IDP_USER_ID);
+		if (alias == null || idpUserId == null) {
+			// federated storage can only look up one exact link, not list all users of an IdP
+			return Optional.empty();
+		}
+		UserModel user = session.users().getUserByFederatedIdentity(realm, new FederatedIdentityModel(alias, idpUserId, null));
+		// local users are already returned by Keycloak's local storage; only answer for users of this provider
+		return Optional.ofNullable(user).filter(u -> model.getId().equals(StorageId.providerId(u.getId())));
 	}
 
 	/**
@@ -267,15 +291,13 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	 */
 	private static Map<String, String> toExternalQuery(Map<String, String> params) {
 		Map<String, String> query = new HashMap<>(params);
-		query.keySet().removeAll(INTERNAL_QUERY_KEYS);
-		String search = params.get(UserModel.SEARCH);
-		if (search != null) {
-			query.put("search", search);
-		}
-		String exact = params.get(UserModel.EXACT);
-		if (exact != null) {
-			query.put("exactMatch", exact);
-		}
+		query.keySet().removeIf(key -> key.startsWith(INTERNAL_QUERY_KEY_PREFIX));
+		TRANSLATED_QUERY_KEYS.forEach((internal, external) -> {
+			String value = params.get(internal);
+			if (value != null) {
+				query.put(external, value);
+			}
+		});
 		return query;
 	}
 
