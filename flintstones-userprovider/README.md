@@ -57,7 +57,7 @@ may write it.
 | `field` | yes | — | field name in the external user record |
 | `type` | no | `string` | `string`, `integer`, `long`, `boolean` or `json` — the JSON type of the external value |
 | `multivalued` | no | `false` | whether the attribute can hold more than one value |
-| `readOnly` | no | `false` | if true, the attribute is never written back to the external source |
+| `readOnly` | no | `false` | if true, changing the attribute never triggers a write to the external source |
 | `delimiter` | no | — | store a multivalued attribute externally as a single delimited string instead of a JSON array |
 | `property` | no | — | the external value is a complex object; map only this member of it |
 | `group` | no | — | user profile attribute group to show the attribute in; must be declared in the realm |
@@ -72,6 +72,8 @@ Notes:
 - Values the external source cannot deliver in the configured shape are skipped with a warning (a bad value must not break a
   login); values that cannot be written are rejected with a `ModelException`.
 - `readOnly` is enforced by the write condition `decorateUserProfile` puts on the attribute, so Keycloak drops the change before
-  it reaches the adapter. The adapter checks the flag again for callers that bypass the user profile.
+  it reaches the adapter. For callers that bypass the user profile, the adapter still applies the value in memory but does not
+  mark the user dirty, so a read-only change alone never triggers a write. If the same update also changes a writable attribute,
+  the whole in-memory record is sent — including the changed read-only value.
 - Because unknown fields are captured rather than dropped, a read-modify-write of a user preserves everything the API sent, even
   fields this extension knows nothing about.

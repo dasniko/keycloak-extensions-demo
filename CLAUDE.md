@@ -120,9 +120,13 @@ the format. Key pieces:
   Do not use the group-aware `UserProfileUtil.createAttributeMetadata` overload: it hardcodes the write condition to
   `ALWAYS_FALSE` and would make every mapped attribute read-only. Attach the group with `setAttributeGroupMetadata` instead.
 
+- An in-memory change to a `readOnly` mapping is deliberately *not* stripped from the PUT payload when a writable attribute makes
+  the user dirty in the same transaction. Restoring a snapshot of the original values was considered and declined.
+
 Note when testing: Keycloak's user profile filters read-only attributes and never pushes unchanged attributes down to the
-provider, so the adapter's `readOnly` guard and `AttributeMapping#changes` are *not* reachable from the container tests. Both are
-defence-in-depth for callers that bypass the user profile; `changes` is covered by unit tests instead.
+provider, so the adapter's `readOnly` handling and `AttributeMapping#changes` are *not* reachable from the container tests. Both
+are defence-in-depth for callers that bypass the user profile and are covered by unit tests instead
+(`FlintstoneUserAdapterTest`, `AttributeMappingTest`).
 
 ### Key Conventions
 

@@ -129,11 +129,9 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 				AttributeMapping mapping = findMapping(name);
 				if (mapping == null) {
 					super.setAttribute(name, values);
-				} else if (!mapping.readOnly()) {
+				} else {
 					writeMappedAttribute(mapping, values);
 				}
-				// A read-only mapping is normally already filtered out by the write condition decorateUserProfile() puts on the
-				// attribute; this guard is the second line of defence for callers that bypass the user profile.
 			}
 		}
 	}
@@ -143,7 +141,7 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 		AttributeMapping mapping = findMapping(name);
 		if (mapping == null) {
 			super.removeAttribute(name);
-		} else if (!mapping.readOnly()) {
+		} else {
 			writeMappedAttribute(mapping, null);
 		}
 	}
@@ -248,6 +246,8 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 	/**
 	 * A value that cannot be written, on the other hand, is rejected — silently dropping what somebody just typed is worse than
 	 * failing the update.
+	 * <p>
+	 * A read-only mapping updates the in-memory user but never marks it dirty.
 	 */
 	private void writeMappedAttribute(AttributeMapping mapping, List<String> values) {
 		List<String> newValues = values == null ? List.of() : values;
@@ -265,6 +265,6 @@ public class FlintstoneUserAdapter extends AbstractUserAdapterFederatedStorage {
 		}
 
 		user.setAttribute(mapping.field(), externalValue);
-		dirty = true;
+		dirty = dirty || !mapping.readOnly();
 	}
 }
