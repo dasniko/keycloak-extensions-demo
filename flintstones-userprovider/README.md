@@ -24,7 +24,8 @@ mappings):
 
 ### Complex values
 
-`type: "json"` exposes a whole object (or array) as its serialized JSON string. Useful when the consumer just wants the payload
+`type: "json"` exposes a whole object (or array) as its serialized JSON string; with `multivalued`, each element of an array
+becomes one serialized value instead. Useful when the consumer just wants the payload
 through; usually paired with `readOnly`, since hand-editing raw JSON in a text field is a footgun — but it does round-trip if you
 leave it writable.
 
@@ -58,7 +59,7 @@ may write it.
 | `type` | no | `string` | `string`, `integer`, `long`, `boolean` or `json` — the JSON type of the external value |
 | `multivalued` | no | `false` | whether the attribute can hold more than one value |
 | `readOnly` | no | `false` | if true, changing the attribute never triggers a write to the external source |
-| `delimiter` | no | — | store a multivalued attribute externally as a single delimited string instead of a JSON array |
+| `delimiter` | no | — | store a multivalued attribute externally as a single delimited string instead of a JSON array; taken literally, and a value containing it is rejected on write |
 | `property` | no | — | the external value is a complex object; map only this member of it |
 | `group` | no | — | user profile attribute group to show the attribute in; must be declared in the realm |
 

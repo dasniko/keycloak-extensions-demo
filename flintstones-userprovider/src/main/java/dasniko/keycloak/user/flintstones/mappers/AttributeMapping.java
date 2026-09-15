@@ -4,9 +4,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * A single attribute mapping between a Keycloak user attribute and a field of the external user record.
@@ -72,13 +74,14 @@ public record AttributeMapping(
 			return List.of();
 		}
 
+		// a single-valued json mapping exposes the whole payload, so an array is serialized as is instead of being split up
+		boolean whole = type == ValueType.JSON && !multivalued && property == null;
+
 		List<Object> raw = new ArrayList<>();
-		if (externalValue instanceof Collection<?> collection) {
+		if (externalValue instanceof Collection<?> collection && !whole) {
 			raw.addAll(collection);
 		} else if (multivalued && delimiter != null) {
-			for (String part : String.valueOf(externalValue).split(delimiter, -1)) {
-				raw.add(part);
-			}
+			raw.addAll(Arrays.asList(String.valueOf(externalValue).split(Pattern.quote(delimiter), -1)));
 		} else {
 			raw.add(externalValue);
 		}
@@ -113,7 +116,13 @@ public record AttributeMapping(
 		}
 
 		if (delimiter != null) {
-			values.forEach(type::toExternalValue);
+			for (String value : values) {
+				type.toExternalValue(value);
+				if (value.contains(delimiter)) {
+					// joined, it would read back as more than one value
+					throw new IllegalArgumentException("'%s' contains the delimiter '%s'".formatted(value, delimiter));
+				}
+			}
 			return String.join(delimiter, values);
 		}
 

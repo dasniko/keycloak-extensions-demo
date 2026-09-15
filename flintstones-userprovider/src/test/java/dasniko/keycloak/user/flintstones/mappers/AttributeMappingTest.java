@@ -50,6 +50,25 @@ public class AttributeMappingTest {
 	}
 
 	@Test
+	public void delimiterIsTakenLiterallyOnRead() {
+		assertThat(mapping(ValueType.STRING, true, "|").toAttributeValues("a|b"), contains("a", "b"));
+		assertThat(mapping(ValueType.STRING, true, ".").toAttributeValues("a.b"), contains("a", "b"));
+		assertThat(mapping(ValueType.STRING, true, "(").toAttributeValues("a(b"), contains("a", "b"));
+	}
+
+	@Test
+	public void delimitedValuesRoundTrip() {
+		AttributeMapping mapping = mapping(ValueType.STRING, true, "|");
+		assertThat(mapping.toAttributeValues(mapping.toExternalValue(List.of("a", "b"))), contains("a", "b"));
+	}
+
+	@Test
+	public void rejectsWritingAValueThatContainsTheDelimiter() {
+		// joined, it would read back as two values
+		assertThrows(IllegalArgumentException.class, () -> mapping(ValueType.STRING, true, ",").toExternalValue(List.of("a,b", "c")));
+	}
+
+	@Test
 	public void singleValuedMappingKeepsOnlyTheFirstValueOfAnArray() {
 		assertThat(mapping(ValueType.STRING, false, null).toAttributeValues(List.of("a", "b")), contains("a"));
 	}
@@ -103,6 +122,27 @@ public class AttributeMappingTest {
 
 		assertThat(mapping(ValueType.JSON, false, null).toAttributeValues(address),
 			contains("{\"street\":\"301 Cobblestone Way\",\"city\":\"Bedrock\"}"));
+	}
+
+	@Test
+	public void readsAnArrayAsASingleSerializedJsonString() {
+		assertThat(mapping(ValueType.JSON, false, null).toAttributeValues(List.of("+1-555-1", "+1-666-1")),
+			contains("[\"+1-555-1\",\"+1-666-1\"]"));
+	}
+
+	@Test
+	public void aSerializedJsonArrayRoundTrips() {
+		AttributeMapping mapping = mapping(ValueType.JSON, false, null);
+		List<String> phones = List.of("+1-555-1", "+1-666-1");
+
+		assertThat(mapping.toExternalValue(mapping.toAttributeValues(phones)), is(phones));
+		assertThat(mapping.changes(phones, List.of("[\"+1-555-1\",\"+1-666-1\"]")), is(false));
+	}
+
+	@Test
+	public void multivaluedJsonMappingSerializesEachElementOfAnArray() {
+		assertThat(mapping(ValueType.JSON, true, null).toAttributeValues(List.of(Map.of("a", 1), Map.of("b", 2))),
+			contains("{\"a\":1}", "{\"b\":2}"));
 	}
 
 	@Test
