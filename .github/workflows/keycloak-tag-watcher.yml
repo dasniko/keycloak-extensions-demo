@@ -2,7 +2,7 @@ name: Keycloak Tag Watcher
 
 on:
   schedule:
-    - cron: '17 8 * * MON-FRI'
+    - cron: '17 */6 * * MON-FRI'
   workflow_dispatch:
 
 permissions:
