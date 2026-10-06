@@ -43,7 +43,7 @@ public class MfaAuthenticator implements Authenticator {
 		String code = SecretGenerator.getInstance().randomString(length, SecretGenerator.DIGITS);
 		AuthenticationSessionModel authSession = context.getAuthenticationSession();
 		authSession.setAuthNote(MfaConstants.AUTH_NOTE_CODE, code);
-		authSession.setAuthNote(MfaConstants.AUTH_NOTE_EXPIRATION, Integer.toString(Time.currentTime() + ttl));
+		authSession.setAuthNote(MfaConstants.AUTH_NOTE_EXPIRATION, Long.toString(Time.currentTimeSeconds() + ttl));
 
 		try {
 			Theme theme = session.theme().getTheme(Theme.Type.LOGIN);
@@ -76,7 +76,7 @@ public class MfaAuthenticator implements Authenticator {
 
 		boolean isValid = enteredCode.equals(code);
 		if (isValid) {
-			if (Integer.parseInt(expiration) < Time.currentTime()) {
+			if (Integer.parseInt(expiration) < Time.currentTimeSeconds()) {
 				// expired
 				context.failure(AuthenticationFlowError.EXPIRED_CODE,
 					context.form().setError("mfaAuthCodeExpired").createErrorPage(Response.Status.BAD_REQUEST));
