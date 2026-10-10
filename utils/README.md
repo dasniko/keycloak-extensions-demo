@@ -25,7 +25,6 @@ This module is not a deployable Keycloak provider itself. It's a shared library 
 | `AuthenticatorUtil` | `getConfig(context, key, defaultValue)` reads a value from an `Authenticator`'s per-execution `AuthenticatorConfigModel`, type-converting it (`String`/`Boolean`/`Long`/`Integer`) to match the given default, or returning the default if unset. Used by the `authenticators` module (e.g. `MfaAuthenticator`, `DeviceCookieAuthenticator`). |
 | `ComponentUtil` | Looks up a realm's `ComponentModel`(s) for a given provider class and provider ID — e.g. to read a component's own admin-configured settings from provider code. |
 | `TokenUtils` | Generates access tokens outside the normal login flow: `getServiceAccountToken()` (cached and auto-refreshed per realm+client, for machine-to-machine calls) and several `generateAccessToken()` overloads for minting a token for an arbitrary user/session without them actually logging in. |
-| `BuildDetails` | Reads `git.properties` (produced by the `git-commit-id-maven-plugin`) to expose branch, commit and build-time info — falls back to the current UTC time and the exception message if the file isn't present. |
 | `AuthenticationMethodReference` | Enum of the [RFC 8176](https://www.rfc-editor.org/rfc/rfc8176.html) Authentication Method Reference values (`pwd`, `otp`, `sms`, `mfa`, ...) for use in an `amr` claim. |
 | `ThrowingConsumer<T, E>` / `ThrowingFunction<T, R, E>` | `Consumer`/`Function` variants whose single method is allowed to declare a checked exception `E`, for use in lambdas that call checked-exception-throwing code. |
 | `TriConsumer<T, U, V>` | A three-argument `Consumer` (package-private). |
@@ -34,7 +33,9 @@ This module is not a deployable Keycloak provider itself. It's a shared library 
 
 ## Provider Helpers (`de.keycloak.provider`)
 
-**`DefaultServerInfoAware`** — a default-method mixin for `ServerInfoAwareProviderFactory`. Implement this interface (instead of `ServerInfoAwareProviderFactory` directly) on any provider factory to automatically expose `BuildDetails` for that class in the admin console's Server Info page, without writing `getOperationalInfo()` yourself.
+**`DefaultServerInfoAware`** — a default-method mixin for `ServerInfoAwareProviderFactory`. Implement this interface (instead of `ServerInfoAwareProviderFactory` directly) on any provider factory to automatically expose build details for that class in the admin console's Server Info page, without writing `getOperationalInfo()` yourself.
+
+The operational info contains the factory's `className` plus `git.branch`, `git.build.time`, `git.build.version` and `git.commit.id.abbrev`, read from the `git.properties` file produced by the `git-commit-id-maven-plugin` (`n/a` for any missing key). If it isn't present, the info falls back to `build.time` (the current UTC time) and `exception` (the error message).
 
 ---
 
