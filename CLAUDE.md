@@ -128,6 +128,22 @@ provider, so the adapter's `readOnly` handling and `AttributeMapping#changes` ar
 are defence-in-depth for callers that bypass the user profile and are covered by unit tests instead
 (`FlintstoneUserAdapterTest`, `AttributeMappingTest`).
 
+### Outgoing HTTP: `SimpleHttp` and Apache `RequestConfig` (`passwords`)
+
+`HibpPasswordPolicyProvider` caps the HIBP call at 1 s via `SimpleHttp.withRequestConfig(RequestConfig)`, an Apache HttpClient
+type. Keep it until Keycloak offers a non-Apache per-request timeout — dropping it silently falls back to the server-wide
+default (5 s Apache, 30 s Vert.x). State on Keycloak main as of 2026-10-11:
+
+- The Vert.x client (keycloak/keycloak#51638) is opt-in via `--features=http-client:v2` (`EXPERIMENTAL`); Apache is still the
+  default. `SimpleHttp` is still Apache-based and unchanged — `getHttpClient()` returns `VertxHttpClientBridge`, which runs the
+  Apache API on Vert.x.
+- The bridge honours `RequestConfig`: `socketTimeout` → idle timeout and cap on the total wait, `connectionRequestTimeout` →
+  TCP connect timeout, `connectTimeout` is **ignored**. Harmless here because all three are 1000 ms; keep them equal.
+  A per-request `socketTimeout` overrides v2's 30 s floor on the default timeout (keycloak/keycloak#52977).
+- Promotion to preview (keycloak/keycloak#53364) explicitly does *not* deprecate `SimpleHttp` or remove Apache. Watch
+  keycloak/keycloak#53362 (provider-neutral SPI methods) and the planned "per-request timeout API on SimpleHttp" (mentioned in
+  #52977, no issue yet) — that is the likely replacement for `withRequestConfig`.
+
 ### Key Conventions
 
 - Java 21, tabs indentation, 140-char line limit (see `.editorconfig`)
