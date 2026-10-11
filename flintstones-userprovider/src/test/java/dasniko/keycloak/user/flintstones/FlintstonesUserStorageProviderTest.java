@@ -11,7 +11,6 @@ import de.keycloak.test.pages.UpdatePasswordPage;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.utils.URIBuilder;
 import org.htmlunit.WebClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -27,6 +26,7 @@ import org.keycloak.admin.client.resource.ComponentResource;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.common.util.KeycloakUriBuilder;
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.constants.ServiceUrlConstants;
 import org.keycloak.representations.idm.ClientRepresentation;
@@ -42,7 +42,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -193,17 +192,17 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 
 	@Test
 	@Order(4)
-	public void testUpdatePassword() throws URISyntaxException, IOException {
+	public void testUpdatePassword() throws IOException {
 		// call update password action directly
 		String authEndpoint = getOpenIDConfiguration(keycloak, REALM).extract().path("authorization_endpoint");
 
 		try (final WebClient webClient = new WebClient()) {
-			URIBuilder startUri = new URIBuilder(authEndpoint)
-				.addParameter(OAuth2Constants.RESPONSE_TYPE, OAuth2Constants.CODE)
-				.addParameter(OAuth2Constants.CLIENT_ID, "account")
-				.addParameter(OAuth2Constants.REDIRECT_URI, keycloak.getAuthServerUrl() + "/realms/" + REALM + "/account")
-				.addParameter(OAuth2Constants.SCOPE, OAuth2Constants.SCOPE_OPENID)
-				.addParameter("kc_action", "UPDATE_PASSWORD");
+			KeycloakUriBuilder startUri = KeycloakUriBuilder.fromUri(authEndpoint)
+				.queryParam(OAuth2Constants.RESPONSE_TYPE, OAuth2Constants.CODE)
+				.queryParam(OAuth2Constants.CLIENT_ID, "account")
+				.queryParam(OAuth2Constants.REDIRECT_URI, keycloak.getAuthServerUrl() + "/realms/" + REALM + "/account")
+				.queryParam(OAuth2Constants.SCOPE, OAuth2Constants.SCOPE_OPENID)
+				.queryParam("kc_action", "UPDATE_PASSWORD");
 
 			LoginWithUsernameAndPasswordPage loginPage = LoginWithUsernameAndPasswordPage.build(webClient, startUri.build().toURL());
 			UpdatePasswordPage updatePasswordPage = loginPage.signInWithUsernameAndPassword(FRED, "fred", UpdatePasswordPage.class);

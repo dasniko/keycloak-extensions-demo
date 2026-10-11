@@ -3,23 +3,20 @@ package de.keycloak.test;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import lombok.SneakyThrows;
+import jakarta.ws.rs.core.HttpHeaders;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.http.HttpHeaders;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.keycloak.OAuth2Constants;
+import org.keycloak.common.util.UriUtils;
 import org.keycloak.constants.ServiceUrlConstants;
 import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.utils.MediaType;
 
 import java.net.URI;
-import java.nio.charset.Charset;
 import java.security.SecureRandom;
 import java.util.Base64;
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static io.restassured.RestAssured.given;
 
@@ -75,10 +72,9 @@ public class AuthorizationCodeGrant {
 			.then().statusCode(200).extract().body().as(AccessTokenResponse.class);
 	}
 
-	@SneakyThrows
 	private static String getCodeFromResponse(ExtractableResponse<Response> response) {
-		List<NameValuePair> params = URLEncodedUtils.parse(new URI(response.header(HttpHeaders.LOCATION)), Charset.defaultCharset());
-		return params.stream().filter(p -> p.getName().equals(OAuth2Constants.CODE)).findFirst().orElseThrow().getValue();
+		String query = URI.create(response.header(HttpHeaders.LOCATION)).getRawQuery();
+		return Optional.ofNullable(UriUtils.decodeQueryString(query).getFirst(OAuth2Constants.CODE)).orElseThrow();
 	}
 
 	private static String[] preparePkce() {
