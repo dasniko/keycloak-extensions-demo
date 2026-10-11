@@ -75,6 +75,11 @@ Extend `TestBase` (from the `utils` module, test scope) for common helpers:
 
 Realm configuration for tests lives in `src/test/resources/` as JSON import files.
 
+Test dependencies (junit, testcontainers, htmlunit, …) must be declared per module — they are not inherited via the `provided`
+`utils` dependency. When a module's providers need classes from sibling modules at runtime (e.g. `authenticators` →
+`custom-sms-spi`, `requiredaction`, `utils`), mount them alongside: `withProviderClassesFrom("target/classes",
+"../custom-sms-spi/target/classes", …)` (see `MfaAuthenticatorTest`). Run with `-am` so the siblings are compiled.
+
 ### Attribute mapping in `flintstones-userprovider`
 
 Attributes beyond the core `UserModel` fields are configured, not coded. Decided against a sub-component mapper SPI (the
