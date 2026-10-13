@@ -12,6 +12,7 @@ import org.keycloak.provider.ProviderConfigurationBuilder;
 
 import java.util.List;
 
+import static dasniko.keycloak.broker.oidc.CustomOIDCIdentityProviderConfig.LOG_TOKENS;
 import static dasniko.keycloak.broker.oidc.CustomOIDCIdentityProviderConfig.SEND_LOGOUT_HINT_ON_LOGOUT;
 
 @AutoService(IdentityProviderFactory.class)
@@ -29,6 +30,12 @@ public class CustomIdentityProviderFactory extends OIDCIdentityProviderFactory i
 			.name(SEND_LOGOUT_HINT_ON_LOGOUT)
 			.label("Send 'logout_hint' in logout requests")
 			.helpText("If enabled, the 'logout_hint' parameter in the logout request will be added with the value of the 'login_hint' parameter from the id_token.")
+			.type(ProviderConfigProperty.BOOLEAN_TYPE)
+			.add()
+			.property()
+			.name(LOG_TOKENS)
+			.label("Log Tokens")
+			.helpText("Should incoming tokens be written to log-output (on debug level!).")
 			.type(ProviderConfigProperty.BOOLEAN_TYPE)
 			.add()
 			.build();

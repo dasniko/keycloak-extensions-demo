@@ -6,6 +6,7 @@ import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.broker.oidc.OIDCIdentityProvider;
+import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
@@ -59,6 +60,18 @@ public class CustomIdentityProvider extends OIDCIdentityProvider {
 	@Override
 	public CustomOIDCIdentityProviderConfig getConfig() {
 		return (CustomOIDCIdentityProviderConfig) super.getConfig();
+	}
+
+	@Override
+	public BrokeredIdentityContext getFederatedIdentity(String response) {
+		if (getConfig().isLogTokens()) {
+			log.warn("⚠️ ⚠️ ⚠️ LOGGING OF INCOMING TOKENS FROM EXTERNAL IDP IS ENABLED - DO NOT USE IN PRODUCTION!");
+			log.debug("***** [{}] Raw Token Response from IdP *****", getConfig().getAlias());
+			log.debug(response);
+			log.debug("***** End Raw Token Response *****");
+		}
+
+		return super.getFederatedIdentity(response);
 	}
 
 	protected String extractLoginHintFromIdToken(String idToken) {
