@@ -5,27 +5,27 @@ import lombok.extern.slf4j.Slf4j;
 import org.keycloak.models.AbstractKeycloakTransaction;
 import org.keycloak.models.UserModel;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 
 @Slf4j
 public class UserModelTransaction extends AbstractKeycloakTransaction {
 
 	private final Consumer<UserModel> userConsumer;
-	private final List<UserModel> loadedUsers = new ArrayList<>();
+	private final Set<UserModel> txUsers = new LinkedHashSet<>();
 
 	public UserModelTransaction(Consumer<UserModel> userConsumer) {
 		this.userConsumer = userConsumer;
 	}
 
 	public void addUser(UserModel userModel) {
-		loadedUsers.add(userModel);
+		txUsers.add(userModel);
 	}
 
 	public UserModel findUser(@NonNull String identifier) {
-		UserModel txUser = loadedUsers.stream()
-			.filter(user -> user.getId().equals(identifier) || user.getUsername().equalsIgnoreCase(identifier) || user.getEmail().equalsIgnoreCase(identifier))
+		UserModel txUser = txUsers.stream()
+			.filter(user -> user.getId().equals(identifier) || user.getUsername().equalsIgnoreCase(identifier) || identifier.equalsIgnoreCase(user.getEmail()))
 			.findFirst().orElse(null);
 		if (txUser != null) {
 			log.info("Found user with identifier {} in txUsers", identifier);
@@ -35,12 +35,12 @@ public class UserModelTransaction extends AbstractKeycloakTransaction {
 
 	@Override
 	protected void commitImpl() {
-		loadedUsers.forEach(userConsumer);
+		txUsers.forEach(userConsumer);
 	}
 
 	@Override
 	protected void rollbackImpl() {
 		// maybe do some more checks on loadedUsers...
-		loadedUsers.clear();
+		txUsers.clear();
 	}
 }
