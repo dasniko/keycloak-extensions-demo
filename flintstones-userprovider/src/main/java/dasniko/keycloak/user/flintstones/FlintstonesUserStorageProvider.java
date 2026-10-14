@@ -19,6 +19,8 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
+import org.keycloak.models.cache.CachedUserModel;
+import org.keycloak.models.cache.OnUserCache;
 import org.keycloak.models.credential.PasswordCredentialModel;
 import org.keycloak.policy.PasswordPolicyManagerProvider;
 import org.keycloak.policy.PolicyError;
@@ -47,7 +49,7 @@ import java.util.stream.Stream;
 @Slf4j
 public class FlintstonesUserStorageProvider implements UserStorageProvider,
 	UserLookupProvider, UserQueryProvider, CredentialInputUpdater, CredentialInputValidator,
-	UserRegistrationProvider, UserProfileDecorator {
+	UserRegistrationProvider, UserProfileDecorator, OnUserCache {
 
 	/**
 	 * Common prefix of Keycloak's own query keys ({@link UserModel#SEARCH}, {@link UserModel#IDP_ALIAS}, ...). These keys carry no
@@ -284,6 +286,15 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 		return false;
 	}
 
+	@Override
+	public void onCache(RealmModel realm, CachedUserModel user, UserModel delegate) {
+		user.getAttributes();
+		user.getRequiredActionsStream().close();
+		user.getRoleMappingsStream().close();
+		user.getGroupsStream().close();
+		user.credentialManager().getStoredCredentialsStream().close();
+	}
+
 	/**
 	 * Declares the mapped attributes on the user profile. Without this, they would be unmanaged attributes and therefore invisible
 	 * unless the realm sets an {@code unmanagedAttributePolicy}.
@@ -374,5 +385,4 @@ public class FlintstonesUserStorageProvider implements UserStorageProvider,
 			}
 		}
 	}
-
 }
