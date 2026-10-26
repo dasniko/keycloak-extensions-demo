@@ -28,7 +28,7 @@ public class CustomIdentityProvider extends OIDCIdentityProvider {
 	@Override
 	public Response keycloakInitiatedBrowserLogout(KeycloakSession session, UserSessionModel userSession, UriInfo uriInfo, RealmModel realm) {
 		if (getConfig().getLogoutUrl() == null || getConfig().getLogoutUrl().trim().isEmpty()) return null;
-		String idToken = userSession.getNote(FEDERATED_ID_TOKEN);
+		String idToken = getFederatedIdToken(userSession);
 		if (getConfig().isBackchannelSupported()) {
 			backchannelLogout(userSession, idToken);
 			return null;
