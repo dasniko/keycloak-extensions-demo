@@ -30,6 +30,7 @@
 		<module>validators</module>
 		<module>various</module>
 		<module>identityprovider</module>
+		<module>workflows</module>
 	</modules>
 
 	<properties>
