@@ -7,12 +7,10 @@ on:
   push:
     paths-ignore:
       - 'README.md'
-      - 'pom.xml'
       - '.github/**'
   pull_request:
     paths-ignore:
       - 'README.md'
-      - 'pom.xml'
       - '.github/**'
   schedule:
     - cron: "30 3 * * 0"

@@ -36,6 +36,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<aws.version>2.35.0</aws.version>
 		<bytebuddy.version>1.18.14</bytebuddy.version>
+		<copied-code.version>999.0.0-SNAPSHOT</copied-code.version>
 		<git-commit-id.version>10.0.1</git-commit-id.version>
 		<keycloak.version>999.0.0-SNAPSHOT</keycloak.version>
 		<maven.compiler.version>3.16.0</maven.compiler.version>
@@ -123,6 +124,26 @@
 					<version>${maven-surefire.version}</version>
 				</plugin>
 				<plugin>
+					<groupId>com.github.dasniko</groupId>
+					<artifactId>copied-code-maven-plugin</artifactId>
+					<version>${copied-code.version}</version>
+					<executions>
+						<execution>
+							<goals>
+								<goal>check</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<upstreams>
+							<upstream>
+								<groupId>org.keycloak</groupId>
+								<version>${keycloak.version}</version>
+							</upstream>
+						</upstreams>
+					</configuration>
+				</plugin>
+				<plugin>
 					<groupId>io.github.git-commit-id</groupId>
 					<artifactId>git-commit-id-maven-plugin</artifactId>
 					<version>${git-commit-id.version}</version>
@@ -161,9 +182,21 @@
 			</releases>
 			<snapshots>
 				<enabled>true</enabled>
-				<updatePolicy>daily</updatePolicy>
 			</snapshots>
 		</repository>
 	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>central-portal-snapshots</id>
+			<url>https://central.sonatype.com/repository/maven-snapshots/</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
 
 </project>

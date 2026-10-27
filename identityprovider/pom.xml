@@ -42,6 +42,10 @@
 			<groupId>com.google.auto.service</groupId>
 			<artifactId>auto-service</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.github.dasniko</groupId>
+			<artifactId>copied-code-annotations</artifactId>
+		</dependency>
 
 		<!-- test -->
 		<dependency>

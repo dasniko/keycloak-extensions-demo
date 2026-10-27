@@ -1,6 +1,7 @@
 package dasniko.keycloak.broker.oidc;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import dasniko.copiedcode.CopiedFromKeycloak;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
@@ -26,6 +27,7 @@ public class CustomIdentityProvider extends OIDCIdentityProvider {
 	}
 
 	@Override
+	@CopiedFromKeycloak(source = "org.keycloak.broker.oidc.OIDCIdentityProvider", version = "26.8.0", modified = true)
 	public Response keycloakInitiatedBrowserLogout(KeycloakSession session, UserSessionModel userSession, UriInfo uriInfo, RealmModel realm) {
 		if (getConfig().getLogoutUrl() == null || getConfig().getLogoutUrl().trim().isEmpty()) return null;
 		String idToken = getFederatedIdToken(userSession);
