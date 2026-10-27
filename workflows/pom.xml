@@ -30,6 +30,12 @@
 			<artifactId>keycloak-services</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>dasniko.keycloak</groupId>
+			<artifactId>utils</artifactId>
+			<version>${project.parent.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>com.google.auto.service</groupId>
 			<artifactId>auto-service</artifactId>
 		</dependency>
