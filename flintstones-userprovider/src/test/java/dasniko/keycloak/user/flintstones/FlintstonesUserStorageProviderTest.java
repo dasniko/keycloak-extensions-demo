@@ -67,7 +67,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 
 	static final String REALM = "flintstones";
 	static final String FRED = "fred";
-	static final String FRED_PICTURE = "https://dasniko-public.s3.eu-central-1.amazonaws.com/fred.png";
+	static final String FRED_PICTURE = "https://www.n-k.de/images/flintstones/fred.png";
 	// users only touched by their own test, so the mapping tests stay independent of the ordering above
 	static final String BETTY = "betty";
 	static final String BETTY_ID = "56789";
@@ -75,7 +75,7 @@ public class FlintstonesUserStorageProviderTest extends TestBase {
 	static final String BARNEY_ID = "45678";
 	static final String PEBBLES = "pebbles";
 	static final String PEBBLES_ID = "34567";
-	static final String PEBBLES_PICTURE = "https://dasniko-public.s3.eu-central-1.amazonaws.com/pebbles.png";
+	static final String PEBBLES_PICTURE = "https://www.n-k.de/images/flintstones/pebbles.png";
 
 	// never contacted, only needed to link users to
 	private static final String IDP_ALIAS = "test-idp";

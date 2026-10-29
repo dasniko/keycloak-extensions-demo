@@ -23,7 +23,7 @@ import java.util.List;
 @AutoService(UserStorageProviderFactory.class)
 public class FlintstonesUserStorageProviderFactory implements UserStorageProviderFactory<FlintstonesUserStorageProvider>, DefaultServerInfoAware {
 
-	public static final String PROVIDER_ID = "the-flintstones";
+	public static final String PROVIDER_ID = "flintstones-api";
 
 	static final String USER_API_BASE_URL = "apiBaseUrl";
 	static final String CLIENT_ID = "clientId";

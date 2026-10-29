@@ -53,7 +53,7 @@ public class FlintstoneUser {
 		this.password = firstName.toLowerCase();
 		this.otp = id;
 
-		setAttribute("pictureUrl", "https://dasniko-public.s3.eu-central-1.amazonaws.com/" + this.username + ".png");
+		setAttribute("pictureUrl", "https://www.n-k.de/images/flintstones/" + this.username + ".png");
 		setAttribute("phoneNumbers", List.of("+1-555-" + id, "+1-666-" + id));
 		setAttribute("yearOfBirth", yearOfBirth);
 
