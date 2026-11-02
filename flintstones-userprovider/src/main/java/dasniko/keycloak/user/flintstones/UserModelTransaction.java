@@ -25,7 +25,9 @@ public class UserModelTransaction extends AbstractKeycloakTransaction {
 
 	public UserModel findUser(@NonNull String identifier) {
 		UserModel txUser = txUsers.stream()
-			.filter(user -> user.getId().equals(identifier) || user.getUsername().equalsIgnoreCase(identifier) || identifier.equalsIgnoreCase(user.getEmail()))
+			.filter(user -> user.getId().equals(identifier)
+				|| identifier.equalsIgnoreCase(user.getUsername())
+				|| identifier.equalsIgnoreCase(user.getEmail()))
 			.findFirst().orElse(null);
 		if (txUser != null) {
 			log.info("Found user with identifier {} in txUsers", identifier);
