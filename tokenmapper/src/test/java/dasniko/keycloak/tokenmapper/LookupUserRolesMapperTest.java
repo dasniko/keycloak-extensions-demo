@@ -44,6 +44,8 @@ class LookupUserRolesMapperTest {
 	private static final String TEST_CLIENT = "lookup-test-client";
 	private static final String TEST_CLIENT_SECRET = "secret";
 	private static final String ROLE_CLIENT = "lookup-role-client";
+	private static final String CURRENT_ONLY_CLIENT = "current-only-client";
+	private static final String LOOKUP_ONLY_CLIENT = "lookup-only-client";
 	private static final String PASSWORD = "password";
 	private static final String CURRENT_USER = "current-user";
 	private static final String LOOKUP_USER = "lookup-user";
@@ -71,8 +73,11 @@ class LookupUserRolesMapperTest {
 		realm.roles().create(role(CURRENT_REALM_ROLE));
 		realm.roles().create(role(LOOKUP_REALM_ROLE));
 
-		createUser(CURRENT_USER, roleClientId, CURRENT_REALM_ROLE, CURRENT_CLIENT_ROLE);
-		createUser(LOOKUP_USER, roleClientId, LOOKUP_REALM_ROLE, LOOKUP_CLIENT_ROLE);
+		String currentUserId = createUser(CURRENT_USER, roleClientId, CURRENT_REALM_ROLE, CURRENT_CLIENT_ROLE);
+		String lookupUserId = createUser(LOOKUP_USER, roleClientId, LOOKUP_REALM_ROLE, LOOKUP_CLIENT_ROLE);
+		// clients where only one of the users has a role, to tell apart whose roles the audience is derived from
+		assignRoleOfNewClient(CURRENT_ONLY_CLIENT, currentUserId);
+		assignRoleOfNewClient(LOOKUP_ONLY_CLIENT, lookupUserId);
 
 		ClientRepresentation client = new ClientRepresentation();
 		client.setClientId(TEST_CLIENT);
@@ -111,6 +116,29 @@ class LookupUserRolesMapperTest {
 		assertTrue(token.getRealmAccess().getRoles().contains(LOOKUP_REALM_ROLE));
 		assertFalse(token.getRealmAccess().getRoles().contains(CURRENT_REALM_ROLE));
 		assertEquals(Set.of(LOOKUP_CLIENT_ROLE), token.getResourceAccess(ROLE_CLIENT).getRoles());
+	}
+
+	@Test
+	void addsAudienceOfLookupUserWhenMerging() throws Exception {
+		addMapper(Map.of(LookupUserRolesMapper.LOOKUP_USERNAME, LOOKUP_USER, LookupUserRolesMapper.MERGE, "true"));
+
+		assertTrue(Set.of(accessToken().getAudience()).containsAll(Set.of(CURRENT_ONLY_CLIENT, LOOKUP_ONLY_CLIENT, ROLE_CLIENT)));
+		assertTrue(toList(introspect(tokenString()).get("aud")).containsAll(Set.of(CURRENT_ONLY_CLIENT, LOOKUP_ONLY_CLIENT)));
+	}
+
+	@Test
+	void replacesAudienceWithAudienceOfLookupUser() throws Exception {
+		addMapper(Map.of(LookupUserRolesMapper.LOOKUP_USERNAME, LOOKUP_USER, LookupUserRolesMapper.MERGE, "false"));
+
+		Set<String> audience = Set.of(accessToken().getAudience());
+		assertTrue(audience.containsAll(Set.of(LOOKUP_ONLY_CLIENT, ROLE_CLIENT)));
+		assertFalse(audience.contains(CURRENT_ONLY_CLIENT));
+		// an explicitly configured audience is not derived from roles and must survive
+		assertTrue(audience.contains(TEST_CLIENT));
+
+		List<String> introspectedAudience = toList(introspect(tokenString()).get("aud"));
+		assertTrue(introspectedAudience.contains(LOOKUP_ONLY_CLIENT));
+		assertFalse(introspectedAudience.contains(CURRENT_ONLY_CLIENT));
 	}
 
 	@Test
@@ -237,7 +265,16 @@ class LookupUserRolesMapperTest {
 		return role;
 	}
 
-	private static void createUser(String username, String roleClientId, String realmRole, String clientRole) {
+	private static void assignRoleOfNewClient(String clientId, String userId) {
+		ClientRepresentation client = new ClientRepresentation();
+		client.setClientId(clientId);
+		String id = CreatedResponseUtil.getCreatedId(realm.clients().create(client));
+		realm.clients().get(id).roles().create(role("some-role"));
+		realm.users().get(userId).roles().clientLevel(id)
+			.add(List.of(realm.clients().get(id).roles().get("some-role").toRepresentation()));
+	}
+
+	private static String createUser(String username, String roleClientId, String realmRole, String clientRole) {
 		UserRepresentation user = new UserRepresentation();
 		user.setUsername(username);
 		user.setEnabled(true);
@@ -253,5 +290,6 @@ class LookupUserRolesMapperTest {
 		realm.users().get(id).roles().realmLevel().add(List.of(realm.roles().get(realmRole).toRepresentation()));
 		realm.users().get(id).roles().clientLevel(roleClientId)
 			.add(List.of(realm.clients().get(roleClientId).roles().get(clientRole).toRepresentation()));
+		return id;
 	}
 }
