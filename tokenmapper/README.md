@@ -23,7 +23,7 @@ username, into the **access token** and the **token introspection response** (no
 | Client roles claim name / prefix | default `resource_access.${client_id}.roles`; roles of all (enabled) clients |
 
 Roles are resolved like the built-in role mappers do: composites expanded, restricted by the requesting client's scope
-(full scope allowed / role scope mappings). If the user is not found, the token stays unchanged and a warning is logged.
+(full scope allowed / role scope mappings). If the user is not found or is disabled, the token stays unchanged and a warning is logged.
 
 Things to be aware of:
 

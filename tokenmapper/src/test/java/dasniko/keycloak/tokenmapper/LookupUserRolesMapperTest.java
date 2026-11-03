@@ -46,6 +46,7 @@ class LookupUserRolesMapperTest {
 	private static final String ROLE_CLIENT = "lookup-role-client";
 	private static final String CURRENT_ONLY_CLIENT = "current-only-client";
 	private static final String LOOKUP_ONLY_CLIENT = "lookup-only-client";
+	private static final String DISABLED_USER = "disabled-lookup-user";
 	private static final String PASSWORD = "password";
 	private static final String CURRENT_USER = "current-user";
 	private static final String LOOKUP_USER = "lookup-user";
@@ -76,6 +77,10 @@ class LookupUserRolesMapperTest {
 		String currentUserId = createUser(CURRENT_USER, roleClientId, CURRENT_REALM_ROLE, CURRENT_CLIENT_ROLE);
 		String lookupUserId = createUser(LOOKUP_USER, roleClientId, LOOKUP_REALM_ROLE, LOOKUP_CLIENT_ROLE);
 		// clients where only one of the users has a role, to tell apart whose roles the audience is derived from
+		String disabledUserId = createUser(DISABLED_USER, roleClientId, LOOKUP_REALM_ROLE, LOOKUP_CLIENT_ROLE);
+		UserRepresentation disabledUser = realm.users().get(disabledUserId).toRepresentation();
+		disabledUser.setEnabled(false);
+		realm.users().get(disabledUserId).update(disabledUser);
 		assignRoleOfNewClient(CURRENT_ONLY_CLIENT, currentUserId);
 		assignRoleOfNewClient(LOOKUP_ONLY_CLIENT, lookupUserId);
 
@@ -171,6 +176,18 @@ class LookupUserRolesMapperTest {
 
 		assertTrue(token.getRealmAccess().getRoles().contains(CURRENT_REALM_ROLE));
 		assertEquals(Set.of(CURRENT_CLIENT_ROLE), token.getResourceAccess(ROLE_CLIENT).getRoles());
+	}
+
+	@Test
+	void leavesTokenUnchangedIfLookupUserDisabled() throws Exception {
+		addMapper(Map.of(LookupUserRolesMapper.LOOKUP_USERNAME, DISABLED_USER, LookupUserRolesMapper.MERGE, "false"));
+
+		AccessToken token = accessToken();
+
+		assertTrue(token.getRealmAccess().getRoles().contains(CURRENT_REALM_ROLE));
+		assertFalse(token.getRealmAccess().getRoles().contains(LOOKUP_REALM_ROLE));
+		assertEquals(Set.of(CURRENT_CLIENT_ROLE), token.getResourceAccess(ROLE_CLIENT).getRoles());
+		assertTrue(toList(introspect(tokenString()).at("/realm_access/roles")).contains(CURRENT_REALM_ROLE));
 	}
 
 	@Test

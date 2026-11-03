@@ -169,10 +169,10 @@ public class LookupUserRolesMapper extends AbstractOIDCProtocolMapper implements
 		}
 
 		UserModel lookupUser = session.users().getUserByUsername(realm, username.trim());
-		if (lookupUser == null) {
+		if (lookupUser == null || !lookupUser.isEnabled()) {
 			// the username itself is deliberately not logged
-			log.warn("Mapper '{}' in realm '{}': configured lookup user not found, leaving token unchanged", mappingModel.getName(),
-				realm.getName());
+			log.warn("Mapper '{}' in realm '{}': configured lookup user not found or disabled, leaving token unchanged",
+				mappingModel.getName(), realm.getName());
 			return;
 		}
 
