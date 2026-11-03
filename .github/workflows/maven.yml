@@ -5,10 +5,8 @@ name: CI build
 
 on:
   push:
-    paths-ignore:
-      - 'README.md'
-      - '.github/**'
-  pull_request:
+    branches:
+      - main
     paths-ignore:
       - 'README.md'
       - '.github/**'
