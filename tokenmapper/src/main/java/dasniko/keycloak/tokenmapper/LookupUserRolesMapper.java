@@ -19,6 +19,7 @@ import org.keycloak.protocol.oidc.mappers.OIDCAccessTokenMapper;
 import org.keycloak.protocol.oidc.mappers.OIDCAttributeMapperHelper;
 import org.keycloak.protocol.oidc.mappers.TokenIntrospectionTokenMapper;
 import org.keycloak.provider.ProviderConfigProperty;
+import org.keycloak.provider.ProviderConfigurationBuilder;
 import org.keycloak.representations.AccessToken;
 import org.keycloak.representations.IDToken;
 import org.keycloak.utils.JsonUtils;
@@ -61,41 +62,53 @@ public class LookupUserRolesMapper extends AbstractOIDCProtocolMapper implements
 
 	private static final Pattern CLIENT_ID_PATTERN = Pattern.compile(Pattern.quote("${client_id}"));
 
-	private static final List<ProviderConfigProperty> configProperties = new ArrayList<>();
+	private static final List<ProviderConfigProperty> configProperties = ProviderConfigurationBuilder.create()
+		.property()
+			.name(LOOKUP_USERNAME)
+			.label("Lookup Username")
+			.helpText("Username of the user whose realm and client roles are written to the token.")
+			.type(ProviderConfigProperty.STRING_TYPE)
+			.add()
+		.property()
+			.name(MERGE)
+			.label("Merge with current user's roles")
+			.helpText("If on, the roles of the looked-up user are added to the roles of the current user. "
+				+ "If off, the roles of the looked-up user replace them: the 'realm_access' and 'resource_access' claims "
+				+ "and the claims configured below are cleared before the roles are written.")
+			.type(ProviderConfigProperty.BOOLEAN_TYPE)
+			.defaultValue("true")
+			.add()
+		.property()
+			.name(REALM_CLAIM_NAME)
+			.label("Realm roles claim name")
+			.helpText("Claim path for the realm roles, e.g. 'realm_access.roles'. Nested claims are separated by dots.")
+			.type(ProviderConfigProperty.STRING_TYPE)
+			.defaultValue(DEFAULT_REALM_CLAIM_NAME)
+			.add()
+		.property()
+			.name(REALM_ROLE_PREFIX)
+			.label("Realm role prefix")
+			.helpText("A prefix for each realm role.")
+			.type(ProviderConfigProperty.STRING_TYPE)
+			.add()
+		.property()
+			.name(CLIENT_CLAIM_NAME)
+			.label("Client roles claim name")
+			.helpText("Claim path for the client roles, e.g. 'resource_access.${client_id}.roles'. "
+				+ "'${client_id}' is replaced by the client ID owning the roles; roles of all clients are mapped.")
+			.type(ProviderConfigProperty.STRING_TYPE)
+			.defaultValue(DEFAULT_CLIENT_CLAIM_NAME)
+			.add()
+		.property()
+			.name(CLIENT_ROLE_PREFIX)
+			.label("Client role prefix")
+			.helpText("A prefix for each client role. '${client_id}' is replaced by the client ID owning the role.")
+			.type(ProviderConfigProperty.STRING_TYPE)
+			.add()
+		.build();
 
 	static {
-		configProperties.add(property(LOOKUP_USERNAME, "Lookup Username",
-			"Username of the user whose realm and client roles are written to the token.",
-			ProviderConfigProperty.STRING_TYPE, null));
-		configProperties.add(property(MERGE, "Merge with current user's roles",
-			"If on, the roles of the looked-up user are added to the roles of the current user. "
-				+ "If off, the roles of the looked-up user replace them: the 'realm_access' and 'resource_access' claims "
-				+ "and the claims configured below are cleared before the roles are written.",
-			ProviderConfigProperty.BOOLEAN_TYPE, "true"));
-		configProperties.add(property(REALM_CLAIM_NAME, "Realm roles claim name",
-			"Claim path for the realm roles, e.g. 'realm_access.roles'. Nested claims are separated by dots.",
-			ProviderConfigProperty.STRING_TYPE, DEFAULT_REALM_CLAIM_NAME));
-		configProperties.add(property(REALM_ROLE_PREFIX, "Realm role prefix",
-			"A prefix for each realm role.", ProviderConfigProperty.STRING_TYPE, null));
-		configProperties.add(property(CLIENT_CLAIM_NAME, "Client roles claim name",
-			"Claim path for the client roles, e.g. 'resource_access.${client_id}.roles'. "
-				+ "'${client_id}' is replaced by the client ID owning the roles; roles of all clients are mapped.",
-			ProviderConfigProperty.STRING_TYPE, DEFAULT_CLIENT_CLAIM_NAME));
-		configProperties.add(property(CLIENT_ROLE_PREFIX, "Client role prefix",
-			"A prefix for each client role. '${client_id}' is replaced by the client ID owning the role.",
-			ProviderConfigProperty.STRING_TYPE, null));
-
 		OIDCAttributeMapperHelper.addIncludeInTokensConfig(configProperties, LookupUserRolesMapper.class);
-	}
-
-	private static ProviderConfigProperty property(String name, String label, String helpText, String type, String defaultValue) {
-		ProviderConfigProperty property = new ProviderConfigProperty();
-		property.setName(name);
-		property.setLabel(label);
-		property.setHelpText(helpText);
-		property.setType(type);
-		property.setDefaultValue(defaultValue);
-		return property;
 	}
 
 	@Override
