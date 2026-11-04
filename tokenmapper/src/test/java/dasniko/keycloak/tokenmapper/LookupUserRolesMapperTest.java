@@ -1,20 +1,16 @@
 package dasniko.keycloak.tokenmapper;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
+import de.keycloak.test.TestBase;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.keycloak.TokenVerifier;
 import org.keycloak.admin.client.CreatedResponseUtil;
 import org.keycloak.admin.client.resource.ClientResource;
 import org.keycloak.admin.client.resource.RealmResource;
-import org.keycloak.common.VerificationException;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.protocol.oidc.mappers.OIDCAttributeMapperHelper;
-import org.keycloak.representations.AccessToken;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.ProtocolMapperRepresentation;
@@ -24,27 +20,27 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.Base64;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
-class LookupUserRolesMapperTest {
+class LookupUserRolesMapperTest extends TestBase {
 
-	private static final String REALM = KeycloakContainer.MASTER_REALM;
+	private static final String REALM = "lookup-test";
+	/** public client, so that {@link TestBase#requestToken} can be used (it sends no client secret) */
 	private static final String TEST_CLIENT = "lookup-test-client";
-	private static final String TEST_CLIENT_SECRET = "secret";
+	/** confidential client used for token introspection */
+	private static final String INTROSPECTION_CLIENT = "lookup-introspection-client";
+	private static final String INTROSPECTION_CLIENT_SECRET = "secret";
 	private static final String ROLE_CLIENT = "lookup-role-client";
 	private static final String CURRENT_ONLY_CLIENT = "current-only-client";
 	private static final String LOOKUP_ONLY_CLIENT = "lookup-only-client";
@@ -63,12 +59,16 @@ class LookupUserRolesMapperTest {
 
 	private static RealmResource realm;
 	private static ClientResource testClient;
-	private static final ObjectMapper objectMapper = new ObjectMapper();
 
 	@BeforeAll
 	static void setUp() {
-		realm = keycloak.getKeycloakAdminClient().realm(REALM);
+		initTestRealm(keycloak, REALM, null, (admin, realmRepresentation) -> {
+			realm = admin.realm(REALM);
+			createTestData();
+		});
+	}
 
+	private static void createTestData() {
 		ClientRepresentation roleClient = new ClientRepresentation();
 		roleClient.setClientId(ROLE_CLIENT);
 		String roleClientId = CreatedResponseUtil.getCreatedId(realm.clients().create(roleClient));
@@ -79,18 +79,23 @@ class LookupUserRolesMapperTest {
 
 		String currentUserId = createUser(CURRENT_USER, roleClientId, CURRENT_REALM_ROLE, CURRENT_CLIENT_ROLE);
 		String lookupUserId = createUser(LOOKUP_USER, roleClientId, LOOKUP_REALM_ROLE, LOOKUP_CLIENT_ROLE);
-		// clients where only one of the users has a role, to tell apart whose roles the audience is derived from
 		String disabledUserId = createUser(DISABLED_USER, roleClientId, LOOKUP_REALM_ROLE, LOOKUP_CLIENT_ROLE);
 		UserRepresentation disabledUser = realm.users().get(disabledUserId).toRepresentation();
 		disabledUser.setEnabled(false);
 		realm.users().get(disabledUserId).update(disabledUser);
+		// clients where only one of the users has a role, to tell apart whose roles the audience is derived from
 		assignRoleOfNewClient(CURRENT_ONLY_CLIENT, currentUserId);
 		assignRoleOfNewClient(LOOKUP_ONLY_CLIENT, lookupUserId);
 
+		ClientRepresentation introspectionClient = new ClientRepresentation();
+		introspectionClient.setClientId(INTROSPECTION_CLIENT);
+		introspectionClient.setSecret(INTROSPECTION_CLIENT_SECRET);
+		introspectionClient.setPublicClient(false);
+		realm.clients().create(introspectionClient).close();
+
 		ClientRepresentation client = new ClientRepresentation();
 		client.setClientId(TEST_CLIENT);
-		client.setSecret(TEST_CLIENT_SECRET);
-		client.setPublicClient(false);
+		client.setPublicClient(true);
 		client.setDirectAccessGrantsEnabled(true);
 		testClient = realm.clients().get(CreatedResponseUtil.getCreatedId(realm.clients().create(client)));
 	}
@@ -104,42 +109,44 @@ class LookupUserRolesMapperTest {
 	void mergesRolesOfLookupUser() throws Exception {
 		addMapper(Map.of(LookupUserRolesMapper.LOOKUP_USERNAME, LOOKUP_USER, LookupUserRolesMapper.MERGE, "true"));
 
-		AccessToken token = accessToken();
+		Map<String, Object> token = accessToken();
 
-		assertTrue(token.getRealmAccess().getRoles().containsAll(Set.of(CURRENT_REALM_ROLE, LOOKUP_REALM_ROLE)));
-		assertEquals(Set.of(CURRENT_CLIENT_ROLE, LOOKUP_CLIENT_ROLE), token.getResourceAccess(ROLE_CLIENT).getRoles());
+		assertTrue(strings(token, "realm_access", "roles").containsAll(Set.of(CURRENT_REALM_ROLE, LOOKUP_REALM_ROLE)));
+		assertEquals(Set.of(CURRENT_CLIENT_ROLE, LOOKUP_CLIENT_ROLE), Set.copyOf(strings(token, "resource_access", ROLE_CLIENT, "roles")));
 	}
 
 	@Test
 	void replacesRolesWithRolesOfLookupUser() throws Exception {
 		addMapper(Map.of(LookupUserRolesMapper.LOOKUP_USERNAME, LOOKUP_USER, LookupUserRolesMapper.MERGE, "false"));
 
-		AccessToken token = accessToken();
+		Map<String, Object> token = accessToken();
 
-		assertTrue(token.getRealmAccess().getRoles().contains(LOOKUP_REALM_ROLE));
-		assertFalse(token.getRealmAccess().getRoles().contains(CURRENT_REALM_ROLE));
-		assertEquals(Set.of(LOOKUP_CLIENT_ROLE), token.getResourceAccess(ROLE_CLIENT).getRoles());
+		assertTrue(strings(token, "realm_access", "roles").contains(LOOKUP_REALM_ROLE));
+		assertFalse(strings(token, "realm_access", "roles").contains(CURRENT_REALM_ROLE));
+		assertEquals(List.of(LOOKUP_CLIENT_ROLE), strings(token, "resource_access", ROLE_CLIENT, "roles"));
 	}
 
 	@Test
 	void addsAudienceOfLookupUserWhenMerging() throws Exception {
 		addMapper(Map.of(LookupUserRolesMapper.LOOKUP_USERNAME, LOOKUP_USER, LookupUserRolesMapper.MERGE, "true"));
+		String token = tokenString();
 
-		assertTrue(Set.of(accessToken().getAudience()).containsAll(Set.of(CURRENT_ONLY_CLIENT, LOOKUP_ONLY_CLIENT, ROLE_CLIENT)));
-		assertTrue(toList(introspect(tokenString()).get("aud")).containsAll(Set.of(CURRENT_ONLY_CLIENT, LOOKUP_ONLY_CLIENT)));
+		assertTrue(strings(parseToken(token), "aud").containsAll(Set.of(CURRENT_ONLY_CLIENT, LOOKUP_ONLY_CLIENT, ROLE_CLIENT)));
+		assertTrue(strings(introspect(token), "aud").containsAll(Set.of(CURRENT_ONLY_CLIENT, LOOKUP_ONLY_CLIENT)));
 	}
 
 	@Test
 	void replacesAudienceWithAudienceOfLookupUser() throws Exception {
 		addMapper(Map.of(LookupUserRolesMapper.LOOKUP_USERNAME, LOOKUP_USER, LookupUserRolesMapper.MERGE, "false"));
+		String token = tokenString();
 
-		Set<String> audience = Set.of(accessToken().getAudience());
+		List<String> audience = strings(parseToken(token), "aud");
 		assertTrue(audience.containsAll(Set.of(LOOKUP_ONLY_CLIENT, ROLE_CLIENT)));
 		assertFalse(audience.contains(CURRENT_ONLY_CLIENT));
 		// an explicitly configured audience is not derived from roles and must survive
-		assertTrue(audience.contains(TEST_CLIENT));
+		assertTrue(audience.contains(INTROSPECTION_CLIENT));
 
-		List<String> introspectedAudience = toList(introspect(tokenString()).get("aud"));
+		List<String> introspectedAudience = strings(introspect(token), "aud");
 		assertTrue(introspectedAudience.contains(LOOKUP_ONLY_CLIENT));
 		assertFalse(introspectedAudience.contains(CURRENT_ONLY_CLIENT));
 	}
@@ -154,73 +161,69 @@ class LookupUserRolesMapperTest {
 			LookupUserRolesMapper.CLIENT_CLAIM_NAME, "my.clients.${client_id}",
 			LookupUserRolesMapper.CLIENT_ROLE_PREFIX, "${client_id}:"));
 
-		AccessToken token = accessToken();
+		Map<String, Object> token = accessToken();
 
-		assertNull(token.getRealmAccess());
-		assertTrue(token.getResourceAccess().isEmpty() || token.getResourceAccess(ROLE_CLIENT) == null);
-		@SuppressWarnings("unchecked")
-		Map<String, Object> my = (Map<String, Object>) token.getOtherClaims().get("my");
-		assertTrue(((List<?>) my.get("realm")).contains("r_" + LOOKUP_REALM_ROLE));
-		@SuppressWarnings("unchecked")
-		Map<String, Object> clients = (Map<String, Object>) my.get("clients");
-		assertEquals(List.of(ROLE_CLIENT + ":" + LOOKUP_CLIENT_ROLE), clients.get(ROLE_CLIENT));
+		assertNull(token.get("realm_access"));
+		assertTrue(strings(token, "resource_access", ROLE_CLIENT, "roles").isEmpty());
+		assertTrue(strings(token, "my", "realm").contains("r_" + LOOKUP_REALM_ROLE));
+		assertEquals(List.of(ROLE_CLIENT + ":" + LOOKUP_CLIENT_ROLE), strings(token, "my", "clients", ROLE_CLIENT));
 	}
 
 	@Test
 	void leavesTokenUnchangedIfLookupUserNotFound() throws Exception {
 		addMapper(Map.of(LookupUserRolesMapper.LOOKUP_USERNAME, "does-not-exist", LookupUserRolesMapper.MERGE, "false"));
 
-		AccessToken token = accessToken();
+		Map<String, Object> token = accessToken();
 
-		assertTrue(token.getRealmAccess().getRoles().contains(CURRENT_REALM_ROLE));
-		assertEquals(Set.of(CURRENT_CLIENT_ROLE), token.getResourceAccess(ROLE_CLIENT).getRoles());
+		assertTrue(strings(token, "realm_access", "roles").contains(CURRENT_REALM_ROLE));
+		assertEquals(List.of(CURRENT_CLIENT_ROLE), strings(token, "resource_access", ROLE_CLIENT, "roles"));
 	}
 
 	@Test
 	void leavesTokenUnchangedIfLookupUserDisabled() throws Exception {
 		addMapper(Map.of(LookupUserRolesMapper.LOOKUP_USERNAME, DISABLED_USER, LookupUserRolesMapper.MERGE, "false"));
+		String tokenString = tokenString();
 
-		AccessToken token = accessToken();
+		Map<String, Object> token = parseToken(tokenString);
 
-		assertTrue(token.getRealmAccess().getRoles().contains(CURRENT_REALM_ROLE));
-		assertFalse(token.getRealmAccess().getRoles().contains(LOOKUP_REALM_ROLE));
-		assertEquals(Set.of(CURRENT_CLIENT_ROLE), token.getResourceAccess(ROLE_CLIENT).getRoles());
-		assertTrue(toList(introspect(tokenString()).at("/realm_access/roles")).contains(CURRENT_REALM_ROLE));
+		assertTrue(strings(token, "realm_access", "roles").contains(CURRENT_REALM_ROLE));
+		assertFalse(strings(token, "realm_access", "roles").contains(LOOKUP_REALM_ROLE));
+		assertEquals(List.of(CURRENT_CLIENT_ROLE), strings(token, "resource_access", ROLE_CLIENT, "roles"));
+		assertTrue(strings(introspect(tokenString), "realm_access", "roles").contains(CURRENT_REALM_ROLE));
 	}
 
 	@Test
-	void appliesToIntrospectionResponse() throws Exception {
+	void appliesToIntrospectionResponse() {
 		addMapper(Map.of(LookupUserRolesMapper.LOOKUP_USERNAME, LOOKUP_USER, LookupUserRolesMapper.MERGE, "false"));
 
-		JsonNode introspection = introspect(tokenString());
+		Map<String, Object> introspection = introspect(tokenString());
 
-		assertTrue(toList(introspection.at("/realm_access/roles")).contains(LOOKUP_REALM_ROLE));
-		assertFalse(toList(introspection.at("/realm_access/roles")).contains(CURRENT_REALM_ROLE));
-		assertEquals(List.of(LOOKUP_CLIENT_ROLE), toList(introspection.at("/resource_access/" + ROLE_CLIENT + "/roles")));
+		assertTrue(strings(introspection, "realm_access", "roles").contains(LOOKUP_REALM_ROLE));
+		assertFalse(strings(introspection, "realm_access", "roles").contains(CURRENT_REALM_ROLE));
+		assertEquals(List.of(LOOKUP_CLIENT_ROLE), strings(introspection, "resource_access", ROLE_CLIENT, "roles"));
 	}
 
 	@Test
 	void doesNotApplyIfNotIncludedInAccessToken() throws Exception {
-		Map<String, String> config = new HashMap<>(Map.of(LookupUserRolesMapper.LOOKUP_USERNAME, LOOKUP_USER,
-			LookupUserRolesMapper.MERGE, "false"));
-		addMapper(config, false, true);
+		addMapper(Map.of(LookupUserRolesMapper.LOOKUP_USERNAME, LOOKUP_USER, LookupUserRolesMapper.MERGE, "false"), false);
+		String token = tokenString();
 
-		assertTrue(accessToken().getRealmAccess().getRoles().contains(CURRENT_REALM_ROLE));
-		assertTrue(toList(introspect(tokenString()).at("/realm_access/roles")).contains(LOOKUP_REALM_ROLE));
+		assertTrue(strings(parseToken(token), "realm_access", "roles").contains(CURRENT_REALM_ROLE));
+		assertTrue(strings(introspect(token), "realm_access", "roles").contains(LOOKUP_REALM_ROLE));
 	}
 
 	private void addMapper(Map<String, String> config) {
-		addMapper(config, true, true);
+		addMapper(config, true);
 	}
 
-	private void addMapper(Map<String, String> config, boolean accessToken, boolean introspection) {
+	private void addMapper(Map<String, String> config, boolean includeInAccessToken) {
 		ProtocolMapperRepresentation mapper = new ProtocolMapperRepresentation();
 		mapper.setProtocol(OIDCLoginProtocol.LOGIN_PROTOCOL);
 		mapper.setProtocolMapper(LookupUserRolesMapper.PROVIDER_ID);
 		mapper.setName("lookup-user-roles");
 		Map<String, String> mapperConfig = new HashMap<>(config);
-		mapperConfig.put(OIDCAttributeMapperHelper.INCLUDE_IN_ACCESS_TOKEN, String.valueOf(accessToken));
-		mapperConfig.put(OIDCAttributeMapperHelper.INCLUDE_IN_INTROSPECTION, String.valueOf(introspection));
+		mapperConfig.put(OIDCAttributeMapperHelper.INCLUDE_IN_ACCESS_TOKEN, String.valueOf(includeInAccessToken));
+		mapperConfig.put(OIDCAttributeMapperHelper.INCLUDE_IN_INTROSPECTION, "true");
 		mapper.setConfig(mapperConfig);
 		try (Response response = testClient.getProtocolMappers().createMapper(mapper)) {
 			assertEquals(201, response.getStatus());
@@ -233,45 +236,41 @@ class LookupUserRolesMapperTest {
 		ProtocolMapperRepresentation mapper = new ProtocolMapperRepresentation();
 		mapper.setProtocol(OIDCLoginProtocol.LOGIN_PROTOCOL);
 		mapper.setProtocolMapper("oidc-audience-mapper");
-		mapper.setName("self-audience");
-		mapper.setConfig(Map.of("included.client.audience", TEST_CLIENT, OIDCAttributeMapperHelper.INCLUDE_IN_ACCESS_TOKEN, "true"));
+		mapper.setName("introspection-client-audience");
+		mapper.setConfig(Map.of("included.client.audience", INTROSPECTION_CLIENT, OIDCAttributeMapperHelper.INCLUDE_IN_ACCESS_TOKEN, "true"));
 		try (Response response = testClient.getProtocolMappers().createMapper(mapper)) {
 			assertEquals(201, response.getStatus());
 		}
 	}
 
-	private String tokenString() throws IOException, InterruptedException {
-		String body = "grant_type=password&username=" + CURRENT_USER + "&password=" + PASSWORD;
-		HttpResponse<String> response = post("/token", body);
-		assertEquals(200, response.statusCode());
-		return objectMapper.readTree(response.body()).get("access_token").asText();
+	private String tokenString() {
+		return requestToken(keycloak, REALM, TEST_CLIENT, CURRENT_USER, PASSWORD).extract().path("access_token");
 	}
 
-	private AccessToken accessToken() throws VerificationException, IOException, InterruptedException {
-		return TokenVerifier.create(tokenString(), AccessToken.class).parse().getToken();
+	private Map<String, Object> accessToken() throws IOException {
+		return parseToken(tokenString());
 	}
 
-	private JsonNode introspect(String token) throws IOException, InterruptedException {
-		HttpResponse<String> response = post("/token/introspect", "token=" + token);
-		assertEquals(200, response.statusCode());
-		return objectMapper.readTree(response.body());
+	private Map<String, Object> introspect(String token) {
+		String introspectionEndpoint = getOpenIDConfiguration(keycloak, REALM).extract().path("introspection_endpoint");
+		return given()
+			.auth().preemptive().basic(INTROSPECTION_CLIENT, INTROSPECTION_CLIENT_SECRET)
+			.formParam("token", token)
+			.when().post(introspectionEndpoint)
+			.then().statusCode(200)
+			.extract().jsonPath().getMap("$");
 	}
 
-	private HttpResponse<String> post(String endpoint, String body) throws IOException, InterruptedException {
-		String basic = Base64.getEncoder().encodeToString((TEST_CLIENT + ":" + TEST_CLIENT_SECRET).getBytes());
-		HttpRequest request = HttpRequest.newBuilder(URI.create(keycloak.getAuthServerUrl() + "/realms/" + REALM
-				+ "/protocol/openid-connect" + endpoint))
-			.header("Authorization", "Basic " + basic)
-			.header("Content-Type", "application/x-www-form-urlencoded")
-			.POST(HttpRequest.BodyPublishers.ofString(body))
-			.build();
-		try (HttpClient http = HttpClient.newHttpClient()) {
-			return http.send(request, HttpResponse.BodyHandlers.ofString());
+	/** Follows the path through nested claims and returns the value there as a list of strings (single values too), empty if absent. */
+	@SuppressWarnings("unchecked")
+	private static List<String> strings(Map<String, Object> claims, String... path) {
+		Object current = claims;
+		for (String component : path) {
+			if (!(current instanceof Map<?, ?> map) || (current = ((Map<String, Object>) map).get(component)) == null) {
+				return List.of();
+			}
 		}
-	}
-
-	private static List<String> toList(JsonNode node) {
-		return node.valueStream().map(JsonNode::asText).toList();
+		return current instanceof Collection<?> values ? values.stream().map(String::valueOf).toList() : List.of(String.valueOf(current));
 	}
 
 	private static RoleRepresentation role(String name) {
