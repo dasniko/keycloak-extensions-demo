@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--base href="account/" /-->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Personal info</title>
+    <link rel="stylesheet" href="resource/css/tokens.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "lit": "https://cdn.jsdelivr.net/npm/lit@3/+esm",
+          "@lit/context": "https://cdn.jsdelivr.net/npm/@lit/context/+esm",
+          "keycloak-js": "https://cdn.jsdelivr.net/npm/keycloak-js/+esm"
+        }
+      }
+    </script>
+    <script src="resource/js/components/shell.js" type="module"></script>
+    <script src="resource/js/personal-info.js" type="module"></script>
+  </head>
+  <body>
+    <account-shell>
+      <account-personal-info></account-personal-info>
+    </account-shell>
+  </body>
+</html>

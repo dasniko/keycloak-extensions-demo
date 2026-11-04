@@ -17,6 +17,7 @@ services:
       - '8787:8787'
     volumes:
       - kc_data:/opt/keycloak/data
+      - ./account-console/target/dasniko.keycloak-account-console.jar:/opt/keycloak/providers/account-console.jar
       - ./actiontoken/target/dasniko.keycloak-actiontoken.jar:/opt/keycloak/providers/actiontoken.jar
       - ./admin-ui/target/dasniko.keycloak-admin-ui.jar:/opt/keycloak/providers/admin-ui.jar
       - ./authenticators/target/dasniko.keycloak-authenticators.jar:/opt/keycloak/providers/authenticators.jar

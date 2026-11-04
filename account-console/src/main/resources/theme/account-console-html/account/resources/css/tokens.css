@@ -1,0 +1,28 @@
+/**
+ * Shared account console design tokens.
+ * Override on :root, account-shell, or any ancestor.
+ */
+:root {
+  color-scheme: light dark;
+
+  --account-font: system-ui, sans-serif;
+  --account-gap: 1rem;
+  --account-radius: 0.35rem;
+  --account-max-width: 28rem;
+
+  --account-label-color: color-mix(in srgb, currentColor 70%, transparent);
+  --account-muted-color: color-mix(in srgb, currentColor 55%, transparent);
+  --account-border-color: color-mix(in srgb, currentColor 25%, transparent);
+
+  --account-input-padding: 0.45rem 0.6rem;
+  --account-button-padding: 0.5rem 1rem;
+  --account-button-bg: light-dark(#1b1b1b, #f0f0f0);
+  --account-button-fg: light-dark(#fff, #1b1b1b);
+
+  --account-error-color: #b42318;
+  --account-success-color: #027a48;
+
+  --account-shell-gap: 2rem;
+  --account-shell-padding: 2rem;
+  --account-shell-nav-width: 16rem;
+}
