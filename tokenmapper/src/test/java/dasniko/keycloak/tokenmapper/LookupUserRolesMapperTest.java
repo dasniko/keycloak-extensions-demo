@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
 import jakarta.ws.rs.core.Response;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -21,6 +20,8 @@ import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.ProtocolMapperRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.IOException;
 import java.net.URI;
@@ -38,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Testcontainers
 class LookupUserRolesMapperTest {
 
 	private static final String REALM = KeycloakContainer.MASTER_REALM;
@@ -55,15 +57,16 @@ class LookupUserRolesMapperTest {
 	private static final String CURRENT_CLIENT_ROLE = "current-client-role";
 	private static final String LOOKUP_CLIENT_ROLE = "lookup-client-role";
 
-	private static KeycloakContainer keycloak;
+	@Container
+	private static final KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:nightly")
+		.withDefaultProviderClasses();
+
 	private static RealmResource realm;
 	private static ClientResource testClient;
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 
 	@BeforeAll
 	static void setUp() {
-		keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:nightly").withDefaultProviderClasses();
-		keycloak.start();
 		realm = keycloak.getKeycloakAdminClient().realm(REALM);
 
 		ClientRepresentation roleClient = new ClientRepresentation();
@@ -90,11 +93,6 @@ class LookupUserRolesMapperTest {
 		client.setPublicClient(false);
 		client.setDirectAccessGrantsEnabled(true);
 		testClient = realm.clients().get(CreatedResponseUtil.getCreatedId(realm.clients().create(client)));
-	}
-
-	@AfterAll
-	static void tearDown() {
-		keycloak.stop();
 	}
 
 	@AfterEach
