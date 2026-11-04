@@ -303,7 +303,7 @@ public class LookupUserRolesMapper extends AbstractOIDCProtocolMapper implements
 	private static void clear(IDToken token, String realmClaim, String clientClaim, Set<String> clientIds) {
 		if (token instanceof AccessToken accessToken) {
 			accessToken.setRealmAccess(null);
-			accessToken.setResourceAccess(new HashMap<>());
+			accessToken.setResourceAccess(null);
 		}
 		removeClaim(token.getOtherClaims(), JsonUtils.splitClaimPath(realmClaim));
 		if (CLIENT_ID_PATTERN.matcher(clientClaim).find()) {

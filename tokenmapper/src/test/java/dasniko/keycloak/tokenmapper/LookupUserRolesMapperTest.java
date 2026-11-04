@@ -164,7 +164,7 @@ class LookupUserRolesMapperTest extends TestBase {
 		Map<String, Object> token = accessToken();
 
 		assertNull(token.get("realm_access"));
-		assertTrue(strings(token, "resource_access", ROLE_CLIENT, "roles").isEmpty());
+		assertNull(token.get("resource_access"));
 		assertTrue(strings(token, "my", "realm").contains("r_" + LOOKUP_REALM_ROLE));
 		assertEquals(List.of(ROLE_CLIENT + ":" + LOOKUP_CLIENT_ROLE), strings(token, "my", "clients", ROLE_CLIENT));
 	}
