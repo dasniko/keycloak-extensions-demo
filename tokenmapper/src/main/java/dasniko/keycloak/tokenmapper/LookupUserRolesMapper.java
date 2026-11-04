@@ -26,7 +26,6 @@ import org.keycloak.utils.JsonUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -146,31 +145,8 @@ public class LookupUserRolesMapper extends AbstractOIDCProtocolMapper implements
 	}
 
 	@Override
-	public AccessToken transformAccessToken(AccessToken token, ProtocolMapperModel mappingModel, KeycloakSession session,
-	                                        UserSessionModel userSession, ClientSessionContext clientSessionCtx) {
-		boolean include = getShouldUseLightweightToken(session)
-			? OIDCAttributeMapperHelper.includeInLightweightAccessToken(mappingModel)
-			: OIDCAttributeMapperHelper.includeInAccessToken(mappingModel);
-		if (include) {
-			mapRoles(token, mappingModel, userSession, session, clientSessionCtx, OIDCAttributeMapperHelper.INCLUDE_IN_ACCESS_TOKEN);
-		}
-		return token;
-	}
-
-	@Override
-	public AccessToken transformIntrospectionToken(AccessToken token, ProtocolMapperModel mappingModel, KeycloakSession session,
-	                                               UserSessionModel userSession, ClientSessionContext clientSessionCtx) {
-		if (OIDCAttributeMapperHelper.includeInIntrospection(mappingModel)) {
-			mapRoles(token, mappingModel, userSession, session, clientSessionCtx, OIDCAttributeMapperHelper.INCLUDE_IN_INTROSPECTION);
-		}
-		return token;
-	}
-
-	/**
-	 * @param audienceFlag the "include in ..." config key of the audience resolve mapper that applies to the token being built
-	 */
-	private void mapRoles(AccessToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession, KeycloakSession session,
-	                      ClientSessionContext clientSessionCtx, String audienceFlag) {
+	protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession, KeycloakSession session,
+	                        ClientSessionContext clientSessionCtx) {
 		Map<String, String> config = mappingModel.getConfig();
 		String username = config.get(LOOKUP_USERNAME);
 		RealmModel realm = session.getContext().getRealm();
@@ -219,20 +195,25 @@ public class LookupUserRolesMapper extends AbstractOIDCProtocolMapper implements
 			mapRoles(token, clientClaim, clientId, prefixed(effectivePrefix, roles));
 		});
 
-		if (isAudienceResolved(clientSessionCtx, audienceFlag)) {
-			adjustAudience(token, client.getClientId(), currentClientIds, lookupClientRoles.keySet());
+		if (token instanceof AccessToken accessToken && isAudienceResolved(clientSessionCtx)) {
+			adjustAudience(accessToken, client.getClientId(), currentClientIds, lookupClientRoles.keySet());
 		}
 	}
 
 	/**
 	 * The audience resolve mapper (priority 30) runs before this mapper and derives the audience from the current user's roles.
-	 * We only touch the audience if that mapper is active for the token being built, otherwise the audience was never role-based.
+	 * We only touch the audience if that mapper is active, otherwise the audience was never role-based.
+	 * <p>
+	 * {@link #setClaim} doesn't know whether the access token or the introspection response is built, so "active" means included in
+	 * at least one of the two. If the audience resolve mapper covers only one of them, the audience of the other one is adjusted too.
 	 */
-	private static boolean isAudienceResolved(ClientSessionContext clientSessionCtx, String flag) {
+	private static boolean isAudienceResolved(ClientSessionContext clientSessionCtx) {
 		return clientSessionCtx.getProtocolMappersStream()
 			.filter(m -> AudienceResolveProtocolMapper.PROVIDER_ID.equals(m.getProtocolMapper()))
 			// like the audience resolve mapper itself: an unset flag means 'included'
-			.anyMatch(m -> m.getConfig() == null || !"false".equals(m.getConfig().get(flag)));
+			.anyMatch(m -> m.getConfig() == null
+				|| !"false".equals(m.getConfig().get(OIDCAttributeMapperHelper.INCLUDE_IN_ACCESS_TOKEN))
+				|| !"false".equals(m.getConfig().get(OIDCAttributeMapperHelper.INCLUDE_IN_INTROSPECTION)));
 	}
 
 	/**

@@ -153,9 +153,10 @@ default (5 s Apache, 30 s Vert.x). State on Keycloak main as of 2026-10-11:
 
 Roles of another user come from `TokenManager.getAccess(user, client, clientSessionCtx.getClientScopesStream())`, not from
 `RoleResolveUtil` — that one is bound to the session's own user. Priority is `PRIORITY_ROLE_MAPPER + 1` (41); the audience
-resolve mapper (30) runs earlier and derives `aud` from the *current* user's roles, so `aud` is corrected in the mapper itself —
-only if that mapper is active for the target (hence `transformAccessToken`/`transformIntrospectionToken` are overridden instead of
-`setClaim`: the target decides which "include in …" flag of the audience mapper counts).
+resolve mapper (30) runs earlier and derives `aud` from the *current* user's roles, so `aud` is corrected in the mapper itself,
+if the audience mapper is active. `setClaim` can't tell access token from introspection, so "active" means included in either
+(deliberate simplification; separate `transformAccessToken`/`transformIntrospectionToken` overrides would be exact but duplicate
+the base class' include logic).
 Claim writing is reimplemented (the `AbstractUserRoleMappingMapper` helpers are private/protected) on top of `JsonUtils`.
 Tests: token introspection requires the introspecting client in `aud` (otherwise `active:false`), so the role-less test client
 needs an audience mapper on itself.

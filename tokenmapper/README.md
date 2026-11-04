@@ -40,9 +40,11 @@ Things to be aware of:
 
 - The mapper has priority 41 (role mappers: 40, script mapper: 50) so it runs after the built-in role mappers.
 - The audience resolve mapper (priority 30) derives `aud` from the **current user's** roles, before this mapper runs. If that
-  mapper is active for the token being built, this mapper adjusts `aud` to the looked-up user's client roles: it adds them
-  (merge) or replaces the current user's role-based audiences (replace). An audience for the same client that comes from an
-  explicit audience mapper is removed in replace mode too, as the two cannot be told apart.
+  mapper is active (included in the access token or in the introspection response), this mapper adjusts `aud` to the
+  looked-up user's client roles: it adds them (merge) or replaces the current user's role-based audiences (replace). An
+  audience for the same client that comes from an explicit audience mapper is removed in replace mode too, as the two cannot
+  be told apart. The mapper cannot tell the access token from the introspection response, so if the audience resolve mapper is
+  included in only one of them, `aud` is adjusted in the other one as well.
 - In replace mode, roles written by other mappers to claim paths *other* than `realm_access`, `resource_access` and the two
   configured paths are not removed.
 - Only realm admins can configure mappers, but this effectively lets a client's tokens carry another user's roles. Use a
