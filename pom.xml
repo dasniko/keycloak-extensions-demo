@@ -44,6 +44,7 @@
 		<maven.compiler.release>21</maven.compiler.release>
 		<maven-shade.version>3.6.2</maven-shade.version>
 		<maven-surefire.version>3.6.1</maven-surefire.version>
+		<mockito.version>5.24.0</mockito.version>
 	</properties>
 
 	<dependencyManagement>
@@ -80,6 +81,16 @@
 				<groupId>org.keycloak</groupId>
 				<artifactId>keycloak-junit5</artifactId>
 				<version>${keycloak.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-core</artifactId>
+				<version>${mockito.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-junit-jupiter</artifactId>
+				<version>${mockito.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
